@@ -309,6 +309,9 @@ function continueToNextChapter() {
         const title = nameSpan?.title ?? titleSpan?.title ?? '未知标题';
         console.log('跳过已完成和锁定课程/目录:', title);
         nextCourseNode = nextCourse();
+        if(!nextCourseNode) {
+            break;
+        }
         skippedCount++;
     }
     if (nextCourseNode) {
@@ -321,7 +324,16 @@ function continueToNextChapter() {
                 while(nodeType(aimNode) !== 'Unknown' && nodeType(aimNode) !== 'Pending') {
                     console.log('执行章节跳转循环中...')
                     aimNode = nextCourse();
+                    if(!aimNode) {
+                        confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
+                        allTaskDown = true;
+                        nextLock = false; // 解
+                        return;
+                    }
                     skippedCount++; 
+                }
+                if(!aimNode) {
+                    confirm
                 }
                 nextChapter = aimNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS); 
                 console.log('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
