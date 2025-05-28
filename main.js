@@ -243,7 +243,7 @@ function autoQuestionDeal(target, innerDoc) {
                             const checkboxes = innerDoc.querySelectorAll(VIDEO_QUESTION_CHECKBOXES_FEATURE_CLASSES);
 
                             if (checkboxes.length > 0) {
-                                // 多选题, 遍历所有组合
+                                // 多选
                                 const n = checkboxes.length;
                                 for (let mask = 1; mask < (1 << n); mask++) {
                                     checkboxes.forEach(cb => cb.checked = false);
@@ -257,7 +257,7 @@ function autoQuestionDeal(target, innerDoc) {
                                     if (over) break;
                                 }
                             } else if (radios.length > 0) {
-                                // 单选题, 依次点击
+                                // 单选
                                 for (let i = 0; i < radios.length; i++) {
                                     radios[i].click();
                                     innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
@@ -291,12 +291,10 @@ function continueToNextChapter() {
         if (nextBtn.style.display === 'none') {
             confirm('课程已完成');
             allTaskDown = true;
-            //isBusy = false; // 课程全部完成时也要解锁
             nextLock = false;
             return;
         }
     } else {
-        //isBusy = false; // 异常时也要解锁
         nextLock = false;
         throw new Error('元素缺失, 已终止');
     }
@@ -329,26 +327,26 @@ function continueToNextChapter() {
                 console.log('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
             }  
             if (nextChapter) {
-                //nextChapter.click();
-                //console.log('已点击章节:', nextChapter.title);
                 timeSleep(DEFAULT_SLEEP_TIME).then(() => { 
                     console.log('即将跳转到下一章节');
                     nextChapter.click();
                     console.log('已点击章节:', nextChapter.title);
-                    //isBusy = false; // 章节跳转后解锁
                     nextLock = false; // 解锁
                 });
+            } else {
+                confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
+                allTaskDown = true;
+                nextLock = false; // 解锁
             }
         } else {
             confirm('课程已完成');
             allTaskDown = true;
-            //isBusy = false; // 课程全部完成时也要解锁
             nextLock = false; // 解锁
         }
     } else {
-        console.warn('未找到下一个课程节点, 可能是课程已全部完成或结构异常');
-        //isBusy = false; // 没有下一个节点时也要解锁
-        nextLock = false; // 解锁
+        confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
+        allTaskDown = true;
+        nextLock = false; 
     }
 }
 
@@ -366,7 +364,6 @@ function findOuterDoc() {
             console.log('[调试] 未找到 outerDoc');
             return null;
         }
-        // 新增判断
         if (outerDoc.location.href === IFRAME_LOADING_URL) {
             console.log('[调试] outerDoc 仍为 about:blank,等待加载');
             return null;
@@ -530,7 +527,6 @@ function findPdfElement(innerDoc) {
     if (!pdfHtml) {
         console.log('[调试] 未找到 pdf 元素');
     } else {
-        //console.log('该章节为PDF,进行参数捕获', pdfHtml);
         return { pdfHtml };
     }
     
