@@ -43,7 +43,7 @@ const VIDEO_IFRAME_FEATURE_CLASS = 'ans-insertvideo-online';
 const VIDEO_LAUNCH_FEATURE_CLASS = '.vjs-big-play-button';
 const VIDEO_PAUSED_FEATURE_CLASS = 'vjs-paused';
 const VIDEO_PACELIST_FEATURE_CLASS = 'li.vjs-menu-item';
-const VIDEO_HAS_LAUNCED_FEATURE_CLASS = 'vjs-has-started';
+const VIDEO_HAS_LAUNCHED_FEATURE_CLASS = 'vjs-has-started';
 const VIDEO_PACE_SELECTED_FEATURE_CLASS = 'vjs-menu-item-selected';
 const VIDEO_QUESTION_SUBMIT_FEATURE_CLASS = '.ans-videoquiz-submit';
 const VIDEO_QUESTION_RADIOS_FEATURE_CLASSES = '.tkItem_ul .ans-videoquiz-opt input[type="radio"]';
@@ -455,7 +455,7 @@ function findVideoElement(innerDoc) {
 
 async function tryStartVideo(videoDiv, launchBtn, paceList) {
     let tryCount = 0;
-    while (!videoDiv.classList.contains(VIDEO_HAS_LAUNCED_FEATURE_CLASS) && tryCount < 10) {
+    while (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS) && tryCount < 10) {
         if (launchBtn) {
             launchBtn.click();
         } else {
@@ -481,7 +481,7 @@ function autoPlayVideo( innerDoc, videoDiv, launchBtn, target, playControlBtn, p
             console.log('class 已包含 vjs-ended');
             continueToNextChapter(); 
             observer && observer.disconnect();
-        } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCED_FEATURE_CLASS)) {       
+        } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS)) {       
             tryStartVideo(videoDiv, launchBtn, paceList);
         } else if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
             console.log('课程被暂停,正在检测原因');
