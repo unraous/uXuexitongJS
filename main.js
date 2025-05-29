@@ -42,6 +42,7 @@ const VIDEO_ENDED_FEATURE_CLASS = 'vjs-ended';
 const VIDEO_IFRAME_FEATURE_CLASS = 'ans-insertvideo-online';
 const VIDEO_LAUNCH_FEATURE_CLASS = '.vjs-big-play-button';
 const VIDEO_PAUSED_FEATURE_CLASS = 'vjs-paused';
+const VIDEO_MUTEBTN_FEATURE_CLASS = '.vjs-mute-control';
 const VIDEO_PACELIST_FEATURE_CLASS = 'li.vjs-menu-item';
 const VIDEO_HAS_LAUNCHED_FEATURE_CLASS = 'vjs-has-started';
 const VIDEO_PACE_SELECTED_FEATURE_CLASS = 'vjs-menu-item-selected';
@@ -185,7 +186,164 @@ function waitForElement(getter, callback, interval = DEFAULT_INTERVAL_TIME, maxT
     return () => { stopped = true; };
 }
 
-async function selectMenuItem(paceList) {
+function continueToNextChapter() {
+    if (nextLock) {
+        console.log('[锁] 上一次流程未结束，跳过本次 continueToNextChapter');
+        return;
+    }
+    nextLock = true; 
+
+    const nextBtn = document.getElementById(NEXTBTN_ID);
+
+    if (nextBtn) {
+        if (nextBtn.style.display === 'none') {
+            confirm('课程已完成');
+            allTaskDown = true;
+            nextLock = false;
+            return;
+        }
+    } else {
+        nextLock = false;
+        throw new Error('元素缺失, 已终止');
+    }
+
+    findCourseTree(); //由于此时课程树有元素变化（主要是COURSE_TREE_NODE_CURRENT_FEATURE_CLASS），需要刷新
+    let currentTitle = initializeTreeIndex();
+    let nextCourseNode = nextCourse();
+    let skippedCount = 0;
+    while(nodeType(nextCourseNode) !== 'Unknown' && nodeType(nextCourseNode) !== 'Pending') {
+        const nameSpan = nextCourseNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
+        const titleSpan = nextCourseNode.querySelector(COURSE_TREE_NODE_TITLE_FEATURE_CLASS);
+        const title = nameSpan?.title ?? titleSpan?.title ?? '未知标题';
+        console.log('跳过已完成和锁定课程/目录:', title);
+        nextCourseNode = nextCourse();
+        if(!nextCourseNode) {
+            break;
+        }
+        skippedCount++;
+    }
+    if (nextCourseNode) {
+        let nextChapter = nextCourseNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
+        console.log('正在跳转到下一课程:', nextChapter.title);
+        if (nextChapter) {
+            if (currentTitle === nextChapter.title) {
+                aimNode = nextCourse();
+                console.log('当前章节已激活，跳过');
+                while(nodeType(aimNode) !== 'Unknown' && nodeType(aimNode) !== 'Pending') {
+                    console.log('执行章节跳转循环中...')
+                    aimNode = nextCourse();
+                    if(!aimNode) {
+                        confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
+                        allTaskDown = true;
+                        nextLock = false; 
+                        return;
+                    }
+                    skippedCount++; 
+                }
+                if(!aimNode) {
+                    confirm
+                }
+                nextChapter = aimNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS); 
+                console.log('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
+            }  
+            if (nextChapter) {
+                timeSleep(DEFAULT_SLEEP_TIME).then(() => { 
+                    console.log('即将跳转到下一章节');
+                    nextChapter.click();
+                    console.log('已点击章节:', nextChapter.title);
+                    nextLock = false; 
+                });
+            } else {
+                confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
+                allTaskDown = true;
+                nextLock = false; 
+            }
+        } else {
+            confirm('课程已完成');
+            allTaskDown = true;
+            nextLock = false; 
+        }
+    } else {
+        confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
+        allTaskDown = true;
+        nextLock = false; 
+    }
+}
+
+function findOuterDoc() {
+    const outerIframe = document.getElementById(OUTER_IFRAME_ID);
+        if (!outerIframe) return null;
+        let outerDoc;
+        try {
+            outerDoc = outerIframe.contentDocument || outerIframe.contentWindow.document;
+        } catch (e) {
+            console.warn('跨域, 无法访问iframe内容');
+            return null;
+        }
+        if (!outerDoc) {
+            console.log('[调试] 未找到 outerDoc');
+            return null;
+        }
+        if (outerDoc.location.href === IFRAME_LOADING_URL) {
+            console.log('[调试] outerDoc 仍为 about:blank,等待加载');
+            return null;
+        }
+        console.log('已找到 outerDoc:', outerDoc);
+        return outerDoc;
+}
+
+function findInnerDocs(outerDoc) {
+    const innerIframes = outerDoc.querySelectorAll(INNER_COURSE_IFRAME_ID);
+    const result = [];
+    innerIframes.forEach(innerIframe => {
+        let Type = '';
+        if (innerIframe.classList.contains(VIDEO_IFRAME_FEATURE_CLASS)) {
+            Type = 'Video';
+        } else if (innerIframe.classList.contains(PDF_DOC_FEATURE_CLASS)) {
+            Type = 'Pdf';
+        } else {
+            Type = 'Unknown';
+        }
+        let innerDoc;
+        try {
+            innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
+        } catch (e) {
+            console.warn('跨域, 无法访问内层iframe内容');
+            return;
+        }
+        if (!innerDoc) {
+            console.log('[调试] 未找到 innerDoc');
+            return;
+        }
+        if (innerDoc.location.href === IFRAME_LOADING_URL) {
+            console.log('[调试] innerDoc 仍为 about:blank,等待加载');
+            return;
+        }
+        result.push({ innerDoc, Type });
+    });
+    if (result.length === 0) {
+        return null;
+    }
+    return result;
+}
+
+
+function muteVideo (muteBtn) {
+    if (muteBtn) {
+    if (muteBtn.title === '取消静音') {
+        console.log('已是静音状态，跳过');
+    } else if (muteBtn.title === '静音') {
+        muteBtn.click();
+        console.log('已自动点击静音按钮');
+    } else {
+        console.warn('静音按钮的title未知:', muteBtn.title);
+    }
+} else {
+    console.warn('未找到静音按钮元素');
+}
+}
+
+function selectMenuItem(paceList) {
     // 2x > 1.5x > 1.25x
     const targets = ["2x", "1.5x", "1.25x"];
     let found = null;
@@ -279,147 +437,6 @@ function autoQuestionDeal(target, innerDoc) {
     }
 }
 
-function continueToNextChapter() {
-    if (nextLock) {
-        console.log('[锁] 上一次流程未结束，跳过本次 continueToNextChapter');
-        return;
-    }
-    nextLock = true; 
-
-    const nextBtn = document.getElementById(NEXTBTN_ID);
-
-    if (nextBtn) {
-        if (nextBtn.style.display === 'none') {
-            confirm('课程已完成');
-            allTaskDown = true;
-            nextLock = false;
-            return;
-        }
-    } else {
-        nextLock = false;
-        throw new Error('元素缺失, 已终止');
-    }
-
-    findCourseTree(); //由于此时课程树有元素变化（主要是COURSE_TREE_NODE_CURRENT_FEATURE_CLASS），需要刷新
-    let currentTitle = initializeTreeIndex();
-    let nextCourseNode = nextCourse();
-    let skippedCount = 0;
-    while(nodeType(nextCourseNode) !== 'Unknown' && nodeType(nextCourseNode) !== 'Pending') {
-        const nameSpan = nextCourseNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
-        const titleSpan = nextCourseNode.querySelector(COURSE_TREE_NODE_TITLE_FEATURE_CLASS);
-        const title = nameSpan?.title ?? titleSpan?.title ?? '未知标题';
-        console.log('跳过已完成和锁定课程/目录:', title);
-        nextCourseNode = nextCourse();
-        if(!nextCourseNode) {
-            break;
-        }
-        skippedCount++;
-    }
-    if (nextCourseNode) {
-        let nextChapter = nextCourseNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
-        console.log('正在跳转到下一课程:', nextChapter.title);
-        if (nextChapter) {
-            if (currentTitle === nextChapter.title) {
-                aimNode = nextCourse();
-                console.log('当前章节已激活，跳过');
-                while(nodeType(aimNode) !== 'Unknown' && nodeType(aimNode) !== 'Pending') {
-                    console.log('执行章节跳转循环中...')
-                    aimNode = nextCourse();
-                    if(!aimNode) {
-                        confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
-                        allTaskDown = true;
-                        nextLock = false; // 解
-                        return;
-                    }
-                    skippedCount++; 
-                }
-                if(!aimNode) {
-                    confirm
-                }
-                nextChapter = aimNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS); 
-                console.log('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
-            }  
-            if (nextChapter) {
-                timeSleep(DEFAULT_SLEEP_TIME).then(() => { 
-                    console.log('即将跳转到下一章节');
-                    nextChapter.click();
-                    console.log('已点击章节:', nextChapter.title);
-                    nextLock = false; // 解锁
-                });
-            } else {
-                confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
-                allTaskDown = true;
-                nextLock = false; // 解锁
-            }
-        } else {
-            confirm('课程已完成');
-            allTaskDown = true;
-            nextLock = false; // 解锁
-        }
-    } else {
-        confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
-        allTaskDown = true;
-        nextLock = false; 
-    }
-}
-
-function findOuterDoc() {
-    const outerIframe = document.getElementById(OUTER_IFRAME_ID);
-        if (!outerIframe) return null;
-        let outerDoc;
-        try {
-            outerDoc = outerIframe.contentDocument || outerIframe.contentWindow.document;
-        } catch (e) {
-            console.warn('跨域, 无法访问iframe内容');
-            return null;
-        }
-        if (!outerDoc) {
-            console.log('[调试] 未找到 outerDoc');
-            return null;
-        }
-        if (outerDoc.location.href === IFRAME_LOADING_URL) {
-            console.log('[调试] outerDoc 仍为 about:blank,等待加载');
-            return null;
-        }
-        console.log('已找到 outerDoc:', outerDoc);
-        return outerDoc;
-}
-
-function findInnerDocs(outerDoc) {
-    const innerIframes = outerDoc.querySelectorAll(INNER_COURSE_IFRAME_ID);
-    const result = [];
-    innerIframes.forEach(innerIframe => {
-        let Type = '';
-        if (innerIframe.classList.contains(VIDEO_IFRAME_FEATURE_CLASS)) {
-            Type = 'Video';
-        } else if (innerIframe.classList.contains(PDF_DOC_FEATURE_CLASS)) {
-            Type = 'Pdf';
-        } else {
-            Type = 'Unknown';
-        }
-        let innerDoc;
-        try {
-            innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
-        } catch (e) {
-            console.warn('跨域, 无法访问内层iframe内容');
-            return;
-        }
-        if (!innerDoc) {
-            console.log('[调试] 未找到 innerDoc');
-            return;
-        }
-        if (innerDoc.location.href === IFRAME_LOADING_URL) {
-            console.log('[调试] innerDoc 仍为 about:blank,等待加载');
-            return;
-        }
-        result.push({ innerDoc, Type });
-    });
-    if (result.length === 0) {
-        return null;
-    }
-    return result;
-}
-
 function findVideoElement(innerDoc) {
     const videoDiv = innerDoc.getElementById(VIDEO_IFRAME_ID); //视频主元素
     const target = innerDoc.getElementById(VIDEO_QUESTION_ID); // 互动答题元素
@@ -427,7 +444,8 @@ function findVideoElement(innerDoc) {
     const launchBtn = innerDoc.querySelector(VIDEO_LAUNCH_FEATURE_CLASS); // 视频启动按钮
     const playControlBtn = innerDoc.querySelector(VIDEO_PLAY_FEATURE_CLASS); // 视频播放按钮
     const paceList = innerDoc.querySelectorAll(VIDEO_PACELIST_FEATURE_CLASS); // 倍速播放列表
-    
+    const muteBtn = innerDoc.querySelector(VIDEO_MUTEBTN_FEATURE_CLASS); // 静音按钮
+
     if (!videoDiv) {
         console.log('[调试] 未找到 video 元素');
     } else {
@@ -437,16 +455,25 @@ function findVideoElement(innerDoc) {
         } else {
             console.log('[调试] 找到播放按钮:', launchBtn);
         }
+
         if (!playControlBtn) {
             console.log('[调试] 未找到播放控制按钮');
         } else {
             console.log('[调试] 找到播放控制按钮:', playControlBtn);
         }
+
         if (!target) {
             console.log('[调试] 未找到目标元素 ext-comp-1046');
         } else {
             console.log('[调试] 找到目标元素 ext-comp-1046:', target);
         }
+
+        if (muteBtn) {
+            console.log('[调试] 找到静音按钮:', muteBtn);
+        } else {
+            console.log('[调试] 未找到静音按钮');
+        }
+
         if (paceList.length === 0) {
             console.log('[调试] 未找到任何菜单项'); 
         } else {
@@ -454,13 +481,13 @@ function findVideoElement(innerDoc) {
         }
 
         if (videoDiv) {
-            return { innerDoc, videoDiv, launchBtn, target, playControlBtn, paceList };
+            return { innerDoc, videoDiv, launchBtn, target, playControlBtn, paceList, muteBtn };
         }
     }  
     return null;
 }
 
-async function tryStartVideo(videoDiv, launchBtn, paceList) {
+async function tryStartVideo(videoDiv, launchBtn, paceList, muteBtn) {
     let tryCount = 0;
     while (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS) && tryCount < 10) {
         if (launchBtn) {
@@ -474,9 +501,10 @@ async function tryStartVideo(videoDiv, launchBtn, paceList) {
     }
     await timeSleep(DEFAULT_SLEEP_TIME);
     selectMenuItem(paceList);
+    muteVideo(muteBtn);
 }
 
-function autoPlayVideo( innerDoc, videoDiv, launchBtn, target, playControlBtn, paceList ) {
+function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, paceList, muteBtn) {
     return new Promise((resolve) => {
         if (!videoDiv) {
             console.error('请求超时,请检查网络或与作者联系');
@@ -493,7 +521,7 @@ function autoPlayVideo( innerDoc, videoDiv, launchBtn, target, playControlBtn, p
                 resolve(true);
                 return;
             } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS)) {       
-                tryStartVideo(videoDiv, launchBtn, paceList);
+                tryStartVideo(videoDiv, launchBtn, paceList, muteBtn);
             } else if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
                 console.log('课程被暂停,正在检测原因');
                 timeSleep(DEFAULT_SLEEP_TIME).then(() => {
@@ -604,7 +632,7 @@ function handleIframeChange() {
                             console.log('第三层回调执行');
                             console.log('找到的内层文档数目:', InnerDocs.length);
                             async function runTasksSerially() {
-                                for (const { innerDoc, Type } of InnerDocs) {
+                                for (const { innerDoc, Type } of InnerDocs) { // for...of 防错乱
                                     console.log(`处理 ${Type} 任务点...`);
                                     if (Type === 'Video') {
                                         console.log('该章节为VIDEO,进行参数捕获');
@@ -622,14 +650,15 @@ function handleIframeChange() {
                                                         resolve();
                                                         return;
                                                     }
-                                                    const { videoDiv, launchBtn, target, playControlBtn, paceList } = innerParam;
+                                                    const { videoDiv, launchBtn, target, playControlBtn, paceList , muteBtn } = innerParam;
                                                     await autoPlayVideo(
                                                         innerDoc,
                                                         videoDiv,
                                                         launchBtn,
                                                         target,
                                                         playControlBtn,
-                                                        paceList
+                                                        paceList,
+                                                        muteBtn
                                                     );
                                                     resolve();
                                                 }
