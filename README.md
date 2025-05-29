@@ -2,7 +2,7 @@
 
 ## 脚本简介
 
-> 该脚本灵感来自 [@chaolucky](https://github.com/chaolucky18/xuexitongScript) 大佬的项目。
+> 该脚本灵感来自 @chaolucky 大佬的[项目](https://github.com/chaolucky18/xuexitongScript)。
 > 本来只是想加一个检测互动答题的模块交个 PR，但发现原脚本的换课部分好像也过时了，于是就干脆完全重写了。
 > 用法与 lucky 佬的基本一致，截止 2025/5/28 可用。
 
