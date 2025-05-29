@@ -58,8 +58,8 @@ const OUTER_IFRAME_ID = 'iframe';
 const INNER_COURSE_IFRAME_ID = 'iframe.ans-attach-online';
 const IFRAME_MAIN_FEATURE_CLASS = '.left';
 
-const DEFAULT_SLEEP_TIME = 500; // 默认缓冲时间500ms，嫌慢可改小（未知后果）
-const DEFAULT_INTERVAL_TIME = 100; // 默认轮询间隔100ms
+const DEFAULT_SLEEP_TIME = 400 + Math.floor(Math.random() * 200); // 默认延迟400-600ms
+const DEFAULT_INTERVAL_TIME = 85 + Math.floor(Math.random() * 30); // 默认轮询间隔85-115ms
 
 const DEFAULT_TRY_COUNT = 50; // 默认最大尝试次数50次
 
@@ -152,6 +152,7 @@ function initializeTreeIndex() {
 }
 
 function timeSleep(time) {
+    time = time + Math.floor(Math.random() * 50);
     return new Promise(resolve => setTimeout(resolve, time));
 }
 
@@ -535,14 +536,34 @@ function findPdfElement(innerDoc) {
     }
     
     const pdfHtml = finalDoc.documentElement;
-    
     if (!pdfHtml) {
         console.log('[调试] 未找到 pdf 元素');
-    } else {
-        return { pdfHtml };
+        return null;
     }
-    
-    return null;
+
+    console.log('已找到 pdf 元素:', pdfHtml);
+    return { pdfHtml };
+}
+
+function scrollPdfToBottom(pdfHtml, maxTries = Math.floor(DEFAULT_TRY_COUNT / 10)) { //有时候不灵，未知原因
+    return new Promise(async (resolve) => {
+        let lastTop = pdfHtml.scrollTop;
+        let tries = 0;
+        while (tries < maxTries) {
+            pdfHtml.scrollTo({
+                top: pdfHtml.scrollHeight,
+                behavior: 'smooth'
+            });
+            await timeSleep(4 * DEFAULT_SLEEP_TIME); // 等待滚动动画
+            if (pdfHtml.scrollTop !== lastTop && pdfHtml.scrollTop > 0) {
+                resolve(true); // 滚动成功
+                return;
+            }
+            lastTop = pdfHtml.scrollTop;
+            tries++;
+        }
+        resolve(false); // 多次尝试后仍未滚动
+    });
 }
 
 function handleIframeChange() {
@@ -612,15 +633,21 @@ function handleIframeChange() {
                                         () => {
                                             return findPdfElement(innerDoc);
                                         },
-                                        ({ pdfHtml }) => {
+                                        async ({ pdfHtml } = {}) => {
                                             if (!pdfHtml) {
                                                 console.error('请求超时, 请检查网络或与作者联系');
                                                 continueToNextChapter();
                                                 return;
                                             }
-                                            pdfHtml.scrollTop = pdfHtml.scrollHeight;
-                                            timeSleep(1000).then(() => {
-                                                console.log('已刷完');
+
+                                            const toBottom = await scrollPdfToBottom(pdfHtml);
+                                            if (toBottom) {
+                                                console.log('PDF滚动成功！');
+                                            } else {
+                                                console.warn('PDF多次滚动无效，可能页面未加载完全');
+                                            }
+                                            timeSleep(2 * DEFAULT_SLEEP_TIME).then(() => {
+                                                console.log('章节处理完毕');
                                                 continueToNextChapter();
                                             });
                                         }
