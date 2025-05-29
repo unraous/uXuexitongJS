@@ -385,42 +385,39 @@ function findOuterDoc() {
         return outerDoc;
 }
 
-function findInnerDoc(outerDoc) {
-    const innerIframe = outerDoc.querySelector(INNER_COURSE_IFRAME_ID);
-    let Type = '';
-    if (!innerIframe) {
-        console.log('[调试] 未找到 innerIframe');
+function findInnerDocs(outerDoc) {
+    const innerIframes = outerDoc.querySelectorAll(INNER_COURSE_IFRAME_ID);
+    const result = [];
+    innerIframes.forEach(innerIframe => {
+        let Type = '';
+        if (innerIframe.classList.contains(VIDEO_IFRAME_FEATURE_CLASS)) {
+            Type = 'Video';
+        } else if (innerIframe.classList.contains(PDF_DOC_FEATURE_CLASS)) {
+            Type = 'Pdf';
+        } else {
+            Type = 'Unknown';
+        }
+        let innerDoc;
+        try {
+            innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
+        } catch (e) {
+            console.warn('跨域, 无法访问内层iframe内容');
+            return;
+        }
+        if (!innerDoc) {
+            console.log('[调试] 未找到 innerDoc');
+            return;
+        }
+        if (innerDoc.location.href === IFRAME_LOADING_URL) {
+            console.log('[调试] innerDoc 仍为 about:blank,等待加载');
+            return;
+        }
+        result.push({ innerDoc, Type });
+    });
+    if (result.length === 0) {
         return null;
     }
-    else if (innerIframe.classList.contains(VIDEO_IFRAME_FEATURE_CLASS)) {
-        console.log('课程为VIDEO类型:');
-        Type = 'Video';
-    }
-    else if (innerIframe.classList.contains(PDF_DOC_FEATURE_CLASS)) {
-        console.log('课程为PDF类型:');
-        Type = 'Pdf';
-    }
-    else {
-        console.error('[调试] 不支持的课程类型,脚本已终止,请联系作者并说明信息', innerIframe);
-    }
-    let innerDoc;
-    try {
-        innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
-    } catch (e) {
-        console.warn('跨域, 无法访问内层iframe内容');
-        return null;
-    }
-    if (!innerDoc) {
-        console.log('[调试] 未找到 innerDoc');
-        return null;
-    }
-    if (innerDoc.location.href === IFRAME_LOADING_URL) {
-        console.log('[调试] innerDoc 仍为 about:blank,等待加载');
-        return null;  
-    } else {
-        console.log('已找到 innerDoc:', innerDoc);
-        return { innerDoc, Type };
-    }
+    return result;
 }
 
 function findVideoElement(innerDoc) {
@@ -480,45 +477,48 @@ async function tryStartVideo(videoDiv, launchBtn, paceList) {
 }
 
 function autoPlayVideo( innerDoc, videoDiv, launchBtn, target, playControlBtn, paceList ) {
-    if (!videoDiv) {
-        console.error('请求超时,请检查网络或与作者联系');
-        return;
-    }
-    console.log('debug successfully');
-    let observer = null;
-    const checkClass = () => {
-        if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) {
-            console.log('class 已包含 vjs-ended');
-            continueToNextChapter(); 
-            observer && observer.disconnect();
-        } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS)) {       
-            tryStartVideo(videoDiv, launchBtn, paceList);
-        } else if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
-            console.log('课程被暂停,正在检测原因');
-            timeSleep(DEFAULT_SLEEP_TIME).then(() => {
-                if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
-                    if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) { //由于视频结束时有暂停属性，由于延迟会产生分支跳跃到此处的情况，此步为防止一个视频循环播放
-                        console.log('class 已包含 vjs-ended');
-                        continueToNextChapter(); 
-                        observer && observer.disconnect();
-                        return;
-                    } if (playControlBtn) {
-                        playControlBtn.click();
-                        console.log('未检测到互动题目,已自动点击播放按钮'); //同时兼顾后台播放功能，因为学习通只会在你鼠标离开页面时触发一次暂停，此后无检测
-                    } else {
-                        console.warn('未找到播放控制按钮,请用户手动点击播放');
-                    }
-                } else {
-                    console.log('暂停状态已自动恢复,无需处理');
-                }
-            }); 
-        } else {
-            autoQuestionDeal(target, innerDoc);
+    return new Promise((resolve) => {
+        if (!videoDiv) {
+            console.error('请求超时,请检查网络或与作者联系');
+            resolve(false);
+            return;
         }
-    };
-    observer = new MutationObserver(checkClass);
-    observer.observe(videoDiv, { attributes: true, attributeFilter: ['class'] });
-    checkClass();
+        console.log('debug successfully');
+        let observer = null;
+        const checkClass = () => {
+            if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) {
+                console.log('class 已包含 vjs-ended');
+                //continueToNextChapter(); 
+                observer && observer.disconnect();
+                resolve(true);
+                return;
+            } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS)) {       
+                tryStartVideo(videoDiv, launchBtn, paceList);
+            } else if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
+                console.log('课程被暂停,正在检测原因');
+                timeSleep(DEFAULT_SLEEP_TIME).then(() => {
+                    if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
+                        if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) { //由于视频结束时有暂停属性，由于延迟会产生分支跳跃到此处的情况，此步为防止一个视频循环播放
+                            return;
+                        }
+                        if (playControlBtn) {
+                            playControlBtn.click();
+                            console.log('未检测到互动题目,已自动点击播放按钮'); //同时兼顾后台播放功能，因为学习通只会在你鼠标离开页面时触发一次暂停，此后无检测
+                        } else {
+                            console.warn('未找到播放控制按钮,请用户手动点击播放');
+                        }
+                    } else {
+                        console.log('暂停状态已自动恢复,无需处理');
+                    }
+                }); 
+            } else {
+                autoQuestionDeal(target, innerDoc);
+            }
+        };
+        observer = new MutationObserver(checkClass);
+        observer.observe(videoDiv, { attributes: true, attributeFilter: ['class'] });
+        checkClass();
+    });
 }
 
 function findPdfElement(innerDoc) {
@@ -566,6 +566,7 @@ function scrollPdfToBottom(pdfHtml, maxTries = Math.floor(DEFAULT_TRY_COUNT / 10
     });
 }
 
+
 function handleIframeChange() {
     if (allTaskDown) return;
 
@@ -573,6 +574,7 @@ function handleIframeChange() {
     let firstLayerCancel = null;
     let secondLayerCancel = null;
     let thirdLayerCancel = null;
+    let FourthLayerCancel = null;
 
     (function firstLayer() { //整体分为三层回调，以抓取三层iframe
         if (firstLayerCancel) firstLayerCancel();
@@ -590,74 +592,88 @@ function handleIframeChange() {
                         () => {
                             if (allTaskDown) return;
                             console.log('第二层回调执行');
-                            return findInnerDoc(outerDoc);
+                            return findInnerDocs(outerDoc);
                         },
-                        (param = {}) => {
-                            (function thirdLayer() {
-                                if (!param || !param.innerDoc) {
-                                    console.warn('内层Doc无法识别，尝试跳过');
-                                    continueToNextChapter();
-                                    return;
-                                }
-                                const { innerDoc, Type } = param;
-                                if (Type === 'Video') {
-                                    console.log('该章节为VIDEO,进行参数捕获');
-                                    if (thirdLayerCancel) thirdLayerCancel();
-                                    thirdLayerCancel = waitForElement(
-                                        () => {
-                                            if (allTaskDown) return;
-                                            console.log('第三层回调执行');
-                                            return findVideoElement(innerDoc);
-                                        },
-                                        (innerParam) => {
-                                            if (!innerParam) {
-                                                console.warn('页面异常加载，尝试跳过');
-                                                continueToNextChapter();
-                                                return;
-                                            }
-                                            const { videoDiv, launchBtn, target, playControlBtn, paceList } = innerParam;
-                                            autoPlayVideo(
-                                                innerDoc,
-                                                videoDiv,
-                                                launchBtn,
-                                                target,
-                                                playControlBtn,
-                                                paceList
+                        (InnerDocs = []) => {
+                        (function thirdLayer() {
+                            if (!Array.isArray(InnerDocs) || InnerDocs.length === 0) {
+                                console.warn('内层Docs为空，尝试跳过');
+                                return;
+                            }
+                            // 第三层
+                            console.log('第三层回调执行');
+                            console.log('找到的内层文档数目:', InnerDocs.length);
+                            async function runTasksSerially() {
+                                for (const { innerDoc, Type } of InnerDocs) {
+                                    console.log(`处理 ${Type} 任务点...`);
+                                    if (Type === 'Video') {
+                                        console.log('该章节为VIDEO,进行参数捕获');
+                                        await new Promise((resolve) => {
+                                            if (FourthLayerCancel) FourthLayerCancel();
+                                            FourthLayerCancel = waitForElement(
+                                                () => {
+                                                    if (allTaskDown) return;
+                                                    console.log('第四层回调执行');
+                                                    return findVideoElement(innerDoc);
+                                                },
+                                                async (innerParam) => {
+                                                    if (!innerParam) {
+                                                        console.warn('页面异常加载，尝试跳过');
+                                                        resolve();
+                                                        return;
+                                                    }
+                                                    const { videoDiv, launchBtn, target, playControlBtn, paceList } = innerParam;
+                                                    await autoPlayVideo(
+                                                        innerDoc,
+                                                        videoDiv,
+                                                        launchBtn,
+                                                        target,
+                                                        playControlBtn,
+                                                        paceList
+                                                    );
+                                                    resolve();
+                                                }
                                             );
-                                        }
-                                    );
-                                } else if (Type === 'Pdf') {
-                                    console.log('该章节为PDF,进行参数捕获');
-                                    if (thirdLayerCancel) thirdLayerCancel();
-                                    thirdLayerCancel = waitForElement(
-                                        () => {
-                                            return findPdfElement(innerDoc);
-                                        },
-                                        async ({ pdfHtml } = {}) => {
-                                            if (!pdfHtml) {
-                                                console.error('请求超时, 请检查网络或与作者联系');
-                                                continueToNextChapter();
-                                                return;
-                                            }
-
-                                            const toBottom = await scrollPdfToBottom(pdfHtml);
-                                            if (toBottom) {
-                                                console.log('PDF滚动成功！');
-                                            } else {
-                                                console.warn('PDF多次滚动无效，可能页面未加载完全');
-                                            }
-                                            timeSleep(2 * DEFAULT_SLEEP_TIME).then(() => {
-                                                console.log('章节处理完毕');
-                                                continueToNextChapter();
-                                            });
-                                        }
-                                    );
-                                } else {
-                                    console.warn('[调试] 不支持的课程类型,尝试跳过', Type);
-                                    continueToNextChapter();
+                                        });
+                                    } else if (Type === 'Pdf') {
+                                        console.log('该章节为PDF,进行参数捕获');
+                                        await new Promise((resolve) => {
+                                            if (thirdLayerCancel) thirdLayerCancel();
+                                            thirdLayerCancel = waitForElement(
+                                                () => {
+                                                    return findPdfElement(innerDoc);
+                                                },
+                                                async ({ pdfHtml } = {}) => {
+                                                    if (!pdfHtml) {
+                                                        console.error('请求超时, 请检查网络或与作者联系');
+                                                        resolve();
+                                                        return;
+                                                    }
+                                                    const toBottom = await scrollPdfToBottom(pdfHtml);
+                                                    if (toBottom) {
+                                                        console.log('PDF滚动成功！');
+                                                    } else {
+                                                        console.warn('PDF多次滚动无效，可能页面未加载完全');
+                                                    }
+                                                    await timeSleep(2 * DEFAULT_SLEEP_TIME);
+                                                    console.log('章节处理完毕');
+                                                    resolve();
+                                                }
+                                            );
+                                        });
+                                    } else {
+                                        console.warn('[调试] 不支持的课程类型,尝试跳过', Type);
+                                    }
                                 }
-                            })();
-                        }
+                                // 所有任务完成后
+                                console.log('所有章节任务已完成，准备跳转到下一章节');
+                                continueToNextChapter();
+                            }
+
+                            // 调用
+                            runTasksSerially();
+                        })();
+                    }
                     );
                 })();
             }
@@ -699,7 +715,7 @@ function main() {
         leftObserver.observe(leftEl, { childList: true, subtree: true });
         handleIframeChange();
     } else {
-        console.error('未找到 class 为 left 的元素');
+        console.error('未找到 class 为 lefaramt 的元素');
     }
 }
 
