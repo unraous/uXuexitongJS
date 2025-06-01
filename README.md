@@ -95,7 +95,7 @@
 
 ```
 
-   python src/main.py
+   python src/py/main.py
 
 ```
 

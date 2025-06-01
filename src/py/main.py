@@ -100,6 +100,9 @@ if driver is None:
 
 driver.get("https://mooc1.chaoxing.com")  # 先访问主域，才能设置 Cookie
 
+
+
+
 input("欢迎使用此脚本，请登录后打开至目标课程界面（即达到旧版用来粘贴脚本的页面即可），准备完成后按回车以继续...\n")
 
 driver.execute_script("""
