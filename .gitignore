@@ -3,5 +3,6 @@ alltheexp
 .env
 json
 .venv
-src/data/temp/*/*
-!src/data/temp/*/
+src/data/temp/json/**
+src/data/temp/html/**
+src/data/temp/ttf/**
