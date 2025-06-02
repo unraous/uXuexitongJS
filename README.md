@@ -15,7 +15,7 @@
 
 ## 依赖环境
 
-- Python 3.7+
+- Python 3.12（推荐）
 - 详见 `requirements.txt` 和 `package.json`
 
 ## 注意事项
