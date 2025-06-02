@@ -40,7 +40,7 @@ def answer_questions_batch(questions, retry=3):
         except Exception as e:
             print(f"批量请求出错（第{i+1}次）：", e)
             time.sleep(2)
-    return "ERROR"
+    return "A"
 
 def answer_questions_file(input_json, output_json, batch_size=10):
     """
