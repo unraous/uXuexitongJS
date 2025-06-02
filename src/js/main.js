@@ -773,7 +773,9 @@ function answerFixes(testList, answerHistory) {
 
         if (type === 'multi') { // 多选题
             const options = quesDiv.querySelectorAll('span.num_option_dx');
+            console.log('多选题修补之初的table:', answerTable);
             if (answerTable[qIndex].length === 0) {
+                console.log('进入初始化')
                 answerTable[qIndex] = Array(options.length).fill(-1);
             }
             
@@ -798,13 +800,18 @@ function answerFixes(testList, answerHistory) {
                     answerTable[qIndex][ch.charCodeAt(0) - 'A'.charCodeAt(0)] = 1; 
                 });
             } else {
+                console.log('before修补的answerTable:', answerTable);
                 const ansArr = answerHistory[qIndex]
                     .map(record => record.answer.trim())
                     .flatMap(str => str.includes(',') ? str.split(',').map(s => s.trim()) : str.split(''));
+                console.log('ansArr:', ansArr);
                 const filteredArr = ansArr.filter(ch => answerTable[qIndex][ch.charCodeAt(0) - 'A'.charCodeAt(0)] !== 1);
+                console.log('filteredArr:', filteredArr);
                 if (filteredArr.length === 1) {
                     answerTable[qIndex][filteredArr[0].charCodeAt(0) - 'A'.charCodeAt(0)] = 0;
                 }
+                console.log('answerTable:', answerTable);
+                //confirm('debug: 可能存在多选题答案修补问题，请检查控制台输出');
             }
             let tryAnother = true;
             let ansStr = "";
@@ -931,9 +938,41 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                         (async function thirdLayer() {
                             if (!Array.isArray(InnerDocs) || InnerDocs.length === 0) {
                                 console.warn('内层Docs为空，尝试跳过');
-                                await timeSleep(20 * DEFAULT_SLEEP_TIME);
-                                handleIframeLock = false; // 释放锁
-                                continueToNextChapter(); // 跳转到下一章节
+                                console.log('所有章节任务已完成，准备跳转到下一章节');
+                                console.log('检查是否有学习测验');
+                                await timeSleep(10 * DEFAULT_SLEEP_TIME);
+                                const learningTest = document.getElementById('dct2');
+                                if (learningTest && prama === 1) {
+                                    const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                    if (unfinished) {
+                                        // 存在未完成任务点
+                                        console.log('有未完成的任务点');
+                                    } else {
+                                        // 没有未完成任务点
+                                        console.log('所有任务点已完成');
+                                        learningTest.click();
+                                        await timeSleep(DEFAULT_SLEEP_TIME);
+                                        handleIframeLock = false; //
+                                        await handleIframeChange(1);  
+                                    }   
+                                    return;
+                                } else {
+                                    console.log('此章节学习测验已处理');
+                                    if (prama !== 2) answerTable = [];
+                                    console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                    await timeSleep(25 * DEFAULT_SLEEP_TIME);
+                                    const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                    if (unfinished) {
+                                        // 存在未完成任务点
+                                        console.log('有未完成的任务点');
+
+                                    } else {
+                                        // 没有未完成任务点
+                                        console.log('所有任务点已完成');
+                                        continueToNextChapter();
+                                    }
+                                    
+                                }
                                 return;
                             }
                             // 第三层
@@ -1092,7 +1131,16 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             answerTable = [];
                                                             console.log('已处理完所有章节任务，准备跳转到下一章节');
                                                             await timeSleep(25 * DEFAULT_SLEEP_TIME);
-                                                            continueToNextChapter();
+                                                            const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                                            if (unfinished) {
+                                                                // 存在未完成任务点
+                                                                console.log('有未完成的任务点');
+                                                            } else {
+                                                                // 没有未完成任务点
+                                                                console.log('所有任务点已完成');
+                                                                continueToNextChapter();
+                                                            }
+                                                            
                                                         }
                                                     } else if (window._ws && window._ws.readyState === 1) {
                                                         window._ws.send('已找到题目，开始传输');
@@ -1156,7 +1204,16 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             answerTable = [];
                                                             console.log('已处理完所有章节任务，准备跳转到下一章节');
                                                             await timeSleep(25 * DEFAULT_SLEEP_TIME);
-                                                            continueToNextChapter();
+                                                            const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                                            if (unfinished) {
+                                                                // 存在未完成任务点
+                                                                console.log('有未完成的任务点');
+                                                            } else {
+                                                                // 没有未完成任务点
+                                                                console.log('所有任务点已完成');
+                                                                continueToNextChapter();
+                                                            }
+                                                                                                                        
                                                         }
                                                         
                                                     } else {
@@ -1176,17 +1233,33 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                 await timeSleep(10 * DEFAULT_SLEEP_TIME);
                                 const learningTest = document.getElementById('dct2');
                                 if (learningTest && prama === 1) {
-                                    learningTest.click();
-                                    await timeSleep(DEFAULT_SLEEP_TIME);
-                                    handleIframeLock = false; //
-                                    await handleIframeChange(1);  
+                                    const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                    if (unfinished) {
+                                        // 存在未完成任务点
+                                        console.log('有未完成的任务点');
+                                    } else {
+                                        // 没有未完成任务点
+                                        console.log('所有任务点已完成');
+                                        learningTest.click();
+                                        await timeSleep(DEFAULT_SLEEP_TIME);
+                                        handleIframeLock = false; //
+                                        await handleIframeChange(1);  
+                                    }                                   
                                     return;
                                 } else {
                                     console.log('此章节学习测验已处理');
-                                    answerTable = [];
+                                    if (prama !== 2) answerTable = [];
                                     console.log('已处理完所有章节任务，准备跳转到下一章节');
                                     await timeSleep(25 * DEFAULT_SLEEP_TIME);
-                                    continueToNextChapter();
+                                    const unfinished = outerDoc.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                    if (unfinished) {
+                                        // 存在未完成任务点
+                                        console.log('有未完成的任务点');
+                                    } else {
+                                        // 没有未完成任务点
+                                        console.log('所有任务点已完成');
+                                        continueToNextChapter();
+                                    }      
                                 }
                             }
 
@@ -1242,6 +1315,21 @@ function main() {
     }
 }
 
+Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
+Object.defineProperty(document, 'hidden', { get: () => false });
+
+document.addEventListener('visibilitychange', function(e) {
+    e.stopImmediatePropagation();
+}, true);
+
+window.onblur = null;
+window.onfocus = null;
+window.addEventListener = new Proxy(window.addEventListener, {
+    apply(target, thisArg, args) {
+        if (['blur', 'focus'].includes(args[0])) return;
+        return Reflect.apply(target, thisArg, args);
+    }
+});
 
 findCourseTree(); // 初始化课程树
 initializeTreeIndex();

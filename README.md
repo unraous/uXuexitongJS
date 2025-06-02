@@ -24,6 +24,7 @@
 - 仅支持学习通网页版，目前仅在 FireFox 和Edge验证，理论上主流现代浏览器均兼容
 - 对于非视频/PDF类型的课程，脚本会尝试直接跳过
 - 欢迎 Issue 反馈 bug 或建议，但请一定一定给出详细信息
+- 由于学习通谜一样的响应时间，故在每次跳章时设置的等待时间较长，请不要误认为是脚本卡住
 - 使用回答课后题功能需要拥有自己的api_key,这里推荐kimi的[https://platform.moonshot.cn]([https://platform.moonshot.cn]())或者直接上[https://openrouter.ai/](https://openrouter.ai/)找，均可以免费试用
 
 ## 使用步骤（无题版）
