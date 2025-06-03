@@ -599,11 +599,34 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                         }
                         if (target && target.style.visibility !== 'hidden') {
                             console.log('检测为互动题目,正在处理');
+                            timeSleep(DEFAULT_SLEEP_TIME).then(() => {
+                                autoQuestionDeal(target, innerDoc);
+                                pauseFreeze = true;
+                                setTimeout(() => {
+                                    pauseFreeze = false; // 5秒后解除暂停冻结
+                                }, 10 * DEFAULT_SLEEP_TIME);
+                            });
                         } else if (playControlBtn) {
                             if (!pauseFreeze) {
-                                playControlBtn.click();
+                                console.log('未检测到互动题目,已自动点击播放按钮');
+                                let tryCount = 0;
+                                const maxTry = 10;
+                                const tryPlay = () => {
+                                    if (!videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS) || tryCount >= maxTry) {
+                                        if (tryCount >= maxTry) {
+                                            console.warn('多次尝试点击播放按钮未成功，请手动处理');
+                                        }
+                                        return;
+                                    }
+                                    playControlBtn.click();
+                                    tryCount++;
+                                    setTimeout(tryPlay, DEFAULT_SLEEP_TIME);
+                                };
+                                tryPlay();
+                            } else {
+                                console.warn('暂停状态已冻结,请用户手动点击播放按钮');
                             }
-                            console.log('未检测到互动题目,已自动点击播放按钮'); //同时兼顾后台播放功能，因为学习通只会在你鼠标离开页面时触发一次暂停，此后无检测
+                             //同时兼顾后台播放功能，因为学习通只会在你鼠标离开页面时触发一次暂停，此后无检测
                         } else {
                             console.warn('未找到播放控制按钮,请用户手动点击播放');
                         }
@@ -612,11 +635,7 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                     }
                 }); 
             } else {
-                autoQuestionDeal(target, innerDoc);
-                pauseFreeze = true;
-                setTimeout(() => {
-                    pauseFreeze = false; // 5秒后解除暂停冻结
-                }, 10 * DEFAULT_SLEEP_TIME);
+                console.log('class 不包含 vjs-ended, 继续检测');
             }
         };
         observer = new MutationObserver(checkClass);
