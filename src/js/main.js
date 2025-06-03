@@ -476,6 +476,7 @@ function autoQuestionDeal(target, innerDoc) {
                                             checkboxes[j].click();
                                         }
                                     }
+                                    await timeSleep(DEFAULT_SLEEP_TIME);
                                     innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                                     const over = await waitForSubmitAndContinue(innerDoc);
                                     if (over) break;
@@ -484,6 +485,7 @@ function autoQuestionDeal(target, innerDoc) {
                                 // 单选
                                 for (let i = 0; i < radios.length; i++) {
                                     radios[i].click();
+                                    await timeSleep(DEFAULT_SLEEP_TIME);
                                     innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                                     const over = await waitForSubmitAndContinue(innerDoc);
                                     if (over) break;
