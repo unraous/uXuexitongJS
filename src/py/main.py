@@ -11,6 +11,8 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchWindowException
+
 
 import time
 import random
@@ -132,26 +134,41 @@ if driver is None:
 driver.get("https://mooc1.chaoxing.com")  # 先访问主域，才能设置 Cookie
 
 
+
+
+
 input("欢迎使用此脚本，请在由脚本创建的新窗口中登录后打开至目标课程界面（即达到旧版用来粘贴脚本的页面即可），准备完成后按回车以继续...\n")
 
-driver.execute_script("""
-    Object.defineProperty(navigator, 'webdriver', {
-        get: () => undefined
-    });
-""")
+# 获取所有窗口句柄
+handles = driver.window_handles
+# 切换到最后一个（最新的）窗口
+driver.switch_to.window(handles[-1])
 
-time.sleep(2)
 
-driver.execute_script(
-    "DEFAULT_TEST_OPTION = 1;\n" + js_code
-)
+try:
+    driver.current_window_handle  # 检查窗口是否还在
+    # 注入脚本
+    driver.execute_script("""
+        Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined
+        });
+    """)
 
-# keep_mouse_active(driver) 
+    time.sleep(2)
 
-input("脚本已注入，请关闭弹窗后再次回车以开启防挂机...\n")
+    driver.execute_script(
+        "DEFAULT_TEST_OPTION = 1;\n" + js_code
+    )
 
-keep_mouse_active(driver) 
+    # keep_mouse_active(driver) 
 
-input("防挂机已开启，脚本将持续运行，直到你手动关闭浏览器或按 Enter/Ctrl+C 终止脚本。\n")
+    input("脚本已注入，请关闭弹窗后再次回车以开启防挂机...\n")
 
-driver.quit()
+    keep_mouse_active(driver) 
+
+    input("防挂机已开启，脚本将持续运行，直到你手动关闭浏览器或按 Enter/Ctrl+C 终止脚本。\n")
+
+    driver.quit()
+
+except NoSuchWindowException:
+    print("窗口已关闭或失效，无法注入脚本")

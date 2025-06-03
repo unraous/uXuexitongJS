@@ -3,5 +3,4 @@ alltheexp
 .env
 json
 .venv
-src/data/temp/**
 

@@ -79,6 +79,7 @@ let skipSign = 0;
 let answerTable = []; 
 let handleIframeLock = false;
 let nextCooldown = false;
+let videoLock = false; // 视频锁，防止多次点击播放按钮
 
 if (DEFAULT_TEST_OPTION === 1) {
     console.log('已开启课后答题功能,正在创建端口连接...');
@@ -456,6 +457,7 @@ function waitForSubmitAndContinue(innerDoc) {
 
 function autoQuestionDeal(target, innerDoc) {
     console.log('开始处理互动题目:', target);
+    videoLock = true; // 锁定视频处理，防止多次点击
     try {
         if (target) {
             //let lastVisibility = target.style.visibility;
@@ -505,6 +507,7 @@ function autoQuestionDeal(target, innerDoc) {
     } catch (e) {
         console.warn('autoQuestionDeal 执行异常:', e);
     }
+    videoLock = false; // 解除视频处理锁
 }
 
 function findVideoElement(innerDoc) {
@@ -621,13 +624,15 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                                 let tryCount = 0;
                                 const maxTry = DEFAULT_TRY_COUNT - 10;
                                 const tryPlay = () => {
-                                    if (!videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS) || tryCount >= maxTry) {
+                                    if (!videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS) || tryCount >= maxTry || videoLock) {
                                         if (tryCount >= maxTry) {
                                             console.warn('多次尝试点击播放按钮未成功，请手动处理');
                                         }
                                         return;
                                     }
-                                    playControlBtn.click();
+                                    if (!videoLock) {
+                                        playControlBtn.click();
+                                    }
                                     tryCount++;
                                     setTimeout(tryPlay, DEFAULT_SLEEP_TIME);
                                 };
