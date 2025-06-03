@@ -476,6 +476,7 @@ function autoQuestionDeal(target, innerDoc) {
                                             checkboxes[j].click();
                                         }
                                     }
+                                    await timeSleep(DEFAULT_SLEEP_TIME);
                                     innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                                     const over = await waitForSubmitAndContinue(innerDoc);
                                     if (over) break;
@@ -484,6 +485,7 @@ function autoQuestionDeal(target, innerDoc) {
                                 // 单选
                                 for (let i = 0; i < radios.length; i++) {
                                     radios[i].click();
+                                    await timeSleep(DEFAULT_SLEEP_TIME);
                                     innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                                     const over = await waitForSubmitAndContinue(innerDoc);
                                     if (over) break;
@@ -594,7 +596,9 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                         if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) { //由于视频结束时有暂停属性，由于延迟会产生分支跳跃到此处的情况，此步为防止一个视频循环播放
                             return;
                         }
-                        if (playControlBtn) {
+                        if (target && target.style.visibility !== 'hidden') {
+                            console.log('检测为互动题目,正在处理');
+                        } else if (playControlBtn) {
                             playControlBtn.click();
                             console.log('未检测到互动题目,已自动点击播放按钮'); //同时兼顾后台播放功能，因为学习通只会在你鼠标离开页面时触发一次暂停，此后无检测
                         } else {
