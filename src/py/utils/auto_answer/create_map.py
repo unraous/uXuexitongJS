@@ -1,5 +1,6 @@
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont
+import concurrent.futures
 import imagehash
 import json
 
@@ -14,37 +15,59 @@ def glyph_to_img(ttf_path, char, size=64):
     draw.text((0, 0), char, font=font, fill=0)
     return img
 
+def multi_hash(img):
+    return (
+        imagehash.phash(img),
+        imagehash.dhash(img),
+        imagehash.average_hash(img)
+    )
+
+def hash_distance(h1, h2):
+    # 三种哈希距离加权平均
+    return sum(a - b for a, b in zip(h1, h2))
+
 def create_font_mapping(enc_font_path, std_font_path, output_json=None):
     enc_font = TTFont(enc_font_path)
     std_font = TTFont(std_font_path)
     enc_cmap = enc_font['cmap'].getBestCmap()
     std_cmap = std_font['cmap'].getBestCmap()
 
-    # 预处理标准字体哈希
+    # 预处理标准字体哈希（多线程+多哈希）
     std_hashes = {}
-    for std_code in std_cmap:
+    def std_worker(std_code):
         char = chr(std_code)
         if char not in COMMON_CHARS:
-            continue
+            return None
         img = glyph_to_img(std_font_path, char)
-        h = imagehash.phash(img)
-        std_hashes[char] = h
+        return (char, multi_hash(img))
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(std_worker, std_cmap)
+        for res in results:
+            if res:
+                std_hashes[res[0]] = res[1]
 
     mapping = {}
-    for enc_code in enc_cmap:
+    def enc_worker(enc_code):
         enc_char = chr(enc_code)
         img = glyph_to_img(enc_font_path, enc_char)
-        h = imagehash.phash(img)
+        h = multi_hash(img)
         # 找最相近的标准字形
         min_dist = float('inf')
         min_char = None
         for std_char, std_hash in std_hashes.items():
-            dist = h - std_hash
+            dist = hash_distance(h, std_hash)
             if dist < min_dist:
                 min_dist = dist
                 min_char = std_char
         if min_char is not None:
-            mapping[enc_char] = min_char
+            return (enc_char, min_char)
+        return None
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(enc_worker, enc_cmap)
+        for res in results:
+            if res:
+                mapping[res[0]] = res[1]
 
     if output_json:
         with open(output_json, 'w', encoding='utf-8') as f:

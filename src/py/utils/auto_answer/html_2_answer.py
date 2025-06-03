@@ -9,6 +9,8 @@ from core_of_answer import answer_questions_file, extract_simple_answers
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+thtml_path = os.path.join(BASE_DIR, "../../../data/temp/html/test.html")
+
 def html_to_answer(
     html_path,
     std_font_path = os.path.join(BASE_DIR, "../../../data/static/ttf/simsun.ttf"),
@@ -37,4 +39,4 @@ def html_to_answer(
 
 if __name__ == "__main__":
     # 请根据实际路径修改
-    html_to_answer(html_path="final1.html")
+    html_to_answer(html_path=thtml_path)

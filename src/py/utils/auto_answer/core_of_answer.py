@@ -6,6 +6,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 import config
 
 API_KEY = config.API_KEY
@@ -30,7 +31,7 @@ def answer_questions_batch(questions, retry=3):
     for idx, q in enumerate(questions, 1):
         prompt += f"{idx}. 题干：{q['题干']}\n选项：{q['选项']}\n"
     messages = [
-        {"role": "system", "content": "你是一个中国高效答题助手。现在请依次回答以下题目，每题只输出“题号:答案”，不要解释，每题一行，题号请用题目原题号,多选题直接把选项字母拼接（如51:A，44:ACD）同时对于有错别字和语句不通的题目，很可能是扫描错误，可以适当将明显的错别字替换为形状详尽的合理字词，并且不要输出“ERROR”，必须保证每次至少输出一个选项。"},
+        {"role": "system", "content": "你是一个中国高效答题助手。现在请依次回答以下题目，每题只输出“题号:答案”，不要解释，每题一行，题号请用题目原题号,多选题直接把选项字母拼接（如51:A，44:ACD）同时对于有错别字和语句不通的题目，尝试利用形近字猜测原题意，同时注意不要输出“ERROR”，必须保证每次至少输出一个选项。"},
         {"role": "user", "content": prompt}
     ]
     for i in range(retry):
