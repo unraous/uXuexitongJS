@@ -578,6 +578,7 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
             resolve(false);
             return;
         }
+        let pauseFreeze = false;
         console.log('debug successfully');
         let observer = null;
         const checkClass = () => {
@@ -599,7 +600,9 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                         if (target && target.style.visibility !== 'hidden') {
                             console.log('检测为互动题目,正在处理');
                         } else if (playControlBtn) {
-                            playControlBtn.click();
+                            if (!pauseFreeze) {
+                                playControlBtn.click();
+                            }
                             console.log('未检测到互动题目,已自动点击播放按钮'); //同时兼顾后台播放功能，因为学习通只会在你鼠标离开页面时触发一次暂停，此后无检测
                         } else {
                             console.warn('未找到播放控制按钮,请用户手动点击播放');
@@ -610,6 +613,10 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                 }); 
             } else {
                 autoQuestionDeal(target, innerDoc);
+                pauseFreeze = true;
+                setTimeout(() => {
+                    pauseFreeze = false; // 5秒后解除暂停冻结
+                }, 10 * DEFAULT_SLEEP_TIME);
             }
         };
         observer = new MutationObserver(checkClass);
