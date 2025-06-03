@@ -10,7 +10,10 @@ import json
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.action_chains import ActionChains
+
 import time
+import random
 
 from utils.auto_answer.html_2_answer import html_to_answer
 import config
@@ -42,18 +45,29 @@ def start_ws_server():
                 if data.get("type") == "testDocHtml":
                     html_str = data.get("html", "")
                     print("收到HTML内容，长度：", len(html_str))
-                    with open(test_path, "w", encoding="utf-8") as f:
-                        f.write(html_str)
-                    # input("HTML已保存到 test.html，按回车继续...")
+                    try:
+                        with open(test_path, "w", encoding="utf-8") as f:
+                            f.write(html_str)
+                        print("HTML已保存到 test.html")
+                    except Exception as e:
+                        print(f"无法写入 test.html：{e}")
+                        await websocket.send(json.dumps({"error": f"无法写入 test.html：{e}"}))
+                        return
+
                     html_to_answer(test_path)
-                    
-                    with open(ans_path, "r", encoding="utf-8") as f:
-                        ans_json = f.read()
+
+                    try:
+                        with open(ans_path, "r", encoding="utf-8") as f:
+                            ans_json = f.read()
+                    except Exception as e:
+                        print(f"无法读取答案文件：{e}")
+                        await websocket.send(json.dumps({"error": f"无法读取答案文件：{e}"}))
+                        return
                     await websocket.send(ans_json)
                 else:
                     print("收到非HTML消息：", data)
             except Exception:
-                print("收到异常消息：", msg)
+                print("收到异常消息")
 
     async def main():
         async with websockets.serve(handler, "localhost", 8765):
@@ -61,6 +75,23 @@ def start_ws_server():
             await asyncio.Future()
 
     asyncio.run(main())
+
+
+def keep_mouse_active(driver, interval=60):
+    def move_mouse():
+        while driver.service.is_connectable():
+            try:
+                # 随机坐标，范围可根据页面大小调整
+                x = random.randint(100, 500)
+                y = random.randint(100, 500)
+                ActionChains(driver).move_by_offset(x, y).perform()
+                ActionChains(driver).move_by_offset(-x, -y).perform()
+            except Exception as e:
+                print(f"鼠标移动异常: {e}")
+            time.sleep(interval)
+    t = threading.Thread(target=move_mouse, daemon=True)
+    t.start()
+
 
 ws_thread = threading.Thread(target=start_ws_server, daemon=True)
 ws_thread.start()
@@ -101,9 +132,7 @@ if driver is None:
 driver.get("https://mooc1.chaoxing.com")  # 先访问主域，才能设置 Cookie
 
 
-
-
-input("欢迎使用此脚本，请登录后打开至目标课程界面（即达到旧版用来粘贴脚本的页面即可），准备完成后按回车以继续...\n")
+input("欢迎使用此脚本，请在由脚本创建的新窗口中登录后打开至目标课程界面（即达到旧版用来粘贴脚本的页面即可），准备完成后按回车以继续...\n")
 
 driver.execute_script("""
     Object.defineProperty(navigator, 'webdriver', {
@@ -117,7 +146,12 @@ driver.execute_script(
     "DEFAULT_TEST_OPTION = 1;\n" + js_code
 )
 
+# keep_mouse_active(driver) 
 
-input("脚本已注入，按回车关闭浏览器以强制退出脚本...\n")
+input("脚本已注入，请关闭弹窗后再次回车以开启防挂机...\n")
+
+keep_mouse_active(driver) 
+
+input("防挂机已开启，脚本将持续运行，直到你手动关闭浏览器或按 Enter/Ctrl+C 终止脚本。\n")
 
 driver.quit()
