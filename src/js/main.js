@@ -455,52 +455,55 @@ function waitForSubmitAndContinue(innerDoc) {
 }
 
 function autoQuestionDeal(target, innerDoc) {
+    console.log('开始处理互动题目:', target);
     try {
-        
         if (target) {
-            const observer = new MutationObserver(async (mutationsList) => {
-                for (const mutation of mutationsList) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                        if (target.style.visibility == '') {
-                            console.log('visi has been changed:', target.style.visibility);
-                            const radios = innerDoc.querySelectorAll(VIDEO_QUESTION_RADIOS_FEATURE_CLASSES);
-                            const checkboxes = innerDoc.querySelectorAll(VIDEO_QUESTION_CHECKBOXES_FEATURE_CLASSES);
+            //let lastVisibility = target.style.visibility;
+            let pollCount = 0;
+            const maxPoll = DEFAULT_TRY_COUNT; 
+            const poll = async () => {
+                if (target.style.visibility === '') {
+                    console.log('visi has been changed:', target.style.visibility);
+                    const radios = innerDoc.querySelectorAll(VIDEO_QUESTION_RADIOS_FEATURE_CLASSES);
+                    const checkboxes = innerDoc.querySelectorAll(VIDEO_QUESTION_CHECKBOXES_FEATURE_CLASSES);
 
-                            if (checkboxes.length > 0) {
-                                // 多选
-                                const n = checkboxes.length;
-                                for (let mask = 1; mask < (1 << n); mask++) {
-                                    checkboxes.forEach(cb => cb.checked = false);
-                                    for (let j = 0; j < n; j++) {
-                                        if (mask & (1 << j)) {
-                                            checkboxes[j].click();
-                                        }
-                                    }
-                                    await timeSleep(DEFAULT_SLEEP_TIME);
-                                    innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
-                                    const over = await waitForSubmitAndContinue(innerDoc);
-                                    if (over) break;
-                                }
-                            } else if (radios.length > 0) {
-                                // 单选
-                                for (let i = 0; i < radios.length; i++) {
-                                    radios[i].click();
-                                    await timeSleep(DEFAULT_SLEEP_TIME);
-                                    innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
-                                    const over = await waitForSubmitAndContinue(innerDoc);
-                                    if (over) break;
+                    if (checkboxes.length > 0) {
+                        // 多选
+                        const n = checkboxes.length;
+                        for (let mask = 1; mask < (1 << n); mask++) {
+                            checkboxes.forEach(cb => cb.checked = false);
+                            for (let j = 0; j < n; j++) {
+                                if (mask & (1 << j)) {
+                                    checkboxes[j].click();
                                 }
                             }
+                            console.log('正在提交多选题目');
+                            innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
+                            const over = await waitForSubmitAndContinue(innerDoc);
+                            if (over) return;
+                        }
+                    } else if (radios.length > 0) {
+                        // 单选
+                        for (let i = 0; i < radios.length; i++) {
+                            radios[i].click();
+                            console.log('正在提交单选题目');
+                            innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
+                            const over = await waitForSubmitAndContinue(innerDoc);
+                            if (over) return;
                         }
                     }
+                } else if (pollCount < maxPoll) {
+                    pollCount++;
+                    setTimeout(poll, DEFAULT_SLEEP_TIME);
                 }
-            });
-            observer.observe(target, { attributes: true, attributeFilter: ['style'] });
+                //lastVisibility = target.style.visibility;
+            };
+            poll();
         } else {
             console.error("没有找到目标元素");
         }
     } catch (e) {
-        console.warning('autoQuestionDeal 执行异常:', e);
+        console.warn('autoQuestionDeal 执行异常:', e);
     }
 }
 
