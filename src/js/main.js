@@ -5,7 +5,7 @@
  * - 自动识别课程树结构，自动切换章节
  * - 自动播放视频、自动回答互动题目、自动切换倍速
  * - 自动检测 PDF 文档并自动翻页
- * - 1nm的容错处理
+ * - 2nm的容错处理
  * 
  * 注意事项：
  * - 目前单一章节只识别第一个视频/PDF元素，可能会漏刷
@@ -21,8 +21,8 @@
  * 
  * 作者：unraous
  * 邮箱：unraous@qq.com
- * 日期：2025-05-28
- * 版本：v1.0.0
+ * 日期：2025-06-04
+ * 版本：v1.1.1
  */
 
 if (typeof DEFAULT_TEST_OPTION === 'undefined') { // 检测是否由selenium注入
@@ -753,9 +753,10 @@ function autoFillAnswers(testList, answerJson) {
                 const titleSpan = quesDiv.querySelector('.newZy_TItle');
                 let type = '';
                 if (titleSpan) {
-                    if (titleSpan.textContent.includes('多选')) type = 'multi';
-                    else if (titleSpan.textContent.includes('判断')) type = 'judge';
-                    else if (titleSpan.textContent.includes('单选')) type = 'single';
+                    const text = titleSpan.textContent.toLowerCase();
+                    if (text.includes('多选') || text.includes('mul')) type = 'multi';
+                    else if (text.includes('判断') || text.includes('tru')) type = 'judge';
+                    else if (text.includes('单选') || text.includes('sin')) type = 'single';
                 }
                 // 多选题
                 if (type === 'multi') {
