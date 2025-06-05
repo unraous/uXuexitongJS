@@ -1037,249 +1037,253 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                             async function runTasksSerially() {
                                 for (const { innerDoc, Type } of InnerDocs) { // for...of 防错乱
                                     console.log(`处理 ${Type} 任务点...`);
-                                    if (taskCount >= needSkip.length) {
-                                        console.log('已处理完所有任务点，准备跳转到下一章节');
-                                        if (Type === 'Work') prama = 0; 
-                                    } else if (needSkip[taskCount].getAttribute('aria-label') === '任务点已完成') {
-                                        console.log('任务点已完成，跳过');
-                                        if (Type === 'Work') prama = 0; 
-                                    } else if (Type === 'Video') {
-                                        console.log('该章节为VIDEO,进行参数捕获');
-                                        await new Promise((resolve) => {
-                                            if (FourthLayerCancel) FourthLayerCancel();
-                                            FourthLayerCancel = waitForElement(
-                                                () => {
-                                                    if (allTaskDown) return;
-                                                    console.log('第四层回调执行');
-                                                    return findVideoElement(innerDoc);
-                                                },
-                                                async (innerParam) => {
-                                                    if (!innerParam) {
-                                                        console.warn('页面异常加载，尝试跳过');
-                                                        resolve();
-                                                        return;
-                                                    }
-                                                    const { videoDiv, launchBtn, target, playControlBtn, paceList , muteBtn } = innerParam;
-                                                    await autoPlayVideo(
-                                                        innerDoc,
-                                                        videoDiv,
-                                                        launchBtn,
-                                                        target,
-                                                        playControlBtn,
-                                                        paceList,
-                                                        muteBtn
-                                                    );
-                                                    resolve();
-                                                }
-                                            );
-                                        });
-                                    } else if (Type === 'Pdf') {
-                                        console.log('该章节为PDF,进行参数捕获');
-                                        await new Promise((resolve) => {
-                                            if (thirdLayerCancel) thirdLayerCancel();
-                                            thirdLayerCancel = waitForElement(
-                                                () => {
-                                                    return findPdfElement(innerDoc);
-                                                },
-                                                async ({ pdfHtml } = {}) => {
-                                                    if (!pdfHtml) {
-                                                        console.error('请求超时, 请检查网络或与作者联系');
-                                                        resolve();
-                                                        return;
-                                                    }
-                                                    const toBottom = await scrollPdfToBottom(pdfHtml);
-                                                    if (toBottom) {
-                                                        console.log('PDF滚动成功！');
-                                                    } else {
-                                                        console.warn('PDF多次滚动无效，可能页面未加载完全');
-                                                    }
-                                                    await timeSleep(2 * DEFAULT_SLEEP_TIME);
-                                                    console.log('章节处理完毕');
-                                                    resolve();
-                                                }
-                                            );
-                                        });
-                                    } else if (Type === 'Work') {
-                                        console.log('该章节为WORK,进行参数捕获');
-                                        await new Promise((resolve) => {
-                                            if (thirdLayerCancel) thirdLayerCancel();
-                                            thirdLayerCancel = waitForElement(
-                                                () => {
-                                                    return findWorkElement(innerDoc);
-                                                },
-                                                async ({ testDoc, testList, submitBtn } = {}) => {
-                                                    if (!testList || testList.length === 0) {
-                                                        console.error('请求超时, 请检查网络或与作者联系');
-                                                        resolve();
-                                                        return;
-                                                    }
-                                                    console.log('已找到测试题目:', testList);
-                                                    if (prama === 2) {
-                                                        console.warn('检测为不及格，开始修补模式');
-                                                        const answerBasicList = testDoc.querySelectorAll('.newAnswerBx');
-                                                        if (answerBasicList.length === 0) {
-                                                            console.warn('未找到答案列表，可能是页面加载异常');
+                                    try {    
+                                        if (taskCount >= needSkip.length) {
+                                            console.log('已处理完所有任务点，准备跳转到下一章节');
+                                            if (Type === 'Work') prama = 0; 
+                                        } else if (needSkip[taskCount].getAttribute('aria-label') === '任务点已完成') {
+                                            console.log('任务点已完成，跳过');
+                                            if (Type === 'Work') prama = 0; 
+                                        } else if (Type === 'Video') {
+                                            console.log('该章节为VIDEO,进行参数捕获');
+                                            await new Promise((resolve) => {
+                                                if (FourthLayerCancel) FourthLayerCancel();
+                                                FourthLayerCancel = waitForElement(
+                                                    () => {
+                                                        if (allTaskDown) return;
+                                                        console.log('第四层回调执行');
+                                                        return findVideoElement(innerDoc);
+                                                    },
+                                                    async (innerParam) => {
+                                                        if (!innerParam) {
+                                                            console.warn('页面异常加载，尝试跳过');
                                                             resolve();
                                                             return;
                                                         }
-                                                        let index = 0;
-                                                        let answerHistory = [];
-                                                        for (const answerBasic of answerBasicList) {
-                                                            index++;
-                                                            if (!answerHistory[index]) {
-                                                                answerHistory[index] = [];
-                                                            }
-                                                            const answerCon = answerBasic.querySelector('.answerCon');
-                                                            let answerMark;
-                                                            const wrong = answerBasic.querySelector('.marking_cuo');
-                                                            const half = answerBasic.querySelector('.marking_bandui');
-                                                            if (wrong) {
-                                                                answerMark = 'wrong';
-                                                            } else if (half) {
-                                                                answerMark = 'half';
-                                                            } else {
-                                                                answerMark = 'right';
-                                                            }
-                                                            answerHistory[index].push({
-                                                                answer: answerCon.textContent.trim(),
-                                                                mark: answerMark
-                                                            });
-                                                        }
-                                                        console.log('已获取到答案历史:', answerHistory);
-                                                        //confirm('[调试],已获取到答案历史，准备修补');
-                                                        let answerJson = answerFixes(testList, answerHistory);
-                                                        if (answerJson.length === 0) {
-                                                            confirm('fix答案失败');
+                                                        const { videoDiv, launchBtn, target, playControlBtn, paceList , muteBtn } = innerParam;
+                                                        await autoPlayVideo(
+                                                            innerDoc,
+                                                            videoDiv,
+                                                            launchBtn,
+                                                            target,
+                                                            playControlBtn,
+                                                            paceList,
+                                                            muteBtn
+                                                        );
+                                                        resolve();
+                                                    }
+                                                );
+                                            });
+                                        } else if (Type === 'Pdf') {
+                                            console.log('该章节为PDF,进行参数捕获');
+                                            await new Promise((resolve) => {
+                                                if (thirdLayerCancel) thirdLayerCancel();
+                                                thirdLayerCancel = waitForElement(
+                                                    () => {
+                                                        return findPdfElement(innerDoc);
+                                                    },
+                                                    async ({ pdfHtml } = {}) => {
+                                                        if (!pdfHtml) {
+                                                            console.error('请求超时, 请检查网络或与作者联系');
                                                             resolve();
                                                             return;
+                                                        }
+                                                        const toBottom = await scrollPdfToBottom(pdfHtml);
+                                                        if (toBottom) {
+                                                            console.log('PDF滚动成功！');
                                                         } else {
-                                                            autoFillAnswers(testList, answerJson);
-                                                            console.log('已自动填充答案');
-                                                            resolve();
-                                                        }
-                                                        //confirm('已修补答案，准备提交');
-                                                        submitBtn.click();
-                                                        await timeSleep(DEFAULT_SLEEP_TIME);
-                                                        const configElement = document.getElementById('workpop');
-                                                        const configBtn = document.getElementById('popok');
-                                                        if (configElement && window.getComputedStyle(configElement).display !== 'none') {
-                                                            if (configBtn) {
-                                                                configBtn.click();
-                                                                console.log('已自动点击确定按钮');
-                                                            } else {
-                                                                console.warn('未找到确定按钮');
-                                                            }
+                                                            console.warn('PDF多次滚动无效，可能页面未加载完全');
                                                         }
                                                         await timeSleep(2 * DEFAULT_SLEEP_TIME);
-                                                        //confirm ('已提交测试题目，等待结果');
-                                                        const configContent = document.getElementById('popcontent');
-                                                        if (configContent && configContent.textContent.includes('未达到及格线')) {
-                                                            console.warn('检测到未及格，需重做！');
-                                                            configBtn.click();
-                                                            await timeSleep(DEFAULT_SLEEP_TIME);
-                                                            handleIframeLock = false; //
-                                                            await handleIframeChange(2); 
+                                                        console.log('章节处理完毕');
+                                                        resolve();
+                                                    }
+                                                );
+                                            });
+                                        } else if (Type === 'Work') {
+                                            console.log('该章节为WORK,进行参数捕获');
+                                            await new Promise((resolve) => {
+                                                if (thirdLayerCancel) thirdLayerCancel();
+                                                thirdLayerCancel = waitForElement(
+                                                    () => {
+                                                        return findWorkElement(innerDoc);
+                                                    },
+                                                    async ({ testDoc, testList, submitBtn } = {}) => {
+                                                        if (!testList || testList.length === 0) {
+                                                            console.error('请求超时, 请检查网络或与作者联系');
+                                                            resolve();
                                                             return;
-                                                        } else {
-                                                            console.log('已成功提交测试题目');
-                                                            answerTable = [];
-                                                            console.log('已处理完所有章节任务，准备跳转到下一章节');
-                                                            await timeSleep(25 * DEFAULT_SLEEP_TIME);
-                                                            const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
-                                                            if (unfinished) {
-                                                                // 存在未完成任务点
-                                                                console.log('有未完成的任务点');
-                                                            } else {
-                                                                // 没有未完成任务点
-                                                                console.log('所有任务点已完成');
-                                                                continueToNextChapter();
-                                                            }
-                                                            
                                                         }
-                                                    } else if (window._ws && window._ws.readyState === 1) {
-                                                        window._ws.send('已找到题目，开始传输');
-                                                        const htmlStr = testDoc.documentElement.outerHTML;
-                                                        if (answerTable) answerTable = [];
-                                                        window._ws.send(JSON.stringify({
-                                                            type: 'testDocHtml',
-                                                            html: htmlStr
-                                                        }));
-                                                        await new Promise(resolve => {
-                                                            function onMessage(event) {
-                                                                try {
-                                                                    // 判断是否收到的是答案json（一般不是"收到"而是json字符串）
-                                                                    let answerJson;
-                                                                    try {
-                                                                        answerJson = JSON.parse(event.data);
-                                                                    } catch (e) {
-                                                                        // 不是json就忽略
-                                                                        if (event.data === '收到') {
-                                                                            window._ws.removeEventListener('message', onMessage);
-                                                                            console.log('收到Python回信，继续后续流程');
-                                                                            resolve();
-                                                                        }
-                                                                        return;
-                                                                    }
-                                                                    // 如果能解析为json，自动填答
-                                                                    autoFillAnswers(testList, answerJson);
-                                                                    window._ws.removeEventListener('message', onMessage);
-                                                                    console.log('已自动填充答案');
-                                                                    resolve();
-                                                                } catch (e) {
-                                                                    console.warn('处理回信时出错', e);
+                                                        console.log('已找到测试题目:', testList);
+                                                        if (prama === 2) {
+                                                            console.warn('检测为不及格，开始修补模式');
+                                                            const answerBasicList = testDoc.querySelectorAll('.newAnswerBx');
+                                                            if (answerBasicList.length === 0) {
+                                                                console.warn('未找到答案列表，可能是页面加载异常');
+                                                                resolve();
+                                                                return;
+                                                            }
+                                                            let index = 0;
+                                                            let answerHistory = [];
+                                                            for (const answerBasic of answerBasicList) {
+                                                                index++;
+                                                                if (!answerHistory[index]) {
+                                                                    answerHistory[index] = [];
+                                                                }
+                                                                const answerCon = answerBasic.querySelector('.answerCon');
+                                                                let answerMark;
+                                                                const wrong = answerBasic.querySelector('.marking_cuo');
+                                                                const half = answerBasic.querySelector('.marking_bandui');
+                                                                if (wrong) {
+                                                                    answerMark = 'wrong';
+                                                                } else if (half) {
+                                                                    answerMark = 'half';
+                                                                } else {
+                                                                    answerMark = 'right';
+                                                                }
+                                                                answerHistory[index].push({
+                                                                    answer: answerCon.textContent.trim(),
+                                                                    mark: answerMark
+                                                                });
+                                                            }
+                                                            console.log('已获取到答案历史:', answerHistory);
+                                                            //confirm('[调试],已获取到答案历史，准备修补');
+                                                            let answerJson = answerFixes(testList, answerHistory);
+                                                            if (answerJson.length === 0) {
+                                                                confirm('fix答案失败');
+                                                                resolve();
+                                                                return;
+                                                            } else {
+                                                                autoFillAnswers(testList, answerJson);
+                                                                console.log('已自动填充答案');
+                                                                resolve();
+                                                            }
+                                                            //confirm('已修补答案，准备提交');
+                                                            submitBtn.click();
+                                                            await timeSleep(DEFAULT_SLEEP_TIME);
+                                                            const configElement = document.getElementById('workpop');
+                                                            const configBtn = document.getElementById('popok');
+                                                            if (configElement && window.getComputedStyle(configElement).display !== 'none') {
+                                                                if (configBtn) {
+                                                                    configBtn.click();
+                                                                    console.log('已自动点击确定按钮');
+                                                                } else {
+                                                                    console.warn('未找到确定按钮');
                                                                 }
                                                             }
-                                                            window._ws.addEventListener('message', onMessage);
-                                                        });
-                                                        //confirm('已创建答案，准备提交');
-                                                        submitBtn.click();
-                                                        await timeSleep(DEFAULT_SLEEP_TIME);
-                                                        const configElement = document.getElementById('workpop');
-                                                        const configBtn = document.getElementById('popok');
-                                                        if (configElement && window.getComputedStyle(configElement).display !== 'none') {
-                                                            if (configBtn) {
+                                                            await timeSleep(2 * DEFAULT_SLEEP_TIME);
+                                                            //confirm ('已提交测试题目，等待结果');
+                                                            const configContent = document.getElementById('popcontent');
+                                                            if (configContent && configContent.textContent.includes('未达到及格线')) {
+                                                                console.warn('检测到未及格，需重做！');
                                                                 configBtn.click();
-                                                                console.log('已自动点击确定按钮');
+                                                                await timeSleep(DEFAULT_SLEEP_TIME);
+                                                                handleIframeLock = false; //
+                                                                await handleIframeChange(2); 
+                                                                return;
                                                             } else {
-                                                                console.warn('未找到确定按钮');
+                                                                console.log('已成功提交测试题目');
+                                                                answerTable = [];
+                                                                console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                                                await timeSleep(25 * DEFAULT_SLEEP_TIME);
+                                                                const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                                                if (unfinished) {
+                                                                    // 存在未完成任务点
+                                                                    console.log('有未完成的任务点');
+                                                                } else {
+                                                                    // 没有未完成任务点
+                                                                    console.log('所有任务点已完成');
+                                                                    continueToNextChapter();
+                                                                }
+                                                                
                                                             }
-                                                        }
-                                                        await timeSleep(2 * DEFAULT_SLEEP_TIME);
-                                                        const configContent = document.getElementById('popcontent');
-                                                        if (configContent && configContent.textContent.includes('未达到及格线')) {
-                                                            configBtn.click();
+                                                        } else if (window._ws && window._ws.readyState === 1) {
+                                                            window._ws.send('已找到题目，开始传输');
+                                                            const htmlStr = testDoc.documentElement.outerHTML;
+                                                            if (answerTable) answerTable = [];
+                                                            window._ws.send(JSON.stringify({
+                                                                type: 'testDocHtml',
+                                                                html: htmlStr
+                                                            }));
+                                                            await new Promise(resolve => {
+                                                                function onMessage(event) {
+                                                                    try {
+                                                                        // 判断是否收到的是答案json（一般不是"收到"而是json字符串）
+                                                                        let answerJson;
+                                                                        try {
+                                                                            answerJson = JSON.parse(event.data);
+                                                                        } catch (e) {
+                                                                            // 不是json就忽略
+                                                                            if (event.data === '收到') {
+                                                                                window._ws.removeEventListener('message', onMessage);
+                                                                                console.log('收到Python回信，继续后续流程');
+                                                                                resolve();
+                                                                            }
+                                                                            return;
+                                                                        }
+                                                                        // 如果能解析为json，自动填答
+                                                                        autoFillAnswers(testList, answerJson);
+                                                                        window._ws.removeEventListener('message', onMessage);
+                                                                        console.log('已自动填充答案');
+                                                                        resolve();
+                                                                    } catch (e) {
+                                                                        console.warn('处理回信时出错', e);
+                                                                    }
+                                                                }
+                                                                window._ws.addEventListener('message', onMessage);
+                                                            });
+                                                            //confirm('已创建答案，准备提交');
+                                                            submitBtn.click();
                                                             await timeSleep(DEFAULT_SLEEP_TIME);
-                                                            console.warn('检测到未及格，需重做！');
-                                                            handleIframeLock = false; 
-                                                            await handleIframeChange(2); 
-                                                            return;
-                                                        } else {
-                                                            console.log('已成功提交测试题目');
-                                                            answerTable = [];
-                                                            console.log('已处理完所有章节任务，准备跳转到下一章节');
-                                                            await timeSleep(25 * DEFAULT_SLEEP_TIME);
-                                                            const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
-                                                            if (unfinished) {
-                                                                // 存在未完成任务点
-                                                                console.log('有未完成的任务点');
-                                                            } else {
-                                                                // 没有未完成任务点
-                                                                console.log('所有任务点已完成');
-                                                                continueToNextChapter();
+                                                            const configElement = document.getElementById('workpop');
+                                                            const configBtn = document.getElementById('popok');
+                                                            if (configElement && window.getComputedStyle(configElement).display !== 'none') {
+                                                                if (configBtn) {
+                                                                    configBtn.click();
+                                                                    console.log('已自动点击确定按钮');
+                                                                } else {
+                                                                    console.warn('未找到确定按钮');
+                                                                }
                                                             }
-                                                                                                                        
+                                                            await timeSleep(2 * DEFAULT_SLEEP_TIME);
+                                                            const configContent = document.getElementById('popcontent');
+                                                            if (configContent && configContent.textContent.includes('未达到及格线')) {
+                                                                configBtn.click();
+                                                                await timeSleep(DEFAULT_SLEEP_TIME);
+                                                                console.warn('检测到未及格，需重做！');
+                                                                handleIframeLock = false; 
+                                                                await handleIframeChange(2); 
+                                                                return;
+                                                            } else {
+                                                                console.log('已成功提交测试题目');
+                                                                answerTable = [];
+                                                                console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                                                await timeSleep(25 * DEFAULT_SLEEP_TIME);
+                                                                const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
+                                                                if (unfinished) {
+                                                                    // 存在未完成任务点
+                                                                    console.log('有未完成的任务点');
+                                                                } else {
+                                                                    // 没有未完成任务点
+                                                                    console.log('所有任务点已完成');
+                                                                    continueToNextChapter();
+                                                                }
+                                                                                                                            
+                                                            }
+                                                            
+                                                        } else {
+                                                            console.warn('WebSocket未连接，无法发送测试题目');
                                                         }
-                                                        
-                                                    } else {
-                                                        console.warn('WebSocket未连接，无法发送测试题目');
-                                                    }
 
-                                                }
-                                            );
-                                        });
-                                        
+                                                    }
+                                                );
+                                            });
+                                            
+                                        }
+                                    } finally {
+                                        console.log(`任务点 ${taskCount + 1} / ${needSkip.length} 已处理`);
+                                        taskCount++;
                                     }
-                                    taskCount++;
                                 }
                                 // 所有任务完成后
                                 console.log('所有章节任务已完成，准备跳转到下一章节');
