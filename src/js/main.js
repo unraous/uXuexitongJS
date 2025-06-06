@@ -785,8 +785,8 @@ function autoFillAnswers(testList, answerJson) {
                     checkedSpans.forEach(span => span.click());
 
                     let val = ans;
-                    if (val[0] === "A" || val[0] === "对" || val[0] === "t" || val === true) val = "true";
-                    else if (val[0] === "B" || val[0] === "错" || val[0] === "f" || val === false) val = "false";
+                    if (val[0] === "A" || val[0] === "对" || val[0] === "t" || val[0] === "T" || val === true) val = "true";
+                    else if (val[0] === "B" || val[0] === "错" || val[0] === "f" || val[0] === "F" || val === false) val = "false";
                     const optSpan = quesDiv.querySelector(`span.num_option[data="${val}"]`);
                     if (optSpan) optSpan.click();
                     else console.warn(`题号${qNum}未找到判断选项${val}`);
@@ -970,13 +970,24 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
     let thirdLayerCancel = null;
     let FourthLayerCancel = null;
 
+    let learningFix = false;
+
     (function firstLayer() {  //抓取三层iframe
         if (firstLayerCancel) firstLayerCancel();
         firstLayerCancel = waitForElement(
             () => {
                 if (allTaskDown) return;
                 console.log('第一层回调执行');
-                return findOuterDoc();
+                outerDoc = findOuterDoc();
+                const learning2 = document.getElementById('dct2');
+                const learning3 = document.getElementById('dct3');
+                if (learning3 && prama === 3 && !learningFix) {
+                    console.log('检测到特殊页面结构，即将跳转');
+                    learning2.click();
+                    learningFix = true;
+                    return null;
+                }
+                return outerDoc;
             },
             (outerDoc) => {
                 // 第二层
@@ -986,17 +997,22 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                         () => {
                             if (allTaskDown) return;
                             console.log('第二层回调执行');
-                            return findInnerDocs(outerDoc);
+                            innerDoc = findInnerDocs(outerDoc);
+                            return innerDoc;
                         },
                         (InnerDocs = []) => {
                         (async function thirdLayer() {
                             if (!Array.isArray(InnerDocs) || InnerDocs.length === 0) {
                                 console.warn('内层Docs为空，尝试跳过');
-                                console.log('所有章节任务已完成，准备跳转到下一章节');
+                                console.log('开始检测特殊页面结构');
                                 console.log('检查是否有学习测验');
                                 await timeSleep(10 * DEFAULT_SLEEP_TIME);
-                                const learningTest = document.getElementById('dct2');
-                                if (learningTest && prama === 1) {
+                                let learningTest = document.getElementById('dct2');
+                                const learningTestFix = document.getElementById('dct3');
+                                if (learningTestFix) {
+                                    learningTest = learningTestFix;
+                                }
+                                if (learningTest && (prama === 1 || prama === 3)) {
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
@@ -1289,8 +1305,12 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                 console.log('所有章节任务已完成，准备跳转到下一章节');
                                 console.log('检查是否有学习测验');
                                 await timeSleep(10 * DEFAULT_SLEEP_TIME);
-                                const learningTest = document.getElementById('dct2');
-                                if (learningTest && prama === 1) {
+                                let learningTest = document.getElementById('dct2');
+                                const learningTestFix = document.getElementById('dct3');
+                                if (learningTestFix) {
+                                    learningTest = learningTestFix;
+                                }
+                                if (learningTest && (prama === 1 || prama === 3)) {
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
@@ -1363,11 +1383,11 @@ function main() {
             skipSign++;
             if(skipSign % 2 === 0) {
                 handleIframeLock = false; // 每次检测到变动后解锁
-                handleIframeChange(); 
+                handleIframeChange(3); 
             }
         });
         leftObserver.observe(leftEl, { childList: true, subtree: true });
-        handleIframeChange();
+        handleIframeChange(3);
     } else {
         console.error('未找到 class 为 lefaramt 的元素');
     }
