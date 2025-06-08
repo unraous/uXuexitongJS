@@ -3,4 +3,7 @@ alltheexp
 .env
 json
 .venv
-
+config.py
+build
+the_icon.ico
+__pycache__/

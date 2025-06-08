@@ -18,9 +18,8 @@ import time
 import random
 
 from utils.auto_answer.html_2_answer import html_to_answer
-import config
 
-USER_AGNET = config.USER_AGENT
+# USER_AGNET = config.USER_AGENT
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,7 +34,7 @@ print("main.js 路径为：", js_path)
 with open(js_path, 'r', encoding='utf-8') as f:
     js_code = f.read()
 
-user_agent = USER_AGNET if USER_AGNET else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 options = Options()
 options.set_preference("general.useragent.override", user_agent)
 
@@ -146,8 +145,8 @@ driver.switch_to.window(handles[-1])
 
 
 try:
-    driver.current_window_handle  # 检查窗口是否还在
-    # 注入脚本
+    driver.current_window_handle  # 检查窗口是否还在ut("请在新窗口中打开目标课程页面（即达到旧版用来粘贴脚本的页面），准备完成后按回车以继续...\n")
+
     driver.execute_script("""
         Object.defineProperty(navigator, 'webdriver', {
             get: () => undefined
@@ -160,7 +159,6 @@ try:
         "DEFAULT_TEST_OPTION = 1;\n" + js_code
     )
 
-    # keep_mouse_active(driver) 
 
     input("脚本已注入，请关闭弹窗后再次回车以开启防挂机...\n")
 

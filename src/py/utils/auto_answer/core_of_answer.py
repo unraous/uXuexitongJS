@@ -1,24 +1,40 @@
-from openai import OpenAI
-import json
-import time
 import os
 import sys
-import os
+import json
+import time
+from openai import OpenAI
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-import config
+def writable_path(relative_path):
+    """返回当前工作目录下的可写路径，并自动创建父目录"""
+    abs_path = os.path.join(os.getcwd(), relative_path)
+    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+    return abs_path
 
-API_KEY = config.API_KEY
-BASE_URL = config.BASE_URL 
-MODEL = config.MODEL
+def get_user_config():
+    import importlib.util
+    config_path = os.path.join(os.getcwd(), "config.py")
+    if not os.path.exists(config_path):
+        raise FileNotFoundError("config.py 不存在，请先配置。")
+    spec = importlib.util.spec_from_file_location("config", config_path)
+    cfg = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cfg)
+    return cfg
 
-client = OpenAI(
-    base_url = BASE_URL,
-    api_key = API_KEY,
-)
+def get_openai_client():
+    config = get_user_config()
+    API_KEY = getattr(config, "API_KEY", "")
+    BASE_URL = getattr(config, "BASE_URL", "")
+    MODEL = getattr(config, "MODEL", "")
+    client = OpenAI(
+        base_url = BASE_URL,
+        api_key = API_KEY,
+    )
+    return client, MODEL
 
-def chat_with_openrouter(messages, model=MODEL):
+def chat_with_openrouter(messages, model=None):
+    client, default_model = get_openai_client()
+    if model is None:
+        model = default_model
     completion = client.chat.completions.create(
         model=model,
         messages=messages,
@@ -69,7 +85,7 @@ def answer_questions_file(input_json, output_json, batch_size=10):
             for q in batch:
                 q["AI答案"] = answer_map.get(q["题号"], "ERROR")
         time.sleep(2)
-    with open(output_json, "w", encoding="utf-8") as f:
+    with open(writable_path(output_json), "w", encoding="utf-8") as f:
         json.dump(questions, f, ensure_ascii=False, indent=2)
     print(f"已生成 {output_json}")
 
@@ -85,6 +101,6 @@ def extract_simple_answers(input_json, output_json):
             "题号": q["题号"],
             "答案": q.get("AI答案", "")
         })
-    with open(output_json, "w", encoding="utf-8") as f:
+    with open(writable_path(output_json), "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"已生成 {output_json}")
