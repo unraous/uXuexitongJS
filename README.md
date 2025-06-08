@@ -4,7 +4,7 @@
 
 本项目灵感来自 [@chaolucky18](https://github.com/chaolucky18) 的 [xuexitongScript](https://github.com/chaolucky18/xuexitongScript)。在原有基础上重写，支持自动刷课、自动答题、AI 智能答题等功能，适配新版学习通网页版。
 
----
+（如果觉得有用，欢迎 star 支持！✨）
 
 ## 功能特性
 
@@ -136,7 +136,3 @@
 - 支持更多课程类型
 - 增加容错处理与 bug 修复
 - 自动切换公网线路
-
----
-
-如果觉得有用，欢迎 star 支持！✨
