@@ -1,9 +1,7 @@
-test
-alltheexp
 .env
-json
 .venv
 config.py
 build
+dist
 the_icon.ico
 __pycache__/
