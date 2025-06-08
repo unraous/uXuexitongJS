@@ -85,7 +85,7 @@
 4. **配置 API Key**
 
    - 打开 [`src/py/config.py`](src/py/config.py) 或 `.env`，填写你的 AI 平台 key（如 [Moonshot](https://platform.moonshot.cn) 或 [OpenRouter](https://openrouter.ai/)）。
-5. **启动后端服务**
+5. **启动后端服务，并按照终端提示运行**
 
    ```sh
    python src/py/main.py
@@ -93,14 +93,6 @@
 
 ---
 
-## 常见问题
-
-- **资源文件加载失败？**请确保所有静态资源通过 `--add-data` 参数打包，代码中路径统一为 `data/xxx`。
-- **AI 答题不可用？**检查 API Key 是否正确填写，网络是否可用。
-- **写入文件失败？**
-  运行时生成的文件请勿写入静态资源目录，建议写入 `data/temp/` 或用户主目录。
-
----
 
 ## 贡献指南
 
