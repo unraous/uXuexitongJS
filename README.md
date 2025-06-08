@@ -1,34 +1,44 @@
-# uXuexitong 学习通一键全自动刷课脚本（大更新，现已支持ai答题）
+# uXuexitong 学习通一键全自动刷课脚本（支持 AI 自动答题）
 
-## 脚本简介
+## 项目简介
 
-> 该脚本灵感来自 [@chaolucky18](https://github.com/chaolucky18) 大佬的[xuexitongScript](https://github.com/chaolucky18/xuexitongScript)。
-> 本来只是想加一个检测互动答题的模块交个 PR，但发现原脚本的换课部分好像也过时了，于是就干脆完全重写了。
-> 用法与 lucky 佬的基本一致，截止 2025/5/28 可用。
+本项目灵感来自 [@chaolucky18](https://github.com/chaolucky18) 的 [xuexitongScript](https://github.com/chaolucky18/xuexitongScript)。在原有基础上重写，支持自动刷课、自动答题、AI 智能答题等功能，适配新版学习通网页版。
 
-## 脚本功能
+---
 
-- 自动识别学习通课程树结构，自动切换到仍有任务点（包括任务点为0的天杀玩意）的章节
-- 自动播放视频、自动回答互动题目、自动切换倍速、自动回答课后习题
-- 自动检测 PDF 文档并自动翻页
-- 支持后台播放，操作简单快捷，节约您宝贵的时间
+## 功能特性
 
-## 依赖环境
+- 自动识别课程树结构，自动切换未完成章节
+- 自动播放视频、自动切换倍速、自动静音
+- 自动检测并翻页 PDF 文档
+- 自动识别并答题（支持单选、多选、判断题）
+- 支持 AI 自动答题（需配置 API Key）
+- 支持后台播放，节省时间
+- 兼容 FireFox、Edge 等主流浏览器
 
-- Python 3.12（推荐）
-- 详见 `requirements.txt` 和 `package.json`
+---
 
 ## 注意事项
 
-- ~~目前单一章节只识别第一个视频/PDF元素，可能会漏刷~~
-- 仅支持学习通网页版，目前仅在 FireFox 和Edge验证，理论上主流现代浏览器均兼容
-- 请保证浏览器的默认语言为中文，不然课后答题部分可能出现不填答案直接提交的bug（正在做兼容性改进）
-- 对于非视频/PDF类型的课程，脚本会尝试直接跳过
-- 欢迎 Issue 反馈 bug 或建议，但请一定一定给出详细信息
-- 由于学习通谜一样的响应时间，故在每次跳章时设置的等待时间较长，请不要误认为是脚本卡住
-- 使用回答课后题功能需要拥有自己的api_key,这里推荐kimi的[https://platform.moonshot.cn]([https://platform.moonshot.cn]())或者直接上[https://openrouter.ai/](https://openrouter.ai/)找，均可以免费试用
+- ai答题需要自己配置openai_api，推荐使用[kimi_api](https://platform.moonshot.cn), 快捷方便且免费。
+- 打包版本请一定先保存你的api_key再使用，不然答题模块会出故障。
+- 请将浏览器的默认语言更改为中文，防止一些未知的兼容性问题
+- 依赖详见 [`requirements.txt`](requirements.txt)
 
-## 使用步骤（无题版）
+## 环境依赖
+
+- Python 3.12（推荐）
+- 依赖详见 [`requirements.txt`](requirements.txt)
+
+---
+
+## 快速开始
+
+直接进入release界面下载，打开配置好openai相关api后直接按照程序右侧提示操作即可
+
+## 命令行运行
+
+### 方式一：仅刷课（无答题）
 
 和lucky佬的基本一致，如下： （目前有两种启动方式，以下为不包含回答课后习题的版本）
 
@@ -48,97 +58,85 @@
 
 ![1748434648962](resource/image/README/1748434648962.jpg)
 
-## 新版使用步骤
+---
 
-1.**创建虚拟环境**
+### 方式二：AI 自动答题（推荐）
 
-   在项目根目录下运行以下命令以创建一个新的虚拟环境：
+1. **创建虚拟环境**
 
-```
-
+   ```sh
    python -m venv venv
+   ```
+2. **激活虚拟环境**
 
-```
+   - Windows:
+     ```sh
+     venv\Scripts\activate
+     ```
+   - macOS/Linux:
+     ```sh
+     source venv/bin/activate
+     ```
+3. **安装依赖**
 
-2.**激活虚拟环境**
-
-- 在 Windows 上：
-
-  ```
-
-  venv\Scripts\activate
-
-  ```
-- 在 macOS/Linux 上：
-
-  ```
-
-  source venv/bin/activate
-
-  ```
-
-3.**安装依赖**
-
-   使用以下命令安装项目所需的依赖：
-
-```
-
+   ```sh
    pip install -r requirements.txt
+   ```
+4. **配置 API Key**
 
-```
+   - 打开 [`src/py/config.py`](src/py/config.py) 或 `.env`，填写你的 AI 平台 key（如 [Moonshot](https://platform.moonshot.cn) 或 [OpenRouter](https://openrouter.ai/)）。
+5. **启动后端服务**
 
-4.**配置 `config.py`**
-
-   打开 `src/config.py` 文件，根据需要修改配置设置。
-
-5.**启动应用**
-
-   运行以下命令启动主程序：
-
-```
-
+   ```sh
    python src/py/main.py
+   ```
 
-```
+---
 
-6.**按照终端提示运行**
+## 常见问题
 
-   根据终端中的提示进行操作即可
+- **资源文件加载失败？**请确保所有静态资源通过 `--add-data` 参数打包，代码中路径统一为 `data/xxx`。
+- **AI 答题不可用？**检查 API Key 是否正确填写，网络是否可用。
+- **写入文件失败？**
+  运行时生成的文件请勿写入静态资源目录，建议写入 `data/temp/` 或用户主目录。
 
-## 使用说明
+---
 
-1. 启动脚本后，需手动点击页面以激活脚本。
-2. 如需停止，刷新页面即可。
-3. 请勿用于商业用途或违反相关法律法规。
+## 贡献指南
 
-## 许可协议
+欢迎提交 Issue、PR 或建议！请阅读 [`CONTRIBUTING.md`](CONTRIBUTING.md) 了解详细贡献流程和代码规范。
 
-本项目采用 CC BY-NC 4.0 协议，禁止任何商业用途。
+---
 
-## 未来计划
+## 安全与许可
+
+- 本项目仅供学习交流，禁止任何商业用途，遵循 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) 协议
+- 安全问题请参考 [`SECURITY.md`](SECURITY.md)
+
+---
+
+## 联系方式
+
+- 作者：unraous
+- 邮箱：unraous@qq.com
+
+---
+
+## 版本历史
+
+- 2025-06-08 v1.2.0
+- 2025-06-01 v1.1.0
+- 2025-05-28 v1.0.0
+
+---
+
+## TODO
 
 - 优化代码结构
-- ~~支持自动静音~~ （完成）
-- ~~支持自动刷课后题目~~
-- ~~支持单一章节的多个视频/文件~~ （完成）
 - 支持更多课程类型
+- 增加容错处理与 bug 修复
 - 自动切换公网线路
-- 增加容错处理/bug修复
 
-## 题外话
+---
 
-本人的第一个前端脚本（这下前后端都有了），本来以为工作量主要在实现逻辑上，结果有一半时间是花在处理异步错乱了（笑），只能说还是没经验，不过到底还是有惊无险地完成了，可喜可贺。
-
-未来如果不被ban或者前端框架大改的话应该会长期更新
-
-如果觉得有用，不妨star一下？会持续产出 ⌯>ᴗo⌯ಣ
-
-(答题这块太折磨人了，目前提交的版本还未优化，可以说是一坨，并且很有可能有未知bug，让我歇几天在修补吧)
-
-**作者：unraous**
-
-**邮箱：unraous@qq.com**
-
-**日期：2025-06-01**
-
-**版本：v1.1.0**
+如果觉得有用，欢迎 star 支持！✨
