@@ -431,6 +431,52 @@ function selectMenuItem(paceList) {
     }
 }
 
+// 封装成函数，参数为 video 元素
+function forcePlaybackRate(video, targetRate = 2.0) {
+    if (!video) {
+        console.warn('未找到视频元素');
+        return;
+    }
+
+    // 1. 强制设置倍速
+    video.playbackRate = targetRate;
+
+    // 2. 防止被检测：重写 playbackRate 属性
+    Object.defineProperty(video, 'playbackRate', {
+        get: function() { return targetRate; },
+        set: function(val) { /* 忽略外部设置，始终保持 targetRate */ },
+        configurable: true
+    });
+
+    // 3. 拦截 addEventListener，防止外部监听 playbackratechange
+    var oldAddEventListener = video.addEventListener;
+    video.addEventListener = function(type, listener, options) {
+        if (type === 'ratechange' || type === 'playbackratechange') {
+            // 不注册外部的 ratechange 监听
+            return;
+        }
+        return oldAddEventListener.call(this, type, listener, options);
+    };
+
+    // 4. 定时修正，防止被脚本偷偷改回去
+    var intervalId = setInterval(function() {
+        if (video.playbackRate !== targetRate) {
+            video.playbackRate = targetRate;
+        }
+    }, 1000);
+
+    // 返回一个停止修正的函数
+    return function stop() {
+        clearInterval(intervalId);
+    };
+}
+
+// 用法示例：
+// const video = document.querySelector('video');
+// forcePlaybackRate(video, 2.0);
+// 用法：对每个 video 调用一次即可
+// const stop = forcePlaybackRate(video, 2.0);
+
 function waitForSubmitAndContinue(innerDoc) {
     return new Promise(resolve => {
         const interval = setInterval(function() {
@@ -573,7 +619,8 @@ async function tryStartVideo(videoDiv, launchBtn, paceList, muteBtn) {
         await timeSleep(DEFAULT_SLEEP_TIME);
     }
     await timeSleep(DEFAULT_SLEEP_TIME);
-    selectMenuItem(paceList);
+    // selectMenuItem(paceList);
+    forcePlaybackRate(videoDiv, 5.0)
     muteVideo(muteBtn);
 }
 
