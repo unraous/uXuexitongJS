@@ -21,8 +21,8 @@
  * 
  * 作者：unraous
  * 邮箱：unraous@qq.com
- * 日期：2025-06-04
- * 版本：v1.1.1
+ * 日期：2025-06-11
+ * 版本：v1.2.1
  */
 
 if (typeof DEFAULT_TEST_OPTION === 'undefined') { // 检测是否由selenium注入
