@@ -35,6 +35,7 @@
 ## 快速开始
 
 直接进入release界面下载，打开配置好openai相关api后直接按照程序右侧提示操作即可
+详情可见[bilibili视频演示](https://www.bilibili.com/video/BV1S8M6zYEMs)
 
 ## 命令行运行
 
@@ -92,7 +93,6 @@
    ```
 
 ---
-
 
 ## 贡献指南
 
