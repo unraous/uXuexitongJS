@@ -432,15 +432,18 @@ function selectMenuItem(paceList) {
 }
 
 // 封装成函数，参数为 video 元素
-function forcePlaybackRate(video, targetRate = 2.0) {
-    if (!video) {
+function forcePlaybackRate(videoDiv, targetRate = 2.0) {
+    if (!videoDiv) {
         console.warn('未找到视频元素');
         return;
     }
+    const video = videoDiv.querySelector('video'); // 获取容器内的视频元素
 
+    console.log('当前视频为：', video);
+    console.log('正在强制设置视频倍速:', video.playbackRate, '->', targetRate);
     // 1. 强制设置倍速
     video.playbackRate = targetRate;
-
+    console.log('已强制设置视频倍速:', video.playbackRate);
     // 2. 防止被检测：重写 playbackRate 属性
     Object.defineProperty(video, 'playbackRate', {
         get: function() { return targetRate; },
