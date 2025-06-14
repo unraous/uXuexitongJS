@@ -35,7 +35,15 @@
 ## 快速开始
 
 直接进入release界面下载，打开配置好openai相关api后直接按照程序右侧提示操作即可
-详情可见[bilibili视频演示](https://www.bilibili.com/video/BV1S8M6zYEMs)
+详情可见[~~bilibili视频演示~~](https://www.bilibili.com/video/BV1S8M6zYEMs)
+
+这下好了，喜提荣誉徽章
+
+![1749911217500](image/README/1749911217500.png)
+
+（执法有温度）
+
+Tips：没想到账号封禁是直接强退，叔叔你赢了
 
 ## 命令行运行
 
