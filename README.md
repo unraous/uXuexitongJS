@@ -37,6 +37,10 @@
 直接进入release界面下载，打开配置好openai相关api后直接按照程序右侧提示操作即可
 详情可见[~~bilibili视频演示~~](https://www.bilibili.com/video/BV1S8M6zYEMs)
 
+新的打包版演示视频：[学习通学习神器](https://www.bilibili.com/video/BV1zNMSzrEtT)
+
+api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
+
 这下好了，喜提荣誉徽章
 
 为什么能在24h以内，播放量小于2000的情况下直接删号？这是不是有点夸张了，谁家1984？
