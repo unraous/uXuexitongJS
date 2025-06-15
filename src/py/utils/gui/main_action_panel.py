@@ -219,12 +219,10 @@ class MainActionPanel(QtWidgets.QWidget):
             return
 
         self.driver.get("https://mooc1.chaoxing.com")  # 先访问主域，才能设置 Cookie
-
-        
-
+ 
+     
         # 切换到最后一个窗口
-        handles = self.driver.window_handles
-        self.driver.switch_to.window(handles[-1])
+        
 
    
 
@@ -233,12 +231,15 @@ class MainActionPanel(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "警告", "请先启动浏览器并登录！")
             return
         try:
+            time.sleep(2)
+            handles = self.driver.window_handles
+            self.driver.switch_to.window(handles[-1])
+
             self.driver.execute_script("""
                 Object.defineProperty(navigator, 'webdriver', {
                     get: () => undefined
                 });
             """)
-            time.sleep(2)
             self.driver.execute_script(
                 "DEFAULT_TEST_OPTION = 1;\n" + self.js_code
             )

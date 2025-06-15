@@ -129,7 +129,7 @@ class CyberWindow(QtWidgets.QWidget):
         self.clock_label.hide()  # 先隐藏
 
         # 右下角版本号和作者（用自定义 GradientLabel）
-        self.version_label = GradientLabel("v1.2.0  by Unraous", self.bg)
+        self.version_label = GradientLabel("v1.2.2  by Unraous", self.bg)
         self.version_label.setStyleSheet("""
             font-size: 13px;
             background: transparent;

@@ -21,8 +21,8 @@
  * 
  * 作者：unraous
  * 邮箱：unraous@qq.com
- * 日期：2025-06-11
- * 版本：v1.2.1
+ * 日期：2025-06-16
+ * 版本：v1.2.2
  */
 
 if (typeof DEFAULT_TEST_OPTION === 'undefined') { // 检测是否由selenium注入
@@ -330,28 +330,66 @@ function findInnerDocs(outerDoc) {
     const result = [];
     innerIframes.forEach(innerIframe => {
         let Type = '';
+        let innerDoc;
+
+        // 判断 iframe 类型
         if (innerIframe.classList.contains(VIDEO_IFRAME_FEATURE_CLASS)) {
             Type = 'Video';
         } else if (innerIframe.classList.contains(PDF_DOC_FEATURE_CLASS)) {
             Type = 'Pdf';
         } else {
-            Type = 'Unknown';
+            // 尝试查找 Work iframe
+            const workIframe = Array.from(outerDoc.querySelectorAll('iframe')).find(
+                iframe => iframe.src?.includes('/ananas/modules/work/')
+            );
+
+            if (workIframe) {
+                try {
+                    const workDoc = workIframe.contentDocument || workIframe.contentWindow.document;
+
+                    if (!workDoc) {
+                        console.warn('[备用] workDoc 为 null');
+                        return;
+                    }
+
+                    if (workDoc.location.href === IFRAME_LOADING_URL) {
+                        console.warn('[备用] workDoc 仍为 about:blank');
+                        return;
+                    }
+
+                    console.log('[备用] 通过 src 查找到了 work iframe innerDoc');
+                    result.push({ innerDoc: workDoc, Type: 'Work' });
+                    return; // 跳过后续逻辑
+                } catch (e) {
+                    console.warn('[备用] 跨域, 无法访问 work iframe 内容', e);
+                    return;
+                }
+            } else {
+                console.log('[备用] 未找到 work iframe');
+                return;
+            }
         }
-        let innerDoc;
+
+        // 获取 innerDoc
         try {
             innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
         } catch (e) {
-            console.warn('跨域, 无法访问内层iframe内容');
-            return null;
+            console.warn('跨域, 无法访问内层 iframe 内容', e);
+            return;
         }
+
+        // 检查 innerDoc 是否有效
         if (!innerDoc) {
-            console.log('[调试] 未找到 innerDoc');      
-            return null;
+            console.log('[调试] 未找到 innerDoc');
+            return;
         }
+
         if (innerDoc.location.href === IFRAME_LOADING_URL) {
-            console.log('[调试] innerDoc 仍为 about:blank,等待加载');
-            return null;
+            console.log('[调试] innerDoc 仍为 about:blank, 等待加载');
+            return;
         }
+
+        // 添加结果
         result.push({ innerDoc, Type });
     });
     if (result.length === 0) {
