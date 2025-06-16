@@ -52,7 +52,7 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 我是真服了………………………………
 
-[点击以观看视频](image/README/1749911217500.png)
+[点击以查看视频位置（如果实在不会用可以下载视频根据视频内容执行）](image/README/1749911217500.png)
 
 （执法有温度）
 
