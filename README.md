@@ -38,7 +38,14 @@
 直接进入release界面下载，打开配置好openai相关api后直接按照程序右侧提示操作即可
 详情可见[~~bilibili视频演示~~](https://www.bilibili.com/video/BV1S8M6zYEMs)
 
-新的打包版演示视频：[学习通学习神器](https://www.bilibili.com/video/BV1zNMSzrEtT)
+新的打包版演示视频：[~~学习通学习神器~~](https://www.bilibili.com/video/BV1zNMSzrEtT)
+
+（又挂了，直接放在这里了）
+
+<video controls width="600">
+    <source src="image/README/1750052023112.mp4" type="video/mp4">
+    您的浏览器不支持视频播放。
+</video>
 
 api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
 
