@@ -219,7 +219,7 @@ class MainActionPanel(QtWidgets.QWidget):
             return
 
         self.driver.get("https://mooc1.chaoxing.com")  # 先访问主域，才能设置 Cookie
- 
+
      
         # 切换到最后一个窗口
         

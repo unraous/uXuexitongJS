@@ -66,6 +66,7 @@ const IFRAME_LOADING_URL= 'about:blank';
 const NEXTBTN_ID = 'prevNextFocusNext';
 const OUTER_IFRAME_ID = 'iframe'; 
 const INNER_COURSE_IFRAME_ID = 'iframe.ans-attach-online';
+const INNER_COURSE_IFRAME_FEATURE_CLASS = 'ans-attach-online';
 const IFRAME_MAIN_FEATURE_CLASS = '.left';
 
 
@@ -326,8 +327,18 @@ function findOuterDoc() {
 }
 
 function findInnerDocs(outerDoc) {
-    const innerIframes = outerDoc.querySelectorAll(INNER_COURSE_IFRAME_ID);
+    const innerIframes = Array.from(outerDoc.querySelectorAll('iframe')).filter(
+        iframe =>
+            iframe.classList?.contains(INNER_COURSE_IFRAME_FEATURE_CLASS) ||
+            iframe.src?.includes('ananas/modules/work')       // 满足 src 包含特定路径
+    );
     const result = [];
+    console.log('开始核对');
+    const needSkip = outerDoc.querySelectorAll('.ans-job-icon');
+    if (needSkip?.length > 1 && innerIframes.length < needSkip.length) {
+        console.warn('检测到测验题目数量小于课程内实际测验题目数量不符，将重新回调', needSkip.length, innerIframes.length);
+        return null;
+    }
     innerIframes.forEach(innerIframe => {
         let Type = '';
         let innerDoc;
@@ -337,58 +348,51 @@ function findInnerDocs(outerDoc) {
             Type = 'Video';
         } else if (innerIframe.classList.contains(PDF_DOC_FEATURE_CLASS)) {
             Type = 'Pdf';
+        } else if (innerIframe.src?.includes('/ananas/modules/work/')) {
+            Type = 'Work';
         } else {
-            // 尝试查找 Work iframe
-            const workIframe = Array.from(outerDoc.querySelectorAll('iframe')).find(
-                iframe => iframe.src?.includes('/ananas/modules/work/')
-            );
-
-            if (workIframe) {
-                try {
-                    const workDoc = workIframe.contentDocument || workIframe.contentWindow.document;
-
-                    if (!workDoc) {
-                        console.warn('[备用] workDoc 为 null');
-                        return;
-                    }
-
-                    if (workDoc.location.href === IFRAME_LOADING_URL) {
-                        console.warn('[备用] workDoc 仍为 about:blank');
-                        return;
-                    }
-
-                    console.log('[备用] 通过 src 查找到了 work iframe innerDoc');
-                    result.push({ innerDoc: workDoc, Type: 'Work' });
-                    return; // 跳过后续逻辑
-                } catch (e) {
-                    console.warn('[备用] 跨域, 无法访问 work iframe 内容', e);
-                    return;
-                }
-            } else {
-                console.log('[备用] 未找到 work iframe');
-                return;
-            }
+            Type = 'Unknown';
         }
 
         // 获取 innerDoc
         try {
             innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
+            if (!innerDoc) {
+                console.log('[调试] 未找到 innerDoc');
+                throw new Error('innerDoc 未找到'); // 抛出异常，跳转到 catch
+            }
+
+            if (innerDoc.location.href === IFRAME_LOADING_URL) {
+                console.log('[调试] innerDoc 仍为 about:blank, 等待加载');
+                throw new Error('innerDoc 加载中'); 
+            }
         } catch (e) {
-            console.warn('跨域, 无法访问内层 iframe 内容', e);
-            return;
+            console.warn('[备用] 跨域, 无法访问 iframe 内容');
+            return null;
         }
-
-        // 检查 innerDoc 是否有效
-        if (!innerDoc) {
-            console.log('[调试] 未找到 innerDoc');
-            return;
-        }
-
-        if (innerDoc.location.href === IFRAME_LOADING_URL) {
-            console.log('[调试] innerDoc 仍为 about:blank, 等待加载');
-            return;
-        }
-
+        /*console.warn('课程类iframe识别失败，尝试识别测验类iframe', e);
+            try {
+                let workDoc;
+                try {
+                    workDoc = workIframe.contentDocument || workIframe.contentWindow.document;
+                } catch (e) {
+                    console.warn('[备用] 获取 workDoc 失败', e);
+                    throw new Error('workDoc 获取失败'); 
+                }
+                console.log('[备用] workDoc:', workDoc);
+                if (!workDoc) {
+                    console.warn('[备用] workDoc 为 null');
+                    throw new Error('workDoc 为 null'); 
+                } else if (workDoc.location.href === IFRAME_LOADING_URL) {
+                    console.warn('[备用] workDoc 仍为 about:blank');
+                    throw new Error('workDoc 加载中');
+                } else {
+                    console.log('[备用] 通过 src 查找到了 work iframe innerDoc');
+                }
+            } catch (e) {
+                console.warn('[备用] 跨域, 无法访问 work iframe 内容');
+                return null;
+            }*/
         // 添加结果
         result.push({ innerDoc, Type });
     });
@@ -396,7 +400,7 @@ function findInnerDocs(outerDoc) {
         console.log('[调试] 尝试检测测验题目');
         // 备用手段：尝试查找 src 包含 /ananas/modules/work/ 的 iframe
         const workIframe = Array.from(outerDoc.querySelectorAll('iframe')).find(
-            iframe => iframe.src && iframe.src.includes('/ananas/modules/work/')
+            iframe => iframe.src?.includes('/ananas/modules/work/')
         );
         if (workIframe) {
             try {
@@ -427,6 +431,11 @@ function findInnerDocs(outerDoc) {
             return null;
         }
         
+    }
+    console.log('再次核对');
+    if (needSkip?.length > 1 && result.length < needSkip.length) {
+        console.warn('检测到测验题目数量小于课程内实际测验题目数量不符，将重新回调');
+        return null;
     }
     return result;
 }
@@ -1402,16 +1411,16 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
-                                        console.log('有未完成的任务点');
+                                        console.warn('有未完成的任务点,尝试跳过');
                                     } else {
                                         // 没有未完成任务点
                                         console.log('所有任务点已完成');
-                                        learningTest.click();
-                                        await timeSleep(DEFAULT_SLEEP_TIME);
-                                        handleIframeLock = false; //
-                                        await handleIframeChange(1);  
-                                    }                                   
-                                    return;
+                                         
+                                    }    
+                                    learningTest.click();
+                                    await timeSleep(DEFAULT_SLEEP_TIME);
+                                    handleIframeLock = false; //
+                                    await handleIframeChange(1);                                
                                 } else {
                                     console.log('此章节学习测验已处理');
                                     if (prama !== 2) answerTable = [];
@@ -1424,8 +1433,9 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     } else {
                                         // 没有未完成任务点
                                         console.log('所有任务点已完成');
-                                        continueToNextChapter();
-                                    }      
+                                    
+                                    }   
+                                    continueToNextChapter();   
                                 }
                             }
 
