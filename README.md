@@ -42,10 +42,7 @@
 
 （又挂了，直接放在这里了）
 
-<video controls width="600">
-    <source src="image/README/1750052023112.mp4" type="video/mp4">
-    您的浏览器不支持视频播放。
-</video>
+![1750052023112](image/README/1750052023112.mp4)
 
 api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
 
@@ -55,7 +52,7 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 我是真服了………………………………
 
-![1749911217500](image/README/1749911217500.png)
+[点击以观看视频](image/README/1749911217500.png)
 
 （执法有温度）
 
