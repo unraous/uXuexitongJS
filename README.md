@@ -110,7 +110,8 @@ Tips：没想到账号封禁是直接强退，叔叔你赢了（真的想骂）
 5. **启动后端服务，并按照终端提示运行**
 
    ```sh
-   python src/py/main.py
+   python src/py/main.py # 无ui
+   python main_with_gui.py # 有ui
    ```
 
 ---
