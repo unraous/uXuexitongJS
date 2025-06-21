@@ -134,6 +134,10 @@ driver.get("https://mooc1.chaoxing.com")  # 先访问主域，才能设置 Cooki
 
 
 
+# 获取所有窗口句柄
+handles = driver.window_handles
+# 切换到最后一个（最新的）窗口
+driver.switch_to.window(handles[-1])
 
 
 try:
