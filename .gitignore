@@ -3,7 +3,6 @@
 config.py
 build
 dist
-the_icon.ico
 __pycache__/
 traffic
 data/config
