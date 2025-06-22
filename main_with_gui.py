@@ -73,19 +73,16 @@ def setup_logging():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path = writable_path(f"data/log/py/python_{timestamp}.log")
     
-    # 创建一个自定义的输出流类，同时写入控制台和日志文件
-    class TeeOutput:
-        def __init__(self, file_path, original_stdout):
+    # 创建一个自定义的输出流类，仅写入日志文件
+    class FileOnlyOutput:
+        def __init__(self, file_path):
             self.file = open(file_path, 'w', encoding='utf-8')
-            self.original_stdout = original_stdout
             
         def write(self, message):
-            self.original_stdout.write(message)
             self.file.write(message)
             self.file.flush()  # 立即写入，不缓存
             
         def flush(self):
-            self.original_stdout.flush()
             self.file.flush()
             
         def close(self):
@@ -93,13 +90,58 @@ def setup_logging():
                 self.file.close()
                 self.file = None
     
-    # 保存原始的标准输出
-    original_stdout = sys.stdout
+    # 创建一个既写入控制台又写入文件的输出类
+    class TeeOutput:
+        def __init__(self, file_path, original_stdout):
+            self.file = open(file_path, 'w', encoding='utf-8')
+            self.original_stdout = original_stdout
+            
+        def write(self, message):
+            if self.original_stdout:  # 检查是否为None
+                try:
+                    self.original_stdout.write(message)
+                except:
+                    pass  # 忽略输出到控制台的错误
+            self.file.write(message)
+            self.file.flush()
+            
+        def flush(self):
+            if self.original_stdout:
+                try:
+                    self.original_stdout.flush()
+                except:
+                    pass
+            self.file.flush()
+            
+        def close(self):
+            if self.file:
+                self.file.close()
+                self.file = None
     
-    # 替换标准输出为我们的自定义输出
-    sys.stdout = TeeOutput(log_path, original_stdout)
-    
-    print(f"日志已初始化，路径: {log_path}")
+    # 根据环境选择合适的输出方式
+    try:
+        # 尝试获取原始输出
+        original_stdout = sys.stdout
+        
+        # 检查是否在打包环境或没有有效输出
+        if hasattr(sys, '_MEIPASS') or original_stdout is None:
+            # 打包环境下，只记录到文件
+            sys.stdout = FileOnlyOutput(log_path)
+            with open(log_path, 'w', encoding='utf-8') as f:
+                f.write(f"日志已初始化 (仅文件模式)，路径: {log_path}\n")
+        else:
+            # 非打包环境，同时输出到控制台和文件
+            sys.stdout = TeeOutput(log_path, original_stdout)
+            print(f"日志已初始化 (Tee模式)，路径: {log_path}")
+    except Exception as e:
+        # 出错时回退到只写文件
+        try:
+            sys.stdout = FileOnlyOutput(log_path)
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(f"日志初始化出错: {e}，使用仅文件模式\n")
+        except:
+            pass  # 如果连这都失败了，就放弃日志记录
+            
     return log_path
 
 os.makedirs(writable_path("data/log/py"), exist_ok=True)
@@ -113,7 +155,7 @@ log_file_path = setup_logging()
 def main():
     try:
         app = QtWidgets.QApplication(sys.argv)
-        app.setWindowIcon(QIcon('the_icon.ico'))
+        app.setWindowIcon(QIcon(resource_path("the_icon.ico")))
         font_id = QtGui.QFontDatabase.addApplicationFont(font_path)
         family = QtGui.QFontDatabase.applicationFontFamilies(font_id)[0] if font_id != -1 else "Microsoft YaHei"
         app.setFont(QtGui.QFont(family, 12))
