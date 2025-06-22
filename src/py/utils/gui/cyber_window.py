@@ -1,5 +1,6 @@
 import os
 import sys
+import datetime
 from PySide6 import QtCore, QtWidgets, QtGui
 from custom_titlebar import CustomTitleBar
 from gradient_label import GradientLabel
@@ -16,6 +17,11 @@ def resource_path(relative_path):
     # 项目根目录
     return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), relative_path)
 
+def writable_path(relative_path):
+    """返回当前工作目录下的可写路径，并自动创建父目录"""
+    abs_path = os.path.join(os.getcwd(), relative_path)
+    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+    return abs_path
 class CyberWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -129,7 +135,7 @@ class CyberWindow(QtWidgets.QWidget):
         self.clock_label.hide()  # 先隐藏
 
         # 右下角版本号和作者（用自定义 GradientLabel）
-        self.version_label = GradientLabel("v1.2.3  by Unraous", self.bg)
+        self.version_label = GradientLabel("v1.2.4  by Unraous", self.bg)
         self.version_label.setStyleSheet("""
             font-size: 13px;
             background: transparent;
@@ -137,11 +143,11 @@ class CyberWindow(QtWidgets.QWidget):
         self.version_label.adjustSize()
 
         # GitHub 图标（放大、无背景、偏左）
-        github_icon_path = resource_path(os.path.join("data", "static", "png", "github-mark-gradient-antialiased.png"))
+        github_icon_path = resource_path(os.path.join("data", "static", "svg", "github-mark.svg"))
         self.github_label = QtWidgets.QLabel(self.bg)
         pixmap = QtGui.QPixmap(github_icon_path)
         # 放大到32x32像素
-        self.github_label.setPixmap(pixmap.scaled(24, 24, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        self.github_label.setPixmap(pixmap.scaled(32, 32, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
         self.github_label.setCursor(QtCore.Qt.PointingHandCursor)
         self.github_label.setStyleSheet("background: transparent;")  # 去掉背景
         self.github_label.adjustSize()
@@ -156,7 +162,7 @@ class CyberWindow(QtWidgets.QWidget):
         total_width = self.version_label.width() + self.github_label.width() + spacing
         x = self.bg.width() - total_width - 48  # 偏左（数值越大越靠左）
         y = self.bg.height() - max(self.version_label.height(), self.github_label.height()) - 18
-        self.github_label.move(x, y + 8)
+        self.github_label.move(x, y + 4)
         self.version_label.move(x + self.github_label.width() + spacing, y)
         self.github_label.raise_()
         self.version_label.raise_()
@@ -166,7 +172,7 @@ class CyberWindow(QtWidgets.QWidget):
             total_width = self.version_label.width() + self.github_label.width() + spacing
             x = self.bg.width() - total_width - 48
             y = self.bg.height() - max(self.version_label.height(), self.github_label.height()) - 18
-            self.github_label.move(x, y + 8)
+            self.github_label.move(x, y + 4)
             self.version_label.move(x + self.github_label.width() + spacing, y)
         self.bg.resizeEvent = lambda event: (update_version_label_pos(), QtWidgets.QWidget.resizeEvent(self.bg, event))
 
@@ -366,6 +372,12 @@ class CyberWindow(QtWidgets.QWidget):
         self._is_closing = True
         try:
             if hasattr(self, "action_panel") and hasattr(self.action_panel, "driver") and self.action_panel.driver:
+                if self.action_panel.log_option:
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    log_path = writable_path(f"data/log/js/js_{timestamp}.log")
+                    with open(log_path, "w", encoding="utf-8") as f:
+                        for entry in self.action_panel.log_entries:
+                            f.write(str(entry) + "\n")
                 self.action_panel.driver.quit()
         except Exception as e:
             print(f"关闭浏览器异常: {e}")
@@ -394,6 +406,8 @@ class CyberWindow(QtWidgets.QWidget):
 
         group.finished.connect(on_finished)
         group.start()
+        if self.action_panel.settings_panel:
+                    self.action_panel.settings_panel.fade_out()
         event.ignore()
 
     def changeEvent(self, event):
@@ -414,5 +428,7 @@ class CyberWindow(QtWidgets.QWidget):
                     self._minimizing = False
                 self._fadeout_min.finished.connect(do_minimize)
                 self._fadeout_min.start()
+                if self.action_panel.settings_panel:
+                    self.action_panel.settings_panel.fade_out()
 
 

@@ -19,7 +19,6 @@ import random
 
 from utils.auto_answer.html_2_answer import html_to_answer
 
-# USER_AGNET = config.USER_AGENT
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -38,38 +37,41 @@ user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 options = Options()
 options.set_preference("general.useragent.override", user_agent)
 
+
+async def handler(websocket):
+    async for msg in websocket:
+        try:
+            data = json.loads(msg)
+            if data.get("type") == "testDocHtml":
+                html_str = data.get("html", "")
+                print("收到HTML内容，长度：", len(html_str))
+                try:
+                    with open(test_path, "w", encoding="utf-8") as f:
+                        f.write(html_str)
+                    print("HTML已保存到 test.html")
+                except Exception as e:
+                    print(f"无法写入 test.html：{e}")
+                    await websocket.send(json.dumps({"error": f"无法写入 test.html：{e}"}))
+                    return
+
+                html_to_answer(test_path)
+
+                try:
+                    with open(ans_path, "r", encoding="utf-8") as f:
+                        ans_json = f.read()
+                except Exception as e:
+                    print(f"无法读取答案文件：{e}")
+                    await websocket.send(json.dumps({"error": f"无法读取答案文件：{e}"}))
+                    return
+                await websocket.send(ans_json)
+            else:
+                print("收到非HTML消息：", data)
+        except Exception:
+            print("收到异常消息")
+
+
 def start_ws_server():
-    async def handler(websocket):
-        async for msg in websocket:
-            try:
-                data = json.loads(msg)
-                if data.get("type") == "testDocHtml":
-                    html_str = data.get("html", "")
-                    print("收到HTML内容，长度：", len(html_str))
-                    try:
-                        with open(test_path, "w", encoding="utf-8") as f:
-                            f.write(html_str)
-                        print("HTML已保存到 test.html")
-                    except Exception as e:
-                        print(f"无法写入 test.html：{e}")
-                        await websocket.send(json.dumps({"error": f"无法写入 test.html：{e}"}))
-                        return
-
-                    html_to_answer(test_path)
-
-                    try:
-                        with open(ans_path, "r", encoding="utf-8") as f:
-                            ans_json = f.read()
-                    except Exception as e:
-                        print(f"无法读取答案文件：{e}")
-                        await websocket.send(json.dumps({"error": f"无法读取答案文件：{e}"}))
-                        return
-                    await websocket.send(ans_json)
-                else:
-                    print("收到非HTML消息：", data)
-            except Exception:
-                print("收到异常消息")
-
+    
     async def main():
         async with websockets.serve(handler, "localhost", 8765):
             print("WebSocket服务器已启动 ws://localhost:8765")

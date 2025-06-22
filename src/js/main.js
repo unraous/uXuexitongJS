@@ -669,8 +669,12 @@ async function tryStartVideo(videoDiv, launchBtn, paceList, muteBtn) {
         await timeSleep(DEFAULT_SLEEP_TIME);
     }
     await timeSleep(DEFAULT_SLEEP_TIME);
-    // selectMenuItem(paceList);
-    forcePlaybackRate(videoDiv, 5.0)
+    if (DEFAULT_ROCE_SPD) {
+        forcePlaybackRate(videoDiv, DEFAULT_PACE)
+    }
+    else {
+        selectMenuItem(paceList); 
+    } 
     muteVideo(muteBtn);
 }
 
@@ -1509,6 +1513,12 @@ window.addEventListener = new Proxy(window.addEventListener, {
 
 findCourseTree(); // 初始化课程树
 initializeTreeIndex();
+
+if (DEFAULT_FORCE_SPD) {
+    console.log('强制速度模式已开启,目前倍速为:', DEFAULT_PACE);  
+} else {
+    console.log('未开启强制速度模式');
+}
 
 // 启动入口
 startScriptWithMask(main);
