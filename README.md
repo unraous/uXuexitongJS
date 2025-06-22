@@ -40,9 +40,8 @@
 
 新的打包版演示视频：[~~学习通学习神器~~](https://www.bilibili.com/video/BV1zNMSzrEtT)
 
-（又挂了，直接放在这里了）
+（目前无法获取，到时候会挂博客）
 
-![1750052023112](image/README/1750052023112.mp4)
 
 api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
 
@@ -52,7 +51,7 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 我是真服了………………………………
 
-[点击以查看视频位置（如果实在不会用可以下载视频根据视频内容执行）](image/README/1749911217500.png)
+![](image/README/1749911217500.png)
 
 （执法有温度）
 
