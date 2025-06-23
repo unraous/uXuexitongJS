@@ -204,10 +204,6 @@ class CyberWindow(QtWidgets.QWidget):
         # yOffset 动画要加到 logo_container 上
         self.logo_container._y_offset = 0  # 初始化
 
-        def setLogoYOffset(value):
-            self.logo_container._y_offset = value
-            self.logo_container.move(center_x, self.logo_container._base_y + value)
-
         # 动画
         self.move_anim_logo = QtCore.QPropertyAnimation(self.logo_container, b"pos")
         self.move_anim_logo.setStartValue(QtCore.QPoint(center_x, center_y + 60))
@@ -333,8 +329,6 @@ class CyberWindow(QtWidgets.QWidget):
                     def remove_all_effects():
                         self.action_panel.setGraphicsEffect(None)
                         self.form_widget.setGraphicsEffect(None)
-                        # self.logo_container.setGraphicsEffect(None)
-                        # self.animated_title.setGraphicsEffect(None)
                         self.clock_label.setGraphicsEffect(None)
                     self.anim_action.finished.connect(remove_all_effects)
 
