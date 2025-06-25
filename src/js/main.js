@@ -110,17 +110,6 @@ function getCourseTree() {
         courseTree.push(node);
     });
 
-    // Debug
-    /*courseTree.forEach((node, idx) => {
-        const span = node.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
-        if (span) {
-            console.log(`第${idx + 1}项: ${span.title}`);
-        } else {
-            console.log(`第${idx + 1}项: 未找到span.posCatalog_name`);
-        }
-        console.log(`类型: ${nodeType(node)}`);
-    });*/
-
     return courseTree;
 }
 
@@ -261,7 +250,7 @@ function continueToNextChapter() {
         console.log('正在跳转到下一课程:', nextChapter.title);
         if (nextChapter) {
             if (currentTitle === nextChapter.title) {
-                aimNode = nextCourse();
+                let aimNode = nextCourse();
                 console.log('当前章节已激活，跳过');
                 while(nodeType(aimNode) !== 'Unknown' && nodeType(aimNode) !== 'Pending') {
                     console.log('执行章节跳转循环中...')
@@ -273,9 +262,6 @@ function continueToNextChapter() {
                         return;
                     }
                     skippedCount++; 
-                }
-                if(!aimNode) {
-                    confirm
                 }
                 nextChapter = aimNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS); 
                 console.log('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
@@ -370,30 +356,6 @@ function findInnerDocs(outerDoc) {
             console.warn('[备用] 跨域, 无法访问 iframe 内容');
             return null;
         }
-        /*console.warn('课程类iframe识别失败，尝试识别测验类iframe', e);
-            try {
-                let workDoc;
-                try {
-                    workDoc = workIframe.contentDocument || workIframe.contentWindow.document;
-                } catch (e) {
-                    console.warn('[备用] 获取 workDoc 失败', e);
-                    throw new Error('workDoc 获取失败'); 
-                }
-                console.log('[备用] workDoc:', workDoc);
-                if (!workDoc) {
-                    console.warn('[备用] workDoc 为 null');
-                    throw new Error('workDoc 为 null'); 
-                } else if (workDoc.location.href === IFRAME_LOADING_URL) {
-                    console.warn('[备用] workDoc 仍为 about:blank');
-                    throw new Error('workDoc 加载中');
-                } else {
-                    console.log('[备用] 通过 src 查找到了 work iframe innerDoc');
-                }
-            } catch (e) {
-                console.warn('[备用] 跨域, 无法访问 work iframe 内容');
-                return null;
-            }*/
-        // 添加结果
         result.push({ innerDoc, Type });
     });
     if (result.length === 0) {
@@ -556,7 +518,6 @@ function autoQuestionDeal(target, innerDoc) {
     videoLock = true; // 锁定视频处理，防止多次点击
     try {
         if (target) {
-            //let lastVisibility = target.style.visibility;
             let pollCount = 0;
             const maxPoll = DEFAULT_TRY_COUNT; 
             const poll = async () => {
@@ -582,8 +543,8 @@ function autoQuestionDeal(target, innerDoc) {
                         }
                     } else if (radios.length > 0) {
                         // 单选
-                        for (let i = 0; i < radios.length; i++) {
-                            radios[i].click();
+                        for (const radio of radios) {
+                            radio.click();
                             console.log('正在提交单选题目');
                             innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                             const over = await waitForSubmitAndContinue(innerDoc);
@@ -594,7 +555,6 @@ function autoQuestionDeal(target, innerDoc) {
                     pollCount++;
                     setTimeout(poll, DEFAULT_SLEEP_TIME);
                 }
-                //lastVisibility = target.style.visibility;
             };
             poll();
         } else {
@@ -619,34 +579,28 @@ function findVideoElement(innerDoc) {
         console.log('[调试] 未找到 video 元素');
     } else {
         console.log('该章节为video,进行参数捕获', videoDiv);
-        if (!launchBtn) {
-            console.log('[调试] 未找到播放按钮');
-        } else {
-            console.log('[调试] 找到播放按钮:', launchBtn);
+        // 优化调试输出部分
+        console.log('该章节为video,进行参数捕获', videoDiv);
+
+        // 使用一个通用函数处理元素检测日志
+        function logElementStatus(element, name, found = true) {
+            console.log(`[调试] ${found ? '找到' : '未找到'}${name}:`, element || '');
         }
 
-        if (!playControlBtn) {
-            console.log('[调试] 未找到播放控制按钮');
-        } else {
-            console.log('[调试] 找到播放控制按钮:', playControlBtn);
+        const elementsToLog = [
+            { element: launchBtn, name: '播放按钮' },
+            { element: playControlBtn, name: '播放控制按钮' },
+            { element: target, name: '目标元素 ext-comp-1046' },
+            { element: muteBtn, name: '静音按钮' },
+            { element: paceList.length > 0, name: '菜单项' }
+        ];
+
+        for (const { element, name } of elementsToLog) {
+            logElementStatus(element, name, !!element);
         }
 
-        if (!target) {
-            console.log('[调试] 未找到目标元素 ext-comp-1046');
-        } else {
-            console.log('[调试] 找到目标元素 ext-comp-1046:', target);
-        }
-
-        if (muteBtn) {
-            console.log('[调试] 找到静音按钮:', muteBtn);
-        } else {
-            console.log('[调试] 未找到静音按钮');
-        }
-
-        if (paceList.length === 0) {
-            console.log('[调试] 未找到任何菜单项'); 
-        } else {
-            console.log('[调试] 找到菜单项:', paceList);
+        if (paceList.length > 0) {
+            console.log('[调试] 菜单项:', paceList);
         }
 
         if (videoDiv) {
@@ -691,10 +645,8 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
         const checkClass = () => {
             if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) {
                 console.log('class 已包含 vjs-ended');
-                //continueToNextChapter(); 
-                observer && observer.disconnect();
+                observer?.disconnect();
                 resolve(true);
-                return;
             } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS)) {       
                 tryStartVideo(videoDiv, launchBtn, paceList, muteBtn);
                 if (target && target.style.visibility !== 'hidden') {
@@ -749,18 +701,16 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                         console.log('暂停状态已自动恢复,无需处理');
                     }
                 }); 
+            } else if (target && target.style.visibility !== 'hidden') {
+                console.log('检测为互动题目,正在处理');
+                autoQuestionDeal(target, innerDoc);
+                pauseFreeze = true;
+                setTimeout(() => {
+                    pauseFreeze = false; // 5秒后解除暂停冻结
+                }, 10 * DEFAULT_SLEEP_TIME);
             } else {
-                if (target && target.style.visibility !== 'hidden') {
-                    console.log('检测为互动题目,正在处理');
-                    autoQuestionDeal(target, innerDoc);
-                    pauseFreeze = true;
-                    setTimeout(() => {
-                        pauseFreeze = false; // 5秒后解除暂停冻结
-                    }, 10 * DEFAULT_SLEEP_TIME);
-                } else {
-                    console.log('视频正在播放中，继续检测');
-                }
-            }
+                console.log('视频正在播放中，继续检测');
+            } 
         };
         observer = new MutationObserver(checkClass);
         observer.observe(videoDiv, { attributes: true, attributeFilter: ['class'] });
@@ -792,7 +742,7 @@ function findPdfElement(innerDoc) {
     return { pdfHtml };
 }
 
-function scrollPdfToBottom(pdfHtml, maxTries = Math.floor(DEFAULT_TRY_COUNT / 10)) { //有时候不灵，未知原因
+function scrollPdfToBottom(pdfHtml, maxTries = Math.floor(DEFAULT_TRY_COUNT / 10)) { 
     return new Promise(async (resolve) => {
         let lastTop = pdfHtml.scrollTop;
         let tries = 0;
@@ -934,19 +884,13 @@ function answerFixes(testList, answerHistory) {
                 answerTable[qIndex] = Array(options.length).fill(-1);
             }
             
-            if (
-                answerHistory[qIndex] &&
-                answerHistory[qIndex].some(record => record.mark === 'right')
-            ) {
+            if (answerHistory[qIndex]?.some(record => record.mark === 'right')) {
                 answerJson.push({
                     "题号": qNum,
                     "答案": answerHistory[qIndex][0]?.answer || ""
                 });
                 return;
-            } else if (
-                answerHistory[qIndex] &&
-                answerHistory[qIndex].some(record => record.mark === 'half')
-            ) {
+            } else if (answerHistory[qIndex]?.some(record => record.mark === 'half')) {
                 // 存在半对的答案
                 const ansArr = answerHistory[qIndex]
                     .map(record => record.answer.trim())
@@ -995,10 +939,7 @@ function answerFixes(testList, answerHistory) {
                 answerTable[qIndex] = Array(options.length).fill(-1);
             }
 
-            if (
-                answerHistory[qIndex] &&
-                answerHistory[qIndex].some(record => record.mark === 'right')
-            ) {
+            if (answerHistory[qIndex]?.some(record => record.mark === 'right')) {
                 answerJson.push({
                     "题号": qNum,
                     "答案": answerHistory[qIndex][0]?.answer || ""
@@ -1022,10 +963,7 @@ function answerFixes(testList, answerHistory) {
                 answerTable[qIndex] = Array(options.length).fill(-1);
             }
 
-            if (
-                answerHistory[qIndex] &&
-                answerHistory[qIndex].some(record => record.mark === 'right')
-            ) {
+            if (answerHistory[qIndex]?.some(record => record.mark === 'right')) {
                 answerJson.push({
                     "题号": qNum,
                     "答案": answerHistory[qIndex][0]?.answer || ""
@@ -1079,7 +1017,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
             () => {
                 if (allTaskDown) return;
                 console.log('第一层回调执行');
-                outerDoc = findOuterDoc();
+                let outerDoc = findOuterDoc();
                 const learning2 = document.getElementById('dct2');
                 const learning3 = document.getElementById('dct3');
                 if (learning3 && prama === 3 && !learningFix) {
@@ -1098,7 +1036,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                         () => {
                             if (allTaskDown) return;
                             console.log('第二层回调执行');
-                            innerDoc = findInnerDocs(outerDoc);
+                            let innerDoc = findInnerDocs(outerDoc);
                             return innerDoc;
                         },
                         (InnerDocs = []) => {

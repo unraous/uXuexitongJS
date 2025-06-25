@@ -100,7 +100,7 @@ def setup_logging():
             if self.original_stdout:  # 检查是否为None
                 try:
                     self.original_stdout.write(message)
-                except:
+                except Exception:
                     pass  # 忽略输出到控制台的错误
             self.file.write(message)
             self.file.flush()
@@ -109,7 +109,7 @@ def setup_logging():
             if self.original_stdout:
                 try:
                     self.original_stdout.flush()
-                except:
+                except Exception:
                     pass
             self.file.flush()
             
@@ -139,7 +139,7 @@ def setup_logging():
             sys.stdout = FileOnlyOutput(log_path)
             with open(log_path, 'a', encoding='utf-8') as f:
                 f.write(f"日志初始化出错: {e}，使用仅文件模式\n")
-        except:
+        except Exception:
             pass  # 如果连这都失败了，就放弃日志记录
             
     return log_path

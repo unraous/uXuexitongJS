@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets, QtCore, QtGui, QtSvg
+from PySide6 import QtWidgets, QtCore, QtGui
 from gradient_button import GradientButton
 from gradient_label import GradientLabel
 from setting import SettingsButton, SettingsPanel, load_settings
@@ -9,7 +9,6 @@ import websockets
 import json
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from selenium.common.exceptions import WebDriverException, NoSuchWindowException
 from selenium.webdriver.common.action_chains import ActionChains
 
 

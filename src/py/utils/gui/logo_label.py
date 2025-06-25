@@ -6,9 +6,7 @@ class LogoLabel(QtWidgets.QLabel):
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)  # 让控件背景透明
         self.setPixmap(QtGui.QPixmap(image_path))
         self.setScaledContents(True)
-        self.setFixedSize(130, 130)  # 可根据logo实际大小调整
-        # 不要在这里设置阴影
-        # 用于动画的属性
+        self.setFixedSize(130, 130)
         self._y_offset = 0
 
     def setYOffset(self, value):

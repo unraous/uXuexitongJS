@@ -26,6 +26,29 @@ def hash_distance(h1, h2):
     # 三种哈希距离加权平均
     return sum(a - b for a, b in zip(h1, h2))
 
+def std_worker(std_code, std_font_path, common_chars = COMMON_CHARS):
+    char = chr(std_code)
+    if char not in common_chars:
+        return None
+    img = glyph_to_img(std_font_path, char)
+    return (char, multi_hash(img))
+
+def enc_worker(enc_code, enc_font_path, std_hashes):
+    enc_char = chr(enc_code)
+    img = glyph_to_img(enc_font_path, enc_char)
+    h = multi_hash(img)
+    # 找最相近的标准字形
+    min_dist = float('inf')
+    min_char = None
+    for std_char, std_hash in std_hashes.items():
+        dist = hash_distance(h, std_hash)
+        if dist < min_dist:
+            min_dist = dist
+            min_char = std_char
+    if min_char is not None:
+        return (enc_char, min_char)
+    return None
+
 def create_font_mapping(enc_font_path, std_font_path, output_json=None):
     enc_font = TTFont(enc_font_path)
     std_font = TTFont(std_font_path)
@@ -34,37 +57,19 @@ def create_font_mapping(enc_font_path, std_font_path, output_json=None):
 
     # 预处理标准字体哈希（多线程+多哈希）
     std_hashes = {}
-    def std_worker(std_code):
-        char = chr(std_code)
-        if char not in COMMON_CHARS:
-            return None
-        img = glyph_to_img(std_font_path, char)
-        return (char, multi_hash(img))
+    def std_worker_wrapper(std_code):
+        return std_worker(std_code, std_font_path, COMMON_CHARS)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(std_worker, std_cmap)
+        results = executor.map(std_worker_wrapper, std_cmap)
         for res in results:
             if res:
                 std_hashes[res[0]] = res[1]
 
     mapping = {}
-    def enc_worker(enc_code):
-        enc_char = chr(enc_code)
-        img = glyph_to_img(enc_font_path, enc_char)
-        h = multi_hash(img)
-        # 找最相近的标准字形
-        min_dist = float('inf')
-        min_char = None
-        for std_char, std_hash in std_hashes.items():
-            dist = hash_distance(h, std_hash)
-            if dist < min_dist:
-                min_dist = dist
-                min_char = std_char
-        if min_char is not None:
-            return (enc_char, min_char)
-        return None
-
+    def enc_worker_wrapper(enc_code):
+        return enc_worker(enc_code, enc_font_path, std_hashes)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(enc_worker, enc_cmap)
+        results = executor.map(enc_worker_wrapper, enc_cmap)
         for res in results:
             if res:
                 mapping[res[0]] = res[1]
