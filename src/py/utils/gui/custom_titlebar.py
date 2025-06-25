@@ -49,12 +49,12 @@ class CustomTitleBar(QtWidgets.QWidget):
         main_layout.addWidget(self.title, alignment=QtCore.Qt.AlignCenter)
         main_layout.addStretch(1)  # 右弹性
 
-        # 按钮布局，靠右
         btn_layout = QtWidgets.QHBoxLayout()
         btn_layout.setSpacing(0)
         btn_layout.addWidget(self.btn_min)
         btn_layout.addWidget(self.btn_close)
         main_layout.addLayout(btn_layout)
+        print('')
 
     def _on_minimize(self):
         if self.window():

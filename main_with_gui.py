@@ -59,7 +59,7 @@ NEED_FILES = [
     # ...其它可写文件
 ]
 
-
+# this is a test
 
 for rel_path in NEED_FILES:
     ensure_empty_file(writable_path(rel_path))
