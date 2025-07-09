@@ -106,7 +106,7 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 欢迎提交 Issue、PR 或建议！请阅读 [`CONTRIBUTING.md`](CONTRIBUTING.md) 了解详细贡献流程和代码规范。
 
-目前可在deepwiki上查看详细代码结构：[https://deepwiki.com/unraous/uXuexitongJS](https://deepwiki.com/unraous/uXuexitongJS)
+目前可在deepwiki上查看详细代码结构：[https://deepwiki.com/unraous/uXuexitongJ](https://deepwiki.com/unraous/uXuexitongJS)S
 
 ---
 
