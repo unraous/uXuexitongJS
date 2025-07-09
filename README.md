@@ -42,7 +42,6 @@
 
 （目前无法获取，到时候会挂博客）
 
-
 api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
 
 这下好了，喜提荣誉徽章
@@ -118,6 +117,8 @@ Tips：没想到账号封禁是直接强退，叔叔你赢了（真的想骂）
 ## 贡献指南
 
 欢迎提交 Issue、PR 或建议！请阅读 [`CONTRIBUTING.md`](CONTRIBUTING.md) 了解详细贡献流程和代码规范。
+
+目前可在deepwiki上查看详细代码结构：[https://deepwiki.com/unraous/uXuexitongJS](https://deepwiki.com/unraous/uXuexitongJS)
 
 ---
 
