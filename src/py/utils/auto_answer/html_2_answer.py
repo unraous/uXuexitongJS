@@ -9,10 +9,10 @@ def resource_path(relative_path):
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from extract_html import extract_font_from_html, extract_questions_from_html
-from create_map import create_font_mapping
-from depry_question import decode_questions
-from core_of_answer import answer_questions_file, extract_simple_answers
+from src.py.utils.auto_answer.extract_html import extract_font_from_html, extract_questions_from_html
+from src.py.utils.auto_answer.create_map import create_font_mapping
+from src.py.utils.auto_answer.depry_question import decode_questions
+from src.py.utils.auto_answer.core_of_answer import answer_questions_file, extract_simple_answers
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 

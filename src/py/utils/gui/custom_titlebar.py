@@ -1,6 +1,6 @@
 from PySide6 import QtCore, QtWidgets, QtGui
-from gradient_label import GradientLabel
-from animated_button import AnimatedButton
+from src.py.utils.gui.gradient_label import GradientLabel
+from src.py.utils.gui.animated_button import AnimatedButton
 
 class CustomTitleBar(QtWidgets.QWidget):
     def __init__(self, parent=None):

@@ -1,8 +1,12 @@
-from PySide6 import QtCore
+"""时钟类"""
 from datetime import datetime
-from gradient_label import GradientLabel
+
+from PySide6 import QtCore
+
+from src.py.utils.gui.gradient_label import GradientLabel
 
 class GradientClockLabel(GradientLabel):
+    """时钟label"""
     def __init__(self, parent=None):
         super().__init__("", parent)
         self.setFont(self.font())  # 可自定义字体
@@ -12,5 +16,6 @@ class GradientClockLabel(GradientLabel):
         self.update_time()
 
     def update_time(self):
+        """时间更新"""
         now = datetime.now()
         self.setText(now.strftime("%H:%M:%S"))

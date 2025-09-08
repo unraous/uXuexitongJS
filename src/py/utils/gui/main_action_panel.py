@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets, QtCore, QtGui
-from gradient_button import GradientButton
-from gradient_label import GradientLabel
-from setting import SettingsButton, SettingsPanel, load_settings
+from src.py.utils.gui.gradient_button import GradientButton
+from src.py.utils.gui.gradient_label import GradientLabel
+from src.py.utils.gui.setting import SettingsButton, SettingsPanel, load_settings
 
 import threading
 import asyncio

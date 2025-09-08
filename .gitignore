@@ -1,5 +1,6 @@
 .env
 .venv
+.cookies
 config.py
 build
 dist

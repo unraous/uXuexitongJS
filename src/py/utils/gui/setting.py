@@ -1,12 +1,15 @@
 import os
 import json
+
 from PySide6 import QtWidgets, QtCore, QtGui, QtSvg
-from gradient_button import GradientButton
-from gradient_label import GradientLabel
+
+from src.py.utils.gui.gradient_button import GradientButton
+from src.py.utils.gui.gradient_label import GradientLabel
 
 TRANSPARENT_BK = "background: transparent;"
 
 def load_settings(path):
+    
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)

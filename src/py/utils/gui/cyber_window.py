@@ -1,14 +1,14 @@
 import os
 import sys
 import datetime
-from PySide6 import QtCore, QtWidgets, QtGui
-from custom_titlebar import CustomTitleBar
-from gradient_label import GradientLabel
-from logo_label import LogoLabel
-from gradient_clock_label import GradientClockLabel
-from sidebar import SidebarWidget
-from main_action_panel import MainActionPanel
 import webbrowser
+from PySide6 import QtCore, QtWidgets, QtGui
+from src.py.utils.gui.custom_titlebar import CustomTitleBar
+from src.py.utils.gui.gradient_label import GradientLabel
+from src.py.utils.gui.logo_label import LogoLabel
+from src.py.utils.gui.gradient_clock_label import GradientClockLabel
+from src.py.utils.gui.sidebar import SidebarWidget
+from src.py.utils.gui.main_action_panel import MainActionPanel
 
 def resource_path(relative_path):
     """兼容PyInstaller和源码运行的资源路径"""
@@ -25,11 +25,12 @@ def writable_path(relative_path):
 class CyberWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self._first_show = True
         self._minimizing = False
         self._is_closing = False
+        self._fadein = QtCore.QPropertyAnimation(self, b"windowOpacity")
         self.resize(900, 600)
 
         # 主内容区
@@ -104,7 +105,7 @@ class CyberWindow(QtWidgets.QWidget):
 
         # 添加logo容器
         self.logo_container = QtWidgets.QWidget(self.bg)
-        self.logo_container.setAttribute(QtCore.Qt.WA_TranslucentBackground)  
+        self.logo_container.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)  
         self.logo_container.setFixedSize(135, 135)
 
         # 给容器加透明度特效
@@ -125,9 +126,16 @@ class CyberWindow(QtWidgets.QWidget):
         font_metrics = QtGui.QFontMetrics(self.animated_title.font())
         text_width = font_metrics.horizontalAdvance("Cyberpunk Window")
         self.animated_title.setFixedWidth(text_width + 20)  # 适当加点padding
-        self.animated_title.setAlignment(QtCore.Qt.AlignCenter)
+        self.animated_title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.animated_title.setStyleSheet("background: transparent;")
         self.animated_title.hide()
+        self.move_anim_logo = QtCore.QPropertyAnimation(self.logo_container, b"pos")
+        self.opacity_anim_logo = QtCore.QPropertyAnimation(self.logo_opacity_effect, b"opacity")
+        self.group_logo = QtCore.QParallelAnimationGroup(self)
+        self.logo_fadeout = QtCore.QPropertyAnimation(self.logo_opacity_effect, b"opacity")
+        self.anim_form = QtCore.QPropertyAnimation(self.form_opacity_effect, b"opacity")
+        self.anim_action = QtCore.QPropertyAnimation(self.action_opacity_effect, b"opacity")
+
 
         # 添加渐变时钟（初始隐藏）
         self.clock_label = GradientClockLabel(self.bg)
@@ -147,13 +155,13 @@ class CyberWindow(QtWidgets.QWidget):
         self.github_label = QtWidgets.QLabel(self.bg)
         pixmap = QtGui.QPixmap(github_icon_path)
         # 放大到32x32像素
-        self.github_label.setPixmap(pixmap.scaled(32, 32, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-        self.github_label.setCursor(QtCore.Qt.PointingHandCursor)
+        self.github_label.setPixmap(pixmap.scaled(32, 32, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation))
+        self.github_label.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self.github_label.setStyleSheet("background: transparent;")  # 去掉背景
         self.github_label.adjustSize()
 
         # 点击打开 GitHub 链接
-        def open_github(event):
+        def open_github(_):
             webbrowser.open("https://github.com/unraous/uXuexitongJS")
         self.github_label.mousePressEvent = open_github
 
@@ -167,16 +175,6 @@ class CyberWindow(QtWidgets.QWidget):
         self.github_label.raise_()
         self.version_label.raise_()
 
-        # 保证窗口大小变化时位置也跟着变
-        def update_version_label_pos():
-            total_width = self.version_label.width() + self.github_label.width() + spacing
-            x = self.bg.width() - total_width - 48
-            y = self.bg.height() - max(self.version_label.height(), self.github_label.height()) - 18
-            self.github_label.move(x, y + 4)
-            self.version_label.move(x + self.github_label.width() + spacing, y)
-        self.bg.resizeEvent = lambda event: (update_version_label_pos(), QtWidgets.QWidget.resizeEvent(self.bg, event))
-
-
     def showEvent(self, event):
         super().showEvent(event)
         self.setWindowOpacity(0.0)
@@ -184,8 +182,8 @@ class CyberWindow(QtWidgets.QWidget):
         self._fadein.setStartValue(0.0)
         self._fadein.setEndValue(1.0)
         self._fadein.setDuration(800)
-        self._fadein.setEasingCurve(QtCore.QEasingCurve.OutCubic)
-        self._fadein.start(QtCore.QAbstractAnimation.DeleteWhenStopped)
+        self._fadein.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
+        self._fadein.start(QtCore.QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
         if not self._first_show:
             return
         self._first_show = False
@@ -197,28 +195,20 @@ class CyberWindow(QtWidgets.QWidget):
         # 计算中心坐标
         center_x = (self.bg.width() - self.logo_container.width()) // 2
         center_y = (self.bg.height() - self.logo_container.height()) // 2 - 55
-        self.logo_container._base_y = center_y  # 你可以加这个属性用于动画
         self.logo_container.move(center_x, center_y + 60)
         self.logo_container.show()
-
-        # yOffset 动画要加到 logo_container 上
-        self.logo_container._y_offset = 0  # 初始化
-
         # 动画
-        self.move_anim_logo = QtCore.QPropertyAnimation(self.logo_container, b"pos")
         self.move_anim_logo.setStartValue(QtCore.QPoint(center_x, center_y + 60))
         self.move_anim_logo.setEndValue(QtCore.QPoint(center_x, center_y))
         self.move_anim_logo.setDuration(GROUP1_TIME)
-        self.move_anim_logo.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        self.move_anim_logo.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
         # 透明度动画保持不变
-        self.opacity_anim_logo = QtCore.QPropertyAnimation(self.logo_opacity_effect, b"opacity")
         self.opacity_anim_logo.setStartValue(0.0)
         self.opacity_anim_logo.setEndValue(1.0)
         self.opacity_anim_logo.setDuration(GROUP1_TIME)
-        self.opacity_anim_logo.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        self.opacity_anim_logo.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
-        self.group_logo = QtCore.QParallelAnimationGroup(self)
         self.group_logo.addAnimation(self.move_anim_logo)
         self.group_logo.addAnimation(self.opacity_anim_logo)
         self.group_logo.start()
@@ -237,19 +227,19 @@ class CyberWindow(QtWidgets.QWidget):
         move_anim.setStartValue(QtCore.QPoint(center_x2, center_y2 + 75))
         move_anim.setEndValue(QtCore.QPoint(center_x2, center_y2))
         move_anim.setDuration(GROUP1_TIME)
-        move_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        move_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
         opacity_anim = QtCore.QPropertyAnimation(opacity_effect, b"opacity")
         opacity_anim.setStartValue(0.0)
         opacity_anim.setEndValue(1.0)
         opacity_anim.setDuration(GROUP1_TIME)
-        opacity_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        opacity_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
         scale_anim = QtCore.QPropertyAnimation(self.animated_title, b"scale")
         scale_anim.setStartValue(1.0)
         scale_anim.setEndValue(1.25)  
         scale_anim.setDuration(GROUP1_TIME)
-        scale_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        scale_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
 
         group1 = QtCore.QParallelAnimationGroup(self)
@@ -259,11 +249,10 @@ class CyberWindow(QtWidgets.QWidget):
 
         def start_move_to_title():
             # 1. 先让 logo 渐隐消失
-            self.logo_fadeout = QtCore.QPropertyAnimation(self.logo_opacity_effect, b"opacity")
             self.logo_fadeout.setStartValue(1.0)
             self.logo_fadeout.setEndValue(0.0)
             self.logo_fadeout.setDuration(500)
-            self.logo_fadeout.setEasingCurve(QtCore.QEasingCurve.InCubic)
+            self.logo_fadeout.setEasingCurve(QtCore.QEasingCurve.Type.InCubic)
 
             def after_logo_fadeout():
                 # 2. logo消失后再执行 group2
@@ -278,7 +267,7 @@ class CyberWindow(QtWidgets.QWidget):
                 move2.setStartValue(self.animated_title.pos())
                 move2.setEndValue(target_pos)
                 move2.setDuration(GROUP2_TIME)
-                move2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+                move2.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
                 opacity2 = QtCore.QPropertyAnimation(opacity_effect, b"opacity")
                 opacity2.setStartValue(1.0)
@@ -289,7 +278,7 @@ class CyberWindow(QtWidgets.QWidget):
                 scale_anim2.setStartValue(1.25)
                 scale_anim2.setEndValue(1)
                 scale_anim2.setDuration(GROUP2_TIME)
-                scale_anim2.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+                scale_anim2.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
                 group2 = QtCore.QParallelAnimationGroup(self)
                 group2.addAnimation(move2)
@@ -309,20 +298,18 @@ class CyberWindow(QtWidgets.QWidget):
                     self.clock_label.show()
                     self.clock_label.fade_in()
                     self.form_widget.setVisible(True)
-                    self.anim_form = QtCore.QPropertyAnimation(self.form_opacity_effect, b"opacity")
                     self.anim_form.setStartValue(0.0)
                     self.anim_form.setEndValue(1.0)
                     self.anim_form.setDuration(800)
-                    self.anim_form.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+                    self.anim_form.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
                     self.anim_form.start()
 
                     # 右侧主操作面板淡入动画
                     self.action_panel.setVisible(True)
-                    self.anim_action = QtCore.QPropertyAnimation(self.action_opacity_effect, b"opacity")
                     self.anim_action.setStartValue(0.0)
                     self.anim_action.setEndValue(1.0)
                     self.anim_action.setDuration(800)
-                    self.anim_action.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+                    self.anim_action.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
                     self.anim_action.start()
 
                     # 动画结束后移除所有透明度特效
@@ -382,14 +369,14 @@ class CyberWindow(QtWidgets.QWidget):
         move_anim.setStartValue(start_pos)
         move_anim.setEndValue(end_pos)
         move_anim.setDuration(800)
-        move_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        move_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
         # 透明度动画
         fade_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
         fade_anim.setStartValue(1.0)
         fade_anim.setEndValue(0.0)
         fade_anim.setDuration(800)
-        fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        fade_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
 
         group = QtCore.QParallelAnimationGroup(self)
         group.addAnimation(move_anim)
@@ -415,7 +402,7 @@ class CyberWindow(QtWidgets.QWidget):
                 self._fadeout_min.setStartValue(1.0)
                 self._fadeout_min.setEndValue(0.0)
                 self._fadeout_min.setDuration(400)
-                self._fadeout_min.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+                self._fadeout_min.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
                 def do_minimize():
                     self.setWindowState(QtCore.Qt.WindowMinimized)
                     self.setWindowOpacity(1.0)
