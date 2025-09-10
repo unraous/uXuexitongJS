@@ -1,13 +1,16 @@
+"""自定义标题栏"""
 from PySide6 import QtCore, QtWidgets, QtGui
-from src.py.gui.gradient_label import GradientLabel
-from src.py.gui.animated_button import AnimatedButton
+
+from .gradient_label import GradientLabel
+from .animated_button import AnimatedButton
 
 class CustomTitleBar(QtWidgets.QWidget):
+    """自定义标题栏类"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedHeight(50)
         self.setStyleSheet("background: transparent;")
-        self._mouse_pos = None
+        self._mouse_pos: QtCore.QPoint
 
         # 先创建控件
         self.title = GradientLabel("", self)
@@ -25,7 +28,7 @@ class CustomTitleBar(QtWidgets.QWidget):
         self.btn_close.clicked.connect(self._on_close)
 
         for btn in (self.btn_min, self.btn_close):
-            btn.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
+            btn.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
             btn.setStyleSheet("""
                 QPushButton {
                     background: transparent;
@@ -44,9 +47,14 @@ class CustomTitleBar(QtWidgets.QWidget):
 
         # 加一个 spacer，宽度为按钮总宽度的一半
         btn_total_width = self.btn_min.width() + self.btn_close.width()
-        main_layout.addSpacerItem(QtWidgets.QSpacerItem(btn_total_width, 0, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum))
+        main_layout.addSpacerItem(QtWidgets.QSpacerItem(
+            btn_total_width,
+            0,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Minimum
+        ))
 
-        main_layout.addWidget(self.title, alignment=QtCore.Qt.AlignCenter)
+        main_layout.addWidget(self.title, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         main_layout.addStretch(1)  # 右弹性
 
         # 按钮布局，靠右
@@ -64,13 +72,15 @@ class CustomTitleBar(QtWidgets.QWidget):
         if self.window():
             self.window().close()
 
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self._mouse_pos = event.globalPosition().toPoint() - self.window().frameGeometry().topLeft()
+    # 为保证Qt的特定事件命名规范，mousePressEvent等函数名格式不严格符合PEP8
+    def mousePressEvent(self, event): # pylint: disable=invalid-name
+        """记录鼠标位置"""
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self._mouse_pos: QtCore.QPoint = (
+                event.globalPosition().toPoint() - self.window().frameGeometry().topLeft()
+            )
 
-    def mouseMoveEvent(self, event):
-        if self._mouse_pos and event.buttons() & QtCore.Qt.LeftButton:
+    def mouseMoveEvent(self, event): # pylint: disable=invalid-name
+        """拖动窗口"""
+        if self._mouse_pos and event.buttons() & QtCore.Qt.MouseButton.LeftButton:
             self.window().move(event.globalPosition().toPoint() - self._mouse_pos)
-
-    def mouseReleaseEvent(self, event):
-        self._mouse_pos = None

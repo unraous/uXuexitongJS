@@ -4,11 +4,14 @@ import json
 import time
 import logging
 
+from typing import Optional
+
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from src.py.utils.path import writable_path
 
-def get_user_config():
+def get_user_config() -> dict[str, str]:
     """从JSON文件读取用户配置"""
 
     config_path = os.path.join(os.getcwd(), "data", "config", "openai.json")
@@ -17,28 +20,33 @@ def get_user_config():
 
     try:
         with open(config_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
+            config: dict[str, str] = json.load(f)
         return config
     except Exception as e:
         raise ValueError("openai.json 格式错误，请检查JSON语法。") from e
 
-def get_openai_client():
+def get_openai_client() -> tuple[OpenAI, str]:
     """获取OpenAI客户端和模型设置"""
 
-    config = get_user_config()
-    api_key = config.get("API_KEY", "")
-    base_url = config.get("BASE_URL", "")
-    model = config.get("MODEL", "")
+    config: dict[str, str] = get_user_config()
+    api_key: str = config.get("API_KEY", "")
+    base_url: str = config.get("BASE_URL", "")
+    model: str = config.get("MODEL", "")
 
-    client = OpenAI(
+    client: OpenAI = OpenAI(
         base_url=base_url,
         api_key=api_key,
     )
     return client, model
 
-def chat_with_openai(messages, model=None):
+def chat_with_openai(
+    messages: list[ChatCompletionMessageParam],
+    model: Optional[str] = None
+) -> str:
     """OpenAI交互接口"""
 
+    client: OpenAI
+    default_model: str
     client, default_model = get_openai_client()
     if model is None:
         model = default_model
@@ -47,15 +55,15 @@ def chat_with_openai(messages, model=None):
         messages=messages,
         timeout=40,
     )
-    return completion.choices[0].message.content
+    return str(completion.choices[0].message.content)
 
 def answer_questions_batch(questions, retry=3):
     """批量请求AI回答题目，返回答案string"""
 
-    prompt = ""
+    prompt: str = ""
     for idx, q in enumerate(questions, 1):
         prompt += f"{idx}. 题干：{q['题干']}\n选项：{q['选项']}\n"
-    messages = [
+    messages: list[ChatCompletionMessageParam] = [
         {"role": "system", "content": """
             你是一个中国高效答题助手。
             现在请依次回答以下题目，每题只输出“题号:答案”，不要解释，每题一行，题号请用题目原题号,多选题直接把选项字母拼接（如51:A，44:ACD）
@@ -72,7 +80,7 @@ def answer_questions_batch(questions, retry=3):
             logging.warning("批量请求出错 (第%d次): %s", i + 1, e)
     logging.warning("批量请求多次失败，返回默认答案")
     # 如果全部请求失败则全选A
-    fallback = "\n".join([f"{q.get('题号', idx+1)}:A" for idx, q in enumerate(questions)])
+    fallback: str = "\n".join([f"{q.get('题号', idx+1)}:A" for idx, q in enumerate(questions)])
     return fallback
 
 def answer_questions_file(input_json, output_json, batch_size=10):
@@ -104,10 +112,10 @@ def answer_questions_file(input_json, output_json, batch_size=10):
     logging.info("已生成 %s", output_json)
 
 def extract_simple_answers(input_json, output_json):
-    """从带AI答案的题目json中提取简明答案列表"""
+    """简化答案，生成最终json"""
     with open(input_json, "r", encoding="utf-8") as f:
-        questions = json.load(f)
-    result = []
+        questions: list[dict[str, str]] = json.load(f)
+    result: list[dict[str, str]] = []
     for q in questions:
         result.append({
             "题号": q["题号"],

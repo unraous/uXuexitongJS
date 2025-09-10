@@ -3,7 +3,7 @@ from datetime import datetime
 
 from PySide6 import QtCore
 
-from src.py.gui.gradient_label import GradientLabel
+from .gradient_label import GradientLabel
 
 class GradientClockLabel(GradientLabel):
     """时钟label"""

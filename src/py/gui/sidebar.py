@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore, QtGui
-from src.py.gui.gradient_label import GradientLabel
-from src.py.gui.gradient_button import GradientButton 
+from .gradient_label import GradientLabel
+from .gradient_button import GradientButton 
 import json
 import os
 

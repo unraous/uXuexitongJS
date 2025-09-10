@@ -6,13 +6,14 @@ import logging
 
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from src.py.gui.custom_titlebar import CustomTitleBar
-from src.py.gui.gradient_label import GradientLabel
-from src.py.gui.logo_label import LogoLabel
-from src.py.gui.gradient_clock_label import GradientClockLabel
-from src.py.gui.sidebar import SidebarWidget
-from src.py.gui.main_action_panel import MainActionPanel
 from src.py.utils.path import resource_path, writable_path
+
+from .custom_titlebar import CustomTitleBar
+from .gradient_label import GradientLabel
+from .logo_label import LogoLabel
+from .gradient_clock_label import GradientClockLabel
+from .sidebar import SidebarWidget
+from .main_action_panel import MainActionPanel
 
 
 class CyberWindow(QtWidgets.QWidget):
