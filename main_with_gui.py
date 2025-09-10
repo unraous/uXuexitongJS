@@ -5,53 +5,28 @@ import json
 import logging
 import os
 import sys
-from typing import Final
+
+from typing import Any, Optional
 
 from PySide6 import QtWidgets, QtGui
 from PySide6.QtGui import QIcon
-from src.py.utils.gui.cyber_window import CyberWindow
 
+from src.py.gui.cyber_window import CyberWindow
+from src.py.utils.path import resource_path, writable_path
 
-PROJECT_ROOT: Final = os.path.abspath(os.path.dirname(__file__))
-
-sys.path.append(os.path.join(PROJECT_ROOT, "src/py"))
-sys.path.append(os.path.join(PROJECT_ROOT, "src/py/utils"))
-sys.path.append(os.path.join(PROJECT_ROOT, "src/py/utils/gui"))
-def resource_path(relative_path):
-    """更安全地获取资源路径，适用于开发环境和打包环境"""
-    base_path = getattr(sys, '_MEIPASS', None)
-    if base_path and os.path.exists(base_path):
-        return os.path.join(base_path, relative_path)
-    # 退回到相对于脚本的路径
-    return os.path.join(PROJECT_ROOT, relative_path)
 
 font_path = resource_path("data/static/ttf/orbitron.ttf")
 
 
-def writable_path(relative_path):
-    """返回当前工作目录下的可写路径，并自动创建父目录"""
-    abs_path = os.path.join(os.getcwd(), relative_path)
-    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-    return abs_path
-
-def ensure_empty_file(path):
+def ensure_path(path):
     """确保文件存在，如果不存在则创建一个空文件"""
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        if path.endswith("settings.json") and "config" in path.replace("\\", "/"):
-            default_settings = {
-                "Log": False,
-                "ForceSpd": False,
-                "Pace": 5
-            }
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(default_settings, f, ensure_ascii=False, indent=2)
-
-        print(f"已创建文件: {path}")
+        logging.info("已创建文件: %s", path)
     else:
-        print(f"文件已存在: {path}")
+        logging.info("文件已存在: %s", path)
 
-NEED_FILES = [
+NEED_FILES: list[str] = [
     "config.py",
     "data/temp/html/test.html",
     "data/temp/ttf/font-cxsecret.ttf",
@@ -67,17 +42,17 @@ NEED_FILES = [
 def setup_logging():
     """使用标准logging模块设置日志"""
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = writable_path(f"data/log/py/python_{timestamp}.log")  
-    # 确保日志目录存在
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)  
-    # 配置根日志记录器
+    log_path = writable_path(f"data/log/py/python_{timestamp}.log")
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
     logging.basicConfig(
-        level=logging.INFO,  # 设置日志级别
-        format='%(asctime)s [%(levelname)s] %(message)s',  # 日志格式
-        datefmt='%Y-%m-%d %H:%M:%S',  # 时间格式
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+
         handlers=[
-            logging.FileHandler(log_path, encoding='utf-8'),  # 文件处理器
-            logging.StreamHandler()  # 控制台处理器
+            logging.FileHandler(log_path, encoding='utf-8'),
+            logging.StreamHandler()
         ]
     )
 
@@ -89,10 +64,10 @@ def main():
         setup_logging()
         os.makedirs(writable_path("data/log/py"), exist_ok=True)
         for rel_path in NEED_FILES:
-            ensure_empty_file(writable_path(rel_path))
+            ensure_path(writable_path(rel_path))
 
         app = QtWidgets.QApplication(sys.argv)
-        app.setWindowIcon(QIcon(resource_path("the_icon.ico")))
+        app.setWindowIcon(QIcon(resource_path("data/static/ico/the_icon.ico")))
         font_id = QtGui.QFontDatabase.addApplicationFont(font_path)
         family: str = ""
         if font_id == -1:
@@ -101,7 +76,7 @@ def main():
         else:
             logging.info("字体成功加载: %s", font_path)
             family = QtGui.QFontDatabase.applicationFontFamilies(font_id)[0]
-        
+
         app.setFont(QtGui.QFont(family, 12))
         win = CyberWindow()
         win.show()
