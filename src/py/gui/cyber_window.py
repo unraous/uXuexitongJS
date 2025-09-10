@@ -180,7 +180,7 @@ class CyberWindow(QtWidgets.QWidget):
 
         logging.info("主窗口初始化完毕")
 
-# 为保证Qt的特定事件命名规范，showEvent等函数名格式不严格符合PEP8
+    # 为保证Qt的特定事件命名规范，showEvent等函数名格式不严格符合PEP8
     def showEvent(self, event): # pylint: disable=invalid-name
         """启动/显示动画事件"""
         super().showEvent(event)
