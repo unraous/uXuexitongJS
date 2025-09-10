@@ -1,20 +1,13 @@
 # -*- coding: utf-8 -*-
-import sys, os
-
-def resource_path(relative_path):
-    """兼容PyInstaller和源码运行的资源路径"""
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), relative_path)
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+"""将HTML文件转换为答案的完整流程"""
+import  os
 
 from src.py.auto_answer.extract_html import extract_font_from_html, extract_questions_from_html
 from src.py.auto_answer.create_map import create_font_mapping
 from src.py.auto_answer.depry_question import decode_questions
 from src.py.auto_answer.core_of_answer import answer_questions_file, extract_simple_answers
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+from src.py.utils.path import resource_path
 
 thtml_path = resource_path("data/temp/html/test.html")
 
