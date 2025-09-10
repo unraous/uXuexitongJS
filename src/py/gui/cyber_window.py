@@ -59,7 +59,7 @@ class CyberWindow(QtWidgets.QWidget):
         content_layout.setSpacing(0)
 
         # 左侧表单
-        config_path = os.path.join(os.getcwd(), "config.py")
+        config_path = os.path.join(os.getcwd(), "data", "config", "openai.json")
         self.form_widget = SidebarWidget(
             config_path=config_path,
             parent=self.bg

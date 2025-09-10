@@ -18,30 +18,30 @@ def ensure_path(path: str) -> None:
     else:
         logging.info("文件已存在: %s", path)
 
-NEED_FILES: list[str] = [
-    "config.py",
-    "data/temp/html/test.html",
-    "data/temp/ttf/font-cxsecret.ttf",
-    "data/temp/json/font_cxsecret_mapping.json",
-    "data/temp/json/questions.json",
-    "data/temp/json/questions_decoded.json",
-    "data/temp/json/questions_answered.json",
-    "data/temp/json/answer_simplified.json",
-    "data/config/settings.json",
+FILES_PATH: list[str] = [
+    os.path.join("data", "config", "openai.json"),
+    os.path.join("data", "temp", "html", "test.html"),
+    os.path.join("data", "temp", "ttf", "font-cxsecret.ttf"),
+    os.path.join("data", "temp", "json", "font_cxsecret_mapping.json"),
+    os.path.join("data", "temp", "json", "questions.json"),
+    os.path.join("data", "temp", "json", "questions_decoded.json"),
+    os.path.join("data", "temp", "json", "questions_answered.json"),
+    os.path.join("data", "temp", "json", "answer_simplified.json"),
+    os.path.join("data", "config", "settings.json"),
     # ...其它可写文件
 ]
 
 def setup_logging() -> None:
-    """使用标准logging模块设置日志"""
+    """日志配置函数"""
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = writable_path(f"data/log/py/python_{timestamp}.log")
+    log_path = writable_path(os.path.join("data", "log", "py", f"python_{timestamp}.log"))
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-
+        # 保证日志同时输出到文件和控制台
         handlers=[
             logging.FileHandler(log_path, encoding='utf-8'),
             logging.StreamHandler()
@@ -53,12 +53,12 @@ def setup_logging() -> None:
 def app_init(argv: list[str]) -> QtWidgets.QApplication:
     """初始化Qt应用"""
     app: QtWidgets.QApplication = QtWidgets.QApplication(argv)
-    app.setWindowIcon(QIcon(resource_path("data/static/ico/the_icon.ico")))
-    font_path: str = resource_path("data/static/ttf/orbitron.ttf")
+    app.setWindowIcon(QIcon(resource_path(os.path.join("data", "static", "ico", "the_icon.ico"))))
+    font_path: str = resource_path(os.path.join("data", "static", "ttf", "orbitron.ttf"))
     font_id: int = QtGui.QFontDatabase.addApplicationFont(font_path)
     family: str = ""
     if font_id == -1:
-        logging.warning("无法加载字体，切换为默认字体: Microsoft YaHei")
+        logging.warning("加载字体失败，将使用默认字体 Microsoft YaHei")
         family = "Microsoft YaHei"
     else:
         logging.info("Orbitron字体成功加载")
@@ -72,8 +72,8 @@ def main() -> None:
     """程序入口"""
     try:
         setup_logging()
-        os.makedirs(writable_path("data/log/py"), exist_ok=True)
-        for rel_path in NEED_FILES:
+        os.makedirs(writable_path(os.path.join("data", "log", "py")), exist_ok=True)
+        for rel_path in FILES_PATH:
             ensure_path(writable_path(rel_path))
         app: QtWidgets.QApplication = app_init(sys.argv)
         win: CyberWindow = CyberWindow()

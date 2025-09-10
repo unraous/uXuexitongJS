@@ -1,10 +1,8 @@
 from PySide6 import QtWidgets, QtCore, QtGui
 from src.py.gui.gradient_label import GradientLabel
 from src.py.gui.gradient_button import GradientButton 
-import importlib.util
+import json
 import os
-
-
 
 class AcrylicCover(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -159,22 +157,25 @@ class SidebarWidget(QtWidgets.QWidget):
         layout.addStretch(1)
 
     def load_config(self):
-        # 动态加载 config.py 并返回字典
+        # 从JSON文件加载配置
         config = {}
         if os.path.exists(self.config_path):
-            spec = importlib.util.spec_from_file_location("config", self.config_path)
-            cfg = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(cfg)
-            for key in dir(cfg):
-                if key.isupper():
-                    config[key] = getattr(cfg, key)
+            try:
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+            except json.JSONDecodeError:
+                # 处理JSON解析错误
+                print(f"配置文件 {self.config_path} 格式错误")
         return config
 
     def save_config(self):
-        # 保存到 config.py
-        lines = []
-        lines.append(f'API_KEY = "{self.fields["API_KEY"].text()}"')
-        lines.append(f'BASE_URL = "{self.fields["BASE_URL"].text()}"')
-        lines.append(f'MODEL = "{self.fields["MODEL"].text()}"')
+        # 保存到JSON文件
+        config = {
+            "API_KEY": self.fields["API_KEY"].text(),
+            "BASE_URL": self.fields["BASE_URL"].text(),
+            "MODEL": self.fields["MODEL"].text()
+        }
+        
+        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)        
         with open(self.config_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
+            json.dump(config, f, indent=4)  # 使用缩进格式化JSON
