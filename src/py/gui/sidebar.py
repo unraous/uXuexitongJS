@@ -7,12 +7,12 @@ from typing import Optional
 from PySide6 import QtWidgets, QtCore, QtGui
 
 from .gradient_label import GradientLabel
-from .gradient_button import GradientButton 
+from .gradient_button import GradientButton
 
 
 class ExpandingLineEdit(QtWidgets.QLineEdit):
     """可扩展的单行文本框类"""
-    def __init__(self, text="", min_width=300, parent=None):
+    def __init__(self, text="", min_width=300, parent=None) -> None:
         super().__init__(text, parent)
         self._min_width = min_width
         self.setMinimumWidth(self._min_width)
@@ -23,7 +23,7 @@ class ExpandingLineEdit(QtWidgets.QLineEdit):
 
 class AcrylicCover(QtWidgets.QWidget):
     """矩形密钥遮罩类"""
-    def __init__(self, parent: ExpandingLineEdit):
+    def __init__(self, parent: ExpandingLineEdit) -> None:
         super().__init__(parent)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_NoSystemBackground, True)
@@ -34,41 +34,41 @@ class AcrylicCover(QtWidgets.QWidget):
         self.anim.setDuration(400)
         self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
 
-    def get_opacity(self):
-        """安全获取透明度"""
+    def get_opacity(self) -> float:
+        """读取透明度"""
         return self._opacity if 0.0 <= self._opacity <= 1.0 else 1.0
 
-    def set_opacity(self, value):
-        """安全设置透明度并刷新渲染"""
+    def set_opacity(self, value: float) -> None:
+        """写入透明度并刷新渲染"""
         self._opacity = value if 0.0 <= value <= 1.0 else self._opacity
         self.update()
 
     opacity = QtCore.Property(float, get_opacity, set_opacity)
 
     # 为保证Qt的特定事件命名规范，enterEvent等函数名格式不严格符合PEP8
-    def enterEvent(self, event): # pylint: disable=invalid-name
+    def enterEvent(self, event: QtGui.QEnterEvent) -> None: # pylint: disable=invalid-name
         """鼠标移入事件"""
         self.anim.stop()
         self.anim.setEndValue(0.0)
         self.anim.start()
         super().enterEvent(event)
 
-    def leaveEvent(self, event): # pylint: disable=invalid-name
+    def leaveEvent(self, event: QtCore.QEvent) -> None: # pylint: disable=invalid-name
         """鼠标移出事件"""
         self.anim.stop()
         self.anim.setEndValue(1.0)
         self.anim.start()
         super().leaveEvent(event)
 
-    def resizeEvent(self, event): # pylint: disable=invalid-name
-        """父控件大小变化时，调整自己大小(尽在被初始化时调用)"""
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None: # pylint: disable=invalid-name
+        """父控件大小变化时，调整自己大小(仅在被初始化时调用)"""
 
         parent_widget: Optional[QtWidgets.QWidget] = self.parentWidget()
         if isinstance(parent_widget, QtWidgets.QWidget):
             self.setGeometry(0, 0, parent_widget.width(), parent_widget.height())
         super().resizeEvent(event)
 
-    def paintEvent(self, _: QtGui.QPaintEvent): # pylint: disable=invalid-name
+    def paintEvent(self, _: QtGui.QPaintEvent) -> None: # pylint: disable=invalid-name
         """渲染事件"""
         
         painter = QtGui.QPainter(self)
@@ -93,70 +93,79 @@ class AcrylicCover(QtWidgets.QWidget):
 
 class SidebarWidget(QtWidgets.QWidget):
     """左侧配置面板主类"""
-    def __init__(self, config_path, parent=None):
+    def __init__(self, config_path: str, parent=None) -> None:
         super().__init__(parent)
-        self.config_path = config_path
+        self.config_path: str = config_path
         self.setFixedWidth(400)
         self.setStyleSheet("""
             background: transparent;
             border-top-left-radius: 30px;
             border-bottom-left-radius: 30px;
         """)
-        layout = QtWidgets.QVBoxLayout(self)
+        layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(18)
 
-        config = self.load_config()
+        config: dict[str, str] = self.load_config()
 
         # 标题
-        title = GradientLabel("OPENAI_CONFIG", self)
+        title: GradientLabel = GradientLabel("OPENAI_CONFIG", self)
         title.setFixedHeight(40)
         title.setFont(QtGui.QFont(title.font().family(), 18, QtGui.QFont.Weight.Bold))
         title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
         # 表单区用 QGridLayout
-        grid = QtWidgets.QGridLayout()
+        grid: QtWidgets.QGridLayout = QtWidgets.QGridLayout()
         grid.setHorizontalSpacing(20)
         grid.setVerticalSpacing(16)
         self.fields = {}
 
-        api_label = GradientLabel("API_KEY", self)
+        api_label: GradientLabel = GradientLabel("API_KEY", self)
         api_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         api_label.setMinimumWidth(170)
-        api_edit = ExpandingLineEdit(config.get("API_KEY", ""), min_width=180)
+        api_edit: ExpandingLineEdit = ExpandingLineEdit(
+            config.get("API_KEY", ""),
+            min_width=180
+        )
         grid.addWidget(api_label, 0, 0)
         grid.addWidget(api_edit, 0, 1)
         self.fields["API_KEY"] = api_edit
 
-        # 添加亚克力遮罩
-        self.api_acrylic = AcrylicCover(api_edit)
-        self.api_acrylic.setGeometry( 0, 0, api_edit.width(), api_edit.height())  # 更大
-        self.api_acrylic.raise_()
-        api_edit.installEventFilter(self)
 
 
         # BASE_URL
-        baseurl_label = GradientLabel("BASE_URL", self)
+        baseurl_label: GradientLabel = GradientLabel("BASE_URL", self)
         baseurl_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         baseurl_label.setMinimumWidth(170)
-        baseurl_edit = ExpandingLineEdit(config.get("BASE_URL", ""), min_width=180)
+        baseurl_edit: ExpandingLineEdit = ExpandingLineEdit(
+            config.get("BASE_URL", ""),
+            min_width=180
+        )
         grid.addWidget(baseurl_label, 1, 0)
         grid.addWidget(baseurl_edit, 1, 1)
         self.fields["BASE_URL"] = baseurl_edit
 
         # MODEL
-        model_label = GradientLabel("MODEL", self)
+        model_label: GradientLabel = GradientLabel("MODEL", self)
         model_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         model_label.setMinimumWidth(170)
-        model_edit = ExpandingLineEdit(config.get("MODEL", ""), min_width=180)
+        model_edit: ExpandingLineEdit = ExpandingLineEdit(
+            config.get("MODEL", ""),
+            min_width=180
+        )
         grid.addWidget(model_label, 2, 0)
         grid.addWidget(model_edit, 2, 1)
         self.fields["MODEL"] = model_edit
 
+        # 添加亚克力遮罩
+        self.api_acrylic: AcrylicCover = AcrylicCover(api_edit)
+        self.api_acrylic.setGeometry( 0, 0, api_edit.width(), api_edit.height())  # 更大
+        self.api_acrylic.raise_()
+        api_edit.installEventFilter(self)
         # 设置左侧label列宽度
-        grid.setColumnMinimumWidth(0, 170)  # 保证label不会被截断
-        grid.setColumnStretch(1, 1)         # 右侧文本框自适应拉伸
+        grid.setColumnMinimumWidth(0, 170)
+        grid.setColumnStretch(1, 1)
 
         layout.addLayout(grid)
 
@@ -168,7 +177,7 @@ class SidebarWidget(QtWidgets.QWidget):
         layout.addStretch(1)
 
     def load_config(self):
-        # 从JSON文件加载配置
+        """载入配置文件"""
         config = {}
         if os.path.exists(self.config_path):
             try:
@@ -180,7 +189,7 @@ class SidebarWidget(QtWidgets.QWidget):
         return config
 
     def save_config(self):
-        # 保存到JSON文件
+        """保存配置文件"""
         config = {
             "API_KEY": self.fields["API_KEY"].text(),
             "BASE_URL": self.fields["BASE_URL"].text(),
@@ -189,4 +198,4 @@ class SidebarWidget(QtWidgets.QWidget):
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)        
         with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=4)  # 使用缩进格式化JSON
+            json.dump(config, f, indent=2)
