@@ -1,8 +1,5 @@
 """Qt(Pyside6)框架的GUI组件"""
 
-__version__ = "1.3.0"
-__author__ = "unraous"
-
 __all__ = ["MainWindow"]
 
 import os
@@ -12,7 +9,7 @@ import logging
 
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from src.py.utils.path import resource_path, writable_path
+from src.py.utils import resource_path, writable_path, global_config
 
 from .custom_titlebar import CustomTitleBar
 from .gradient_label import GradientLabel
@@ -65,11 +62,7 @@ class MainWindow(QtWidgets.QWidget):
         content_layout.setSpacing(0)
 
         # 左侧表单
-        config_path = os.path.join(os.getcwd(), "data", "config", "openai.json")
-        self.form_widget = SidebarWidget(
-            config_path=config_path,
-            parent=self.bg
-        )
+        self.form_widget = SidebarWidget(parent=self.bg)
         self.form_widget.setFixedWidth(400)
         self.form_widget.setStyleSheet("""
             background: #f5f6fa;
@@ -152,8 +145,9 @@ class MainWindow(QtWidgets.QWidget):
         self.clock_label.setGeometry(20, 40, 320, 80)
         self.clock_label.hide()  # 先隐藏
 
-        # 右下角版本号和作者（用自定义 GradientLabel）
-        self.version_label = GradientLabel(f"v{__version__}  by {__author__}", self.bg)
+        version: str = global_config['metadata']['version']
+        author: str = global_config['metadata']['author']
+        self.version_label = GradientLabel(f"v{version}  by {author}", self.bg)
         self.version_label.setStyleSheet("""
             font-size: 13px;
             background: transparent;

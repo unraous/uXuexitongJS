@@ -9,7 +9,7 @@ from typing import Optional
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
-from src.py.utils.path import writable_path
+from src.py.utils import writable_path
 
 def get_user_config() -> dict[str, str]:
     """从JSON文件读取用户配置"""

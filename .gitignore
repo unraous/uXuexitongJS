@@ -1,7 +1,6 @@
 .env
 .venv
 .cookies
-config.py
 build
 dist
 __pycache__/
@@ -10,3 +9,4 @@ data/config
 data/log
 data/temp
 main_with_gui.spec
+config.toml

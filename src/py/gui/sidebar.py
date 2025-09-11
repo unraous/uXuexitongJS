@@ -1,6 +1,4 @@
 """左侧OPENAI参数配置模块"""
-import json
-import os
 
 from typing import Optional
 
@@ -8,6 +6,8 @@ from PySide6 import QtWidgets, QtCore, QtGui
 
 from .gradient_label import GradientLabel
 from .gradient_button import GradientButton
+
+from src.py.utils.config import global_config, save_config
 
 
 class ExpandingLineEdit(QtWidgets.QLineEdit):
@@ -93,9 +93,8 @@ class AcrylicCover(QtWidgets.QWidget):
 
 class SidebarWidget(QtWidgets.QWidget):
     """左侧配置面板主类"""
-    def __init__(self, config_path: str, parent=None) -> None:
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.config_path: str = config_path
         self.setFixedWidth(400)
         self.setStyleSheet("""
             background: transparent;
@@ -106,7 +105,7 @@ class SidebarWidget(QtWidgets.QWidget):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(18)
 
-        config: dict[str, str] = self.load_config()
+        config: dict[str, str] = global_config.get("openai", {})
 
         # 标题
         title: GradientLabel = GradientLabel("OPENAI_CONFIG", self)
@@ -119,7 +118,7 @@ class SidebarWidget(QtWidgets.QWidget):
         grid: QtWidgets.QGridLayout = QtWidgets.QGridLayout()
         grid.setHorizontalSpacing(20)
         grid.setVerticalSpacing(16)
-        self.fields = {}
+        self.fields: dict[str, QtWidgets.QLineEdit] = {}
 
         api_label: GradientLabel = GradientLabel("API_KEY", self)
         api_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -169,33 +168,19 @@ class SidebarWidget(QtWidgets.QWidget):
 
         layout.addLayout(grid)
 
+        def update_config() -> None:
+            """更新配置字典"""
+            key: str
+            line_edit: QtWidgets.QLineEdit
+            for key, line_edit in self.fields.items():
+                if isinstance(line_edit, QtWidgets.QLineEdit):
+                    config[key.lower()] = line_edit.text()
+            global_config["openai"] = config
+
         # 保存按钮
         btn_save = GradientButton("SAVE")  # 使用自定义按钮类
         btn_save.setFixedHeight(36)
-        btn_save.clicked.connect(lambda: [self.save_config(), btn_save.show_tip("APPLY SUCCEED!")])
+        btn_save.clicked.connect(lambda: [update_config(), save_config(), btn_save.show_tip("APPLY SUCCEED!")])
         layout.addWidget(btn_save)
         layout.addStretch(1)
 
-    def load_config(self):
-        """载入配置文件"""
-        config = {}
-        if os.path.exists(self.config_path):
-            try:
-                with open(self.config_path, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-            except json.JSONDecodeError:
-                # 处理JSON解析错误
-                print(f"配置文件 {self.config_path} 格式错误")
-        return config
-
-    def save_config(self):
-        """保存配置文件"""
-        config = {
-            "API_KEY": self.fields["API_KEY"].text(),
-            "BASE_URL": self.fields["BASE_URL"].text(),
-            "MODEL": self.fields["MODEL"].text()
-        }
-        
-        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)        
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)

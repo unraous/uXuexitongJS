@@ -1,8 +1,8 @@
 from PySide6 import QtWidgets, QtCore, QtGui
-from src.py.gui.gradient_button import GradientButton
-from src.py.gui.gradient_label import GradientLabel
-from src.py.gui.setting import SettingsButton, SettingsPanel, load_settings
-from src.py.auto_answer.html_2_answer import html_to_answer
+from .gradient_button import GradientButton
+from .gradient_label import GradientLabel
+from .setting import SettingsButton, SettingsPanel, load_settings
+from src.py.auto_answer import answer_questions
 
 import threading
 import asyncio
@@ -17,24 +17,7 @@ import time
 import random
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-def resource_path(relative_path):
-    """兼容PyInstaller和源码运行的资源路径"""
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    # 项目根目录
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), relative_path)
-
-def writable_path(relative_path):
-    """返回当前工作目录下的可写路径，并自动创建父目录"""
-    abs_path = os.path.join(os.getcwd(), relative_path)
-    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-    return abs_path
-
-
-
+from src.py.utils import resource_path, writable_path
 
 class MainActionPanel(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -121,7 +104,7 @@ class MainActionPanel(QtWidgets.QWidget):
         self.js_code = ""
         self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         self.js_path = resource_path("src/js/main.js")  # 只读资源仍用 resource_path
-        self.test_path = writable_path("data/temp/html/test.html")
+        self.ques_path = writable_path("data/temp/html/question.html")
         self.ans_path = writable_path("data/temp/json/answer_simplified.json")
         self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
         self.setting_path = writable_path("data/config/settings.json")
@@ -141,9 +124,9 @@ class MainActionPanel(QtWidgets.QWidget):
         try:
             with open(self.js_path, 'r', encoding='utf-8') as f:
                 self.js_code = f.read()
-        except Exception as e:
+        except FileNotFoundError as e:
             print("加载 main.js 失败：", e)
-            self.js_code = ""
+            raise
 
     def start_ws_server(self):
         def ws_thread_func():
@@ -163,7 +146,7 @@ class MainActionPanel(QtWidgets.QWidget):
                                 await websocket.send(json.dumps({"error": f"无法写入 test.html：{e}"}))
                                 return
 
-                            html_to_answer(self.test_path)
+                            answer_questions()
 
                             try:
                                 with open(self.ans_path, "r", encoding="utf-8") as f:
@@ -175,8 +158,8 @@ class MainActionPanel(QtWidgets.QWidget):
                             await websocket.send(ans_json)
                         else:
                             print("收到非HTML消息：", data)
-                    except Exception:
-                        print("收到异常消息")
+                    except Exception as e:
+                        print("收到异常消息：", e)
 
             async def main():
                 async with websockets.serve(handler, "localhost", 8765):

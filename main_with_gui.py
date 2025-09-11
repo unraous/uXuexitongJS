@@ -5,37 +5,23 @@ import logging
 import os
 import sys
 
+from typing import Callable
+
 from PySide6 import QtWidgets, QtGui
 from PySide6.QtGui import QIcon
 
+import src.py.utils as utils
+
 from src.py.gui import MainWindow
-from src.py.utils.path import resource_path, writable_path
 
-def ensure_path(path: str) -> None:
-    """确保文件存在，如果不存在则创建一个空文件"""
-    if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        logging.info("已创建文件: %s", path)
-    else:
-        logging.info("文件已存在: %s", path)
-
-FILES_PATH: list[str] = [
-    os.path.join("data", "config", "openai.json"),
-    os.path.join("data", "temp", "html", "test.html"),
-    os.path.join("data", "temp", "ttf", "font-cxsecret.ttf"),
-    os.path.join("data", "temp", "json", "font_cxsecret_mapping.json"),
-    os.path.join("data", "temp", "json", "questions.json"),
-    os.path.join("data", "temp", "json", "questions_decoded.json"),
-    os.path.join("data", "temp", "json", "questions_answered.json"),
-    os.path.join("data", "temp", "json", "answer_simplified.json"),
-    os.path.join("data", "config", "settings.json"),
-    # ...其它可写文件
-]
 
 def setup_logging() -> None:
-    """日志配置函数"""
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = writable_path(os.path.join("data", "log", "py", f"python_{timestamp}.log"))
+    """日志初始化"""
+    timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path: str = utils.writable_path(
+        os.path.join("data", "log", "py", f"python_{timestamp}.log")
+    )
+
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     logging.basicConfig(
@@ -52,10 +38,12 @@ def setup_logging() -> None:
     logging.info("日志已初始化，路径: %s", log_path)
 
 def app_init(argv: list[str]) -> QtWidgets.QApplication:
-    """初始化Qt应用"""
+    """Qt应用初始化"""
+    icon_path: str = utils.resource_path(utils.RSC_PATH["icon_path"])
+
     app: QtWidgets.QApplication = QtWidgets.QApplication(argv)
-    app.setWindowIcon(QIcon(resource_path(os.path.join("data", "static", "ico", "the_icon.ico"))))
-    font_path: str = resource_path(os.path.join("data", "static", "ttf", "orbitron.ttf"))
+    app.setWindowIcon(QIcon(icon_path))
+    font_path: str = utils.resource_path(os.path.join("data", "static", "ttf", "orbitron.ttf"))
     font_id: int = QtGui.QFontDatabase.addApplicationFont(font_path)
     family: str = ""
     if font_id == -1:
@@ -69,13 +57,39 @@ def app_init(argv: list[str]) -> QtWidgets.QApplication:
     logging.info("应用初始化完成")
     return app
 
+def init_paths() -> None:
+    """初始化路径列表"""
+    path_dict: dict[str, str]
+    path_groups: dict[str, list[str]]
+    for path_dict, path_groups in [
+        (utils.RSC_PATH, utils.global_config.get("path_groups", {}).get("resources", {})),
+        (utils.WTB_PATH, utils.global_config.get("path_groups", {}).get("writable", {}))
+    ]:
+        processed_files = {
+            key: os.path.join(*path_list) if isinstance(path_list, list) else path_list
+            for key, path_list in path_groups.items()
+        }
+
+        path_dict.clear()
+        path_dict.update(processed_files)
+
+def ensure_files(path_dict: dict[str, str], method: Callable[[str], None]) -> None:
+    """载入必要路径并确保所有路径存在"""
+    path: str
+    for path in path_dict.values():
+        method(path)
+
+
 def main() -> None:
     """程序入口"""
     try:
         setup_logging()
-        os.makedirs(writable_path(os.path.join("data", "log", "py")), exist_ok=True)
-        for rel_path in FILES_PATH:
-            ensure_path(writable_path(rel_path))
+        utils.load_config()
+        init_paths()
+        
+        ensure_files(utils.WTB_PATH, utils.ensure_file)
+        ensure_files(utils.RSC_PATH, utils.check_file)
+
         app: QtWidgets.QApplication = app_init(sys.argv)
         win: MainWindow = MainWindow()
         win.show()
