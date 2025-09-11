@@ -1,4 +1,5 @@
-"""GUI启动块"""
+"""GUI模式启动入口"""
+
 import datetime
 import logging
 import os
@@ -7,7 +8,7 @@ import sys
 from PySide6 import QtWidgets, QtGui
 from PySide6.QtGui import QIcon
 
-from src.py.gui.cyber_window import CyberWindow
+from src.py.gui import MainWindow
 from src.py.utils.path import resource_path, writable_path
 
 def ensure_path(path: str) -> None:
@@ -76,7 +77,7 @@ def main() -> None:
         for rel_path in FILES_PATH:
             ensure_path(writable_path(rel_path))
         app: QtWidgets.QApplication = app_init(sys.argv)
-        win: CyberWindow = CyberWindow()
+        win: MainWindow = MainWindow()
         win.show()
         logging.info("应用已启动")
         sys.exit(app.exec())
