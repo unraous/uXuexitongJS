@@ -10,9 +10,8 @@ from typing import Callable
 from PySide6 import QtWidgets, QtGui
 from PySide6.QtGui import QIcon
 
-import src.py.utils as utils
-
-from src.py.gui import MainWindow
+from src import utils
+from src.gui import MainWindow
 
 
 def setup_logging() -> None:
@@ -79,25 +78,20 @@ def ensure_files(path_dict: dict[str, str], method: Callable[[str], None]) -> No
     for path in path_dict.values():
         method(path)
 
-
-def main() -> None:
-    """程序入口"""
+if __name__ == "__main__":
     try:
         setup_logging()
-        utils.load_config()
+        utils.init_config()
         init_paths()
-        
+
         ensure_files(utils.WTB_PATH, utils.ensure_file)
         ensure_files(utils.RSC_PATH, utils.check_file)
 
-        app: QtWidgets.QApplication = app_init(sys.argv)
+        q_app: QtWidgets.QApplication = app_init(sys.argv)
         win: MainWindow = MainWindow()
         win.show()
         logging.info("应用已启动")
-        sys.exit(app.exec())
+        sys.exit(q_app.exec())
     except Exception as e:
-        logging.exception("应用出现严重错误: %s", e)
+        logging.exception("应用崩溃: %s", e)
         raise
-
-if __name__ == "__main__":
-    main()

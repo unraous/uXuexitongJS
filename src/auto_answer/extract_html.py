@@ -3,7 +3,6 @@ import sys
 import re
 import base64
 from bs4 import BeautifulSoup
-import json
 
 def resource_path(relative_path):
     """兼容PyInstaller和源码运行的资源路径"""

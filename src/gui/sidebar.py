@@ -4,10 +4,10 @@ from typing import Optional
 
 from PySide6 import QtWidgets, QtCore, QtGui
 
+from src.utils.config import save_config, global_config
+
 from .gradient_label import GradientLabel
 from .gradient_button import GradientButton
-
-from src.py.utils.config import global_config, save_config
 
 
 class ExpandingLineEdit(QtWidgets.QLineEdit):
@@ -23,7 +23,7 @@ class ExpandingLineEdit(QtWidgets.QLineEdit):
 
 class AcrylicCover(QtWidgets.QWidget):
     """矩形密钥遮罩类"""
-    def __init__(self, parent: ExpandingLineEdit) -> None:
+    def __init__(self, parent: QtWidgets.QLineEdit) -> None:
         super().__init__(parent)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_NoSystemBackground, True)
@@ -70,7 +70,6 @@ class AcrylicCover(QtWidgets.QWidget):
 
     def paintEvent(self, _: QtGui.QPaintEvent) -> None: # pylint: disable=invalid-name
         """渲染事件"""
-        
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         painter.setOpacity(self._opacity)

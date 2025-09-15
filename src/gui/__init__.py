@@ -1,4 +1,4 @@
-"""Qt(Pyside6)框架的GUI组件"""
+"""Qt(Pyside6)框架的GUI及其组件"""
 
 __all__ = ["MainWindow"]
 
@@ -7,9 +7,12 @@ import datetime
 import webbrowser
 import logging
 
+from typing import override
+from dataclasses import dataclass
+
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from src.py.utils import resource_path, writable_path, global_config
+from src.utils import resource_path, writable_path, global_config
 
 from .custom_titlebar import CustomTitleBar
 from .gradient_label import GradientLabel
@@ -19,20 +22,30 @@ from .sidebar import SidebarWidget
 from .main_action_panel import MainActionPanel
 
 
+@dataclass
+class WindowState:
+    """窗口状态类"""
+    first_show: bool = True
+    minimizing: bool = False
+    is_closing: bool = False
+
+
+@dataclass
+class WindowWidgets:
+    """窗口组件类"""
+    title_widget: QtWidgets.QWidget
+    main_widget: QtWidgets.QWidget
+    bottom_widget: QtWidgets.QWidget
+
+
 class MainWindow(QtWidgets.QWidget):
-    """脚本主窗口"""
+    """主窗口工厂类"""
     def __init__(self):
         super().__init__()
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self._first_show: bool = True
-        self._minimizing: bool = False
-        self._is_closing: bool = False
-        self.resize(900, 600)
-
-        # 主内容区
-        self.bg: QtWidgets.QWidget = QtWidgets.QWidget(self)
-        self.bg.setStyleSheet("""
+        self.setFixedSize(900, 600)
+        self.setStyleSheet("""
             QWidget {
                 border: none;
                 border-radius: 40px;
@@ -46,10 +59,23 @@ class MainWindow(QtWidgets.QWidget):
                 );
             }
         """)
+        
+        self._state: WindowState = WindowState()
+        self.bg: QtWidgets.QWidget
+        self.titlebar: CustomTitleBar
+        self.form_widget: SidebarWidget
+
+        # 主内容区
+        self.bg = QtWidgets.QWidget(self)
+        # 主窗口布局
+        self.main_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self)
+        self.main_layout.setContentsMargins(2, 2, 2, 2)
+        self.main_layout.setSpacing(0)
+        self.main_layout.addWidget(self.bg)
 
         # 主内容区布局
         bg_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self.bg)
-        bg_layout.setContentsMargins(0, 0, 0, 0)
+        bg_layout.setContentsMargins(2, 2, 2, 2)
         bg_layout.setSpacing(0)
 
         # 顶部 titlebar
@@ -94,11 +120,6 @@ class MainWindow(QtWidgets.QWidget):
 
         bg_layout.addLayout(content_layout)
 
-        # 主窗口布局
-        self.main_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self)
-        self.main_layout.setContentsMargins(2, 2, 2, 2)
-        self.main_layout.setSpacing(0)
-        self.main_layout.addWidget(self.bg)
 
         # 添加logo容器
         self.logo_container: QtWidgets.QWidget = QtWidgets.QWidget(self.bg)
@@ -190,9 +211,11 @@ class MainWindow(QtWidgets.QWidget):
 
         logging.info("主窗口初始化完毕")
 
-    # 为保证Qt的特定事件命名规范，showEvent等函数名格式不严格符合PEP8
+
+
+    @override
     def showEvent(self, event):  # pylint: disable=invalid-name
-        """启动/显示动画事件"""
+        """覆写启动/打开方法"""
         super().showEvent(event)
         self.setWindowOpacity(0.0)
         self._fadein = QtCore.QPropertyAnimation(self, b"windowOpacity")
@@ -201,9 +224,9 @@ class MainWindow(QtWidgets.QWidget):
         self._fadein.setDuration(800)
         self._fadein.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
         self._fadein.start(QtCore.QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
-        if not self._first_show:
+        if not self._state.first_show:
             return
-        self._first_show = False
+        self._state.first_show = False
 
         group1_time = 2000
         group2_time = 1000
@@ -348,8 +371,9 @@ class MainWindow(QtWidgets.QWidget):
         group1.finished.connect(start_move_to_title)
         group1.start()
 
+    @override
     def resizeEvent(self, event):  # pylint: disable=invalid-name
-        """调整窗口大小事件（目前窗口锁定大小，正常情况不会调用）"""
+        """覆写调整窗口大小方法（仅初始化时会被调用）"""
         super().resizeEvent(event)
         # 动画结束后才需要调整
         if self.clock_label.isVisible():
@@ -366,13 +390,14 @@ class MainWindow(QtWidgets.QWidget):
             y = parent_height - label_height - 30
             self.clock_label.setGeometry(x, y, label_width, label_height)
 
+    @override
     def closeEvent(self, event):  # pylint: disable=invalid-name
-        """窗口关闭事件"""
-        if self._is_closing:
+        """覆写窗口关闭方法"""
+        if self._state.is_closing:
             event.accept()
             return
 
-        self._is_closing = True
+        self._state.is_closing = True
 
         if (
             hasattr(self, "action_panel")
@@ -416,12 +441,13 @@ class MainWindow(QtWidgets.QWidget):
             self.action_panel.settings_panel.fade_out()
         event.ignore()
 
+    @override
     def changeEvent(self, event):  # pylint: disable=invalid-name
-        """窗口最小化事件"""
+        """覆写窗口最小化方法"""
         super().changeEvent(event)
         if event.type() == QtCore.QEvent.Type.WindowStateChange:
-            if self.windowState() & QtCore.Qt.WindowState.WindowMinimized and not self._minimizing:
-                self._minimizing = True
+            if self.windowState() & QtCore.Qt.WindowState.WindowMinimized and not self._state.minimizing:
+                self._state.minimizing = True
                 self.setWindowState(self.windowState() & ~QtCore.Qt.WindowState.WindowMinimized)
                 self._fadeout_min.setStartValue(1.0)
                 self._fadeout_min.setEndValue(0.0)
@@ -430,7 +456,7 @@ class MainWindow(QtWidgets.QWidget):
                 def do_minimize():
                     self.setWindowState(QtCore.Qt.WindowState.WindowMinimized)
                     self.setWindowOpacity(1.0)
-                    self._minimizing = False
+                    self._state.minimizing = False
                 self._fadeout_min.finished.connect(do_minimize)
                 self._fadeout_min.start()
                 if self.action_panel.settings_panel:

@@ -1,25 +1,28 @@
-from PySide6 import QtWidgets, QtCore, QtGui
-from .gradient_button import GradientButton
-from .gradient_label import GradientLabel
-from .setting import SettingsButton, SettingsPanel, load_settings
-from src.py.auto_answer import answer_questions
-
+"""主操作面板，包含进度条和按钮等控件"""
+import time
+import random
 import threading
-import asyncio
-import websockets
+import os
 import json
+import asyncio
+
+import websockets
+
+from PySide6 import QtWidgets, QtCore, QtGui
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 
+from src.auto_answer import answer_questions
+from src.utils import resource_path, writable_path
 
-import time
-import random
-import os
-import sys
-from src.py.utils import resource_path, writable_path
+from .gradient_button import GradientButton
+from .gradient_label import GradientLabel
+from .setting import SettingsButton, SettingsPanel, load_settings
+
 
 class MainActionPanel(QtWidgets.QWidget):
+    """主操作面板类，包含进度条和按钮等控件"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedWidth(400)
@@ -37,13 +40,13 @@ class MainActionPanel(QtWidgets.QWidget):
 
         # 进度条
         self.progress_bar = QtWidgets.QProgressBar(self)
-        self.progress_bar.setOrientation(QtCore.Qt.Vertical)
+        self.progress_bar.setOrientation(QtCore.Qt.Orientation.Vertical)
         self.progress_bar.setRange(0, 300)
         self.progress_bar.setValue(0)
         self.progress_bar.setFixedWidth(12)
         self.progress_bar.setFixedHeight(260)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
+        self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Expanding)
         self.progress_bar.setStyleSheet("""
             QProgressBar {
                 background: transparent;
@@ -66,8 +69,8 @@ class MainActionPanel(QtWidgets.QWidget):
         btn_layout.addStretch(1)
 
         title_label = GradientLabel("Control Panel", self)
-        title_label.setAlignment(QtCore.Qt.AlignCenter)
-        title_label.setFont(QtGui.QFont(title_label.font().family(), 18, QtGui.QFont.Bold))
+        title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        title_label.setFont(QtGui.QFont(title_label.font().family(), 18, QtGui.QFont.Weight.Bold))
         title_label.setMinimumHeight(40)
         btn_layout.addWidget(title_label)
 
@@ -90,7 +93,7 @@ class MainActionPanel(QtWidgets.QWidget):
             btn_layout.addWidget(btn)
             if i < len(self.btn_texts) - 1:
                 label = GradientLabel(self.label_texts[i], self)
-                label.setAlignment(QtCore.Qt.AlignCenter)
+                label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 label.setFont(QtGui.QFont("微软雅黑", 13))
                 label.setMinimumHeight(24)
                 btn_layout.addWidget(label)
@@ -102,11 +105,12 @@ class MainActionPanel(QtWidgets.QWidget):
         self.keep_alive_thread = None
         self.ws_thread = None
         self.js_code = ""
-        self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         self.js_path = resource_path("src/js/main.js")  # 只读资源仍用 resource_path
         self.ques_path = writable_path("data/temp/html/question.html")
         self.ans_path = writable_path("data/temp/json/answer_simplified.json")
-        self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        self.user_agent = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        )
         self.setting_path = writable_path("data/config/settings.json")
         self.log_option = False
         self.log_entries = []
@@ -296,7 +300,7 @@ class MainActionPanel(QtWidgets.QWidget):
         self.anim.setStartValue(start_value)
         self.anim.setEndValue(end_value)
         self.anim.setDuration(800)
-        self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        self.anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
         self.anim.start()
         for i, btn in enumerate(self.buttons):
             if i < step_idx - 1:

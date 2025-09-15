@@ -5,7 +5,7 @@ __all__ = ["answer_questions"]
 import logging
 import json
 
-from src.py.utils import resource_path, writable_path
+from src.utils import resource_path, writable_path
 
 from .extract_html import extract_font_from_html, extract_questions_from_html
 from .create_map import create_font_mapping

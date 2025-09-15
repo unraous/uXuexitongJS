@@ -1,3 +1,7 @@
+"""渐变按钮类"""
+
+import logging
+
 from PySide6 import QtCore, QtWidgets, QtGui
 
 
@@ -12,23 +16,27 @@ def lerp_color(c1, c2, t):
 
 
 class TipPopup(QtWidgets.QLabel):
+    """提示弹窗类"""
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
         self.setText(text)
-        self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFont(QtGui.QFont(self.font().family(), 11, QtGui.QFont.Bold))  # 字体更小
+        self.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.setFont(QtGui.QFont(self.font().family(), 11, QtGui.QFont.Weight.Bold))  # 字体更小
         self.setContentsMargins(10, 3, 10, 3)  # 内边距更小
         self.setWindowFlags(
-            QtCore.Qt.FramelessWindowHint | QtCore.Qt.Tool
+            QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Tool
         )
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.opacity_effect)
         self.opacity_effect.setOpacity(0.0)
 
-    def paintEvent(self, event):
+        self.anim_opacity: QtCore.QPropertyAnimation
+
+    def paintEvent(self, _: QtGui.QPaintEvent) -> None:  # pylint: disable=invalid-name
+        """渲染事件"""
         painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         rect = self.rect()
         radius = rect.height() / 2
 
@@ -41,7 +49,7 @@ class TipPopup(QtWidgets.QLabel):
 
         path = QtGui.QPainterPath()
         path.addRoundedRect(rect, radius, radius)
-        painter.setPen(QtCore.Qt.NoPen)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
         painter.setBrush(QtGui.QBrush(gradient))
         painter.drawPath(path)
 
@@ -55,7 +63,7 @@ class TipPopup(QtWidgets.QLabel):
         text_gradient.setColorAt(1.0, QtGui.QColor("#181926"))
         painter.setPen(QtGui.QPen(QtGui.QBrush(text_gradient), 0))
         painter.setFont(self.font())
-        painter.drawText(rect, QtCore.Qt.AlignCenter, self.text())
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, self.text())
 
     def showAnimated(self, pos=None, duration=800):
         # 计算目标位置
@@ -81,7 +89,7 @@ class TipPopup(QtWidgets.QLabel):
         self.anim_pos.setStartValue(start_pos)  # 消失时再往上
         self.anim_pos.setEndValue(QtCore.QPoint(end_pos.x(), end_pos.y() - 20))
         self.anim_pos.setDuration(duration)
-        self.anim_pos.setEasingCurve(QtCore.QEasingCurve.OutCubic) 
+        self.anim_pos.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic) 
 
         # 并行动画组
         self.anim_group = QtCore.QParallelAnimationGroup(self)
@@ -94,9 +102,10 @@ class TipPopup(QtWidgets.QLabel):
 
 
 class GradientButton(QtWidgets.QPushButton):
+    """渐变按钮类"""
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
-        self.setCursor(QtCore.Qt.PointingHandCursor)
+        self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self.setFont(QtGui.QFont(self.font().family(), 16))
         self.setMinimumHeight(40)
         self.setStyleSheet("background: transparent; border: none;")
@@ -105,7 +114,8 @@ class GradientButton(QtWidgets.QPushButton):
         self._hover_progress = 0.0
         self._anim = QtCore.QPropertyAnimation(self, b"hoverProgress", self)
         self._anim.setDuration(300)
-        self._anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        self._anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
+        self._tip_popup: TipPopup
         self._swapped = False
         self._is_animating = False
 
@@ -116,12 +126,6 @@ class GradientButton(QtWidgets.QPushButton):
             self._anim.stop()
         self._hover_progress = 0.0
         self.update()
-
-    def start_swap_animation(self):
-        self._is_animating = True
-
-    def end_swap_animation(self):
-        self._is_animating = False
 
     def enterEvent(self, event):
         if self._is_animating:
@@ -143,18 +147,21 @@ class GradientButton(QtWidgets.QPushButton):
             self._anim.start()
         super().leaveEvent(event)
 
-    def getHoverProgress(self):
+    def get_hover_progress(self):
+        """读取悬停进度"""
         return self._hover_progress
 
-    def setHoverProgress(self, value):
-        self._hover_progress = value
+    def set_hover_progress(self, value):
+        """写入悬停进度并刷新渲染"""
+        self._hover_progress = value if 0.0 <= value <= 1.0 else self._hover_progress
         self.update()
 
-    hoverProgress = QtCore.Property(float, getHoverProgress, setHoverProgress)
+    hoverProgress = QtCore.Property(float, get_hover_progress, set_hover_progress)
 
-    def paintEvent(self, event):
+    def paintEvent(self, _: QtGui.QPaintEvent) -> None:  # pylint: disable=invalid-name
+        """渲染事件"""
         painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         rect = self.rect()
         radius = self._radius
 
@@ -200,18 +207,19 @@ class GradientButton(QtWidgets.QPushButton):
 
         # 绘制背景
         painter.setBrush(bg_gradient)
-        painter.setPen(QtCore.Qt.NoPen)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
         painter.drawRoundedRect(rect, radius, radius)
 
         # 绘制文字
-        painter.setPen(QtGui.QPen(QtCore.Qt.transparent))
+        painter.setPen(QtGui.QPen(QtCore.Qt.GlobalColor.transparent))
         font = self.font()
         painter.setFont(font)
         painter.setBrush(text_brush)
         painter.setPen(QtGui.QPen(QtGui.QBrush(text_brush), 0))
-        painter.drawText(rect, QtCore.Qt.AlignCenter, self.text())
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, self.text())
 
     def show_tip(self, text="APPLY SUCCEED!"):
+        """显示提示弹窗"""
         btn_rect = self.rect()
         btn_pos = self.mapToGlobal(QtCore.QPoint(0, 0))
         self._tip_popup = TipPopup(text, parent=None)  # 保存为成员变量
