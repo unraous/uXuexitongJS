@@ -66,13 +66,13 @@ class MainActionPanel(QtWidgets.QWidget):
         # 按钮竖直布局
         btn_layout = QtWidgets.QVBoxLayout()
         btn_layout.setSpacing(10)
-        btn_layout.addStretch(1)
 
         title_label = GradientLabel("Control Panel", self)
         title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         title_label.setFont(QtGui.QFont(title_label.font().family(), 18, QtGui.QFont.Weight.Bold))
         title_label.setMinimumHeight(40)
         btn_layout.addWidget(title_label)
+        btn_layout.addSpacing(title_label.height())
 
         self.buttons = []
         self.btn_texts = [
@@ -92,12 +92,12 @@ class MainActionPanel(QtWidgets.QWidget):
             self.buttons.append(btn)
             btn_layout.addWidget(btn)
             if i < len(self.btn_texts) - 1:
+                btn_layout.addSpacing(2 * btn.height())
                 label = GradientLabel(self.label_texts[i], self)
                 label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 label.setFont(QtGui.QFont("微软雅黑", 13))
                 label.setMinimumHeight(24)
                 btn_layout.addWidget(label)
-        btn_layout.addStretch(1)
         main_layout.addLayout(btn_layout, 1)
 
         # 业务相关变量

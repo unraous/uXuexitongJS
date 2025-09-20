@@ -39,7 +39,7 @@ class WindowWidgets:
 
 
 class MainWindow(QtWidgets.QWidget):
-    """主窗口工厂类"""
+    """主窗口工厂"""
     def __init__(self):
         super().__init__()
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
@@ -52,77 +52,23 @@ class MainWindow(QtWidgets.QWidget):
                 background: qradialgradient(
                     cx:0.2, cy:-0.3, radius:1.2,
                     fx:0.2, fy:-0.3,
-                    stop:0 #232946,
+                    stop:0.0 #232946,
                     stop:0.3 #393e5c,
                     stop:0.7 #22223b,
-                    stop:1 #181926
+                    stop:1.0 #181926
                 );
             }
         """)
         
+        self.bg: QtWidgets.QWidget = QtWidgets.QWidget(self)
+        self.titlebar: CustomTitleBar = CustomTitleBar(self.bg)
+        self.form_widget: SidebarWidget = SidebarWidget(self.bg)
+        self.logo_container: QtWidgets.QWidget = QtWidgets.QWidget(self.bg)
         self._state: WindowState = WindowState()
-        self.bg: QtWidgets.QWidget
-        self.titlebar: CustomTitleBar
-        self.form_widget: SidebarWidget
 
-        # 主内容区
-        self.bg = QtWidgets.QWidget(self)
-        # 主窗口布局
-        self.main_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self)
-        self.main_layout.setContentsMargins(2, 2, 2, 2)
-        self.main_layout.setSpacing(0)
-        self.main_layout.addWidget(self.bg)
-
-        # 主内容区布局
-        bg_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self.bg)
-        bg_layout.setContentsMargins(2, 2, 2, 2)
-        bg_layout.setSpacing(0)
-
-        # 顶部 titlebar
-        self.titlebar: CustomTitleBar = CustomTitleBar(self)
-        bg_layout.addWidget(self.titlebar)
-
-        # 内容区（用 QHBoxLayout 实现靠右）
-        content_layout: QtWidgets.QHBoxLayout = QtWidgets.QHBoxLayout()
-        content_layout.setContentsMargins(30, 70, 0, 0)
-        content_layout.setSpacing(0)
-
-        # 左侧表单
-        self.form_widget = SidebarWidget(parent=self.bg)
-        self.form_widget.setFixedWidth(400)
-        self.form_widget.setStyleSheet("""
-            background: #f5f6fa;
-            border-top-left-radius: 30px;
-            border-bottom-left-radius: 30px;
-            border: none;
-        """)
-        self.form_opacity_effect: QtWidgets.QGraphicsOpacityEffect = (
-            QtWidgets.QGraphicsOpacityEffect(self.form_widget)
-        )
-        self.form_widget.setGraphicsEffect(self.form_opacity_effect)
-        self.form_opacity_effect.setOpacity(0.0)
-
-        # 右侧主操作面板
-        self.action_panel: MainActionPanel = MainActionPanel(self.bg)
-        self.action_panel.setContentsMargins(0, 0, 60, 220)
-
-        # 新增：右侧主操作面板透明度特效
-        self.action_opacity_effect: QtWidgets.QGraphicsOpacityEffect = (
-            QtWidgets.QGraphicsOpacityEffect(self.action_panel)
-        )
-        self.action_panel.setGraphicsEffect(self.action_opacity_effect)
-        self.action_opacity_effect.setOpacity(0.0)
-
-        # 水平布局：左侧表单 | 拉伸 | 右侧操作面板
-        content_layout.addWidget(self.form_widget)
-        content_layout.addStretch()
-        content_layout.addWidget(self.action_panel)
-
-        bg_layout.addLayout(content_layout)
-
+        self.create_layout()
 
         # 添加logo容器
-        self.logo_container: QtWidgets.QWidget = QtWidgets.QWidget(self.bg)
         self.logo_container.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.logo_container.setFixedSize(135, 135)
 
@@ -191,26 +137,68 @@ class MainWindow(QtWidgets.QWidget):
         self.github_label.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self.github_label.setStyleSheet("background: transparent;")
         self.github_label.adjustSize()
-
-        def open_github(_):
-            """GitHub 超链接"""
-            webbrowser.open("https://github.com/unraous/uXuexitongJS")
-        self.github_label.mousePressEvent = open_github
+        self.github_label.mousePressEvent = lambda _: (
+            webbrowser.open("https://github.com/unraous/uXuexitongJS"),
+            None
+        )[1]  # 确保返回None
 
         # 右下角布局
-        spacing: int = 12  # 图标与文字间距
-        total_width: int = self.version_label.width() + self.github_label.width() + spacing
-        x: int = (self.width() - total_width) // 16 * 15  # 别把"//"当注释
+        x: int = (self.width()) // 100 * 72 # 别把"//"当注释
         y: int = (
-            self.height() - max(self.version_label.height(), self.github_label.height())
-        ) // 15 * 16
-        self.github_label.move(x, y + 4)
-        self.version_label.move(x + self.github_label.width() + spacing, y)
-        self.github_label.raise_()
-        self.version_label.raise_()
+            self.height()
+        ) // 100 * 86
+        self.github_label.move(x, y)
+        self.version_label.move(x + self.github_label.width() + 10, y - 4)
 
         logging.info("主窗口初始化完毕")
 
+    def create_layout(self):
+        """创建主窗口布局"""
+        main_layout: QtWidgets.QBoxLayout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.Direction.TopToBottom, self)
+        main_layout.addWidget(self.bg)
+
+        # 主内容区布局
+        bg_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self.bg)
+        bg_layout.setContentsMargins(2, 2, 2, 2)
+        bg_layout.setSpacing(0)
+        bg_layout.addWidget(self.titlebar)
+
+        # 内容区（用 QHBoxLayout 实现靠右）
+        content_layout: QtWidgets.QHBoxLayout = QtWidgets.QHBoxLayout()
+        content_layout.setContentsMargins(30, 70, 0, 0)
+        content_layout.setSpacing(0)
+
+        # 左侧表单
+        self.form_widget.setFixedWidth(400)
+        self.form_widget.setStyleSheet("""
+            background: #f5f6fa;
+            border-top-left-radius: 30px;
+            border-bottom-left-radius: 30px;
+            border: none;
+        """)
+        self.form_opacity_effect: QtWidgets.QGraphicsOpacityEffect = (
+            QtWidgets.QGraphicsOpacityEffect(self.form_widget)
+        )
+        self.form_widget.setGraphicsEffect(self.form_opacity_effect)
+        self.form_opacity_effect.setOpacity(0.0)
+
+        # 右侧主操作面板
+        self.action_panel: MainActionPanel = MainActionPanel(self.bg)
+        self.action_panel.setContentsMargins(0, 0, 60, 220)
+
+        # 新增：右侧主操作面板透明度特效
+        self.action_opacity_effect: QtWidgets.QGraphicsOpacityEffect = (
+            QtWidgets.QGraphicsOpacityEffect(self.action_panel)
+        )
+        self.action_panel.setGraphicsEffect(self.action_opacity_effect)
+        self.action_opacity_effect.setOpacity(0.0)
+
+        # 水平布局：左侧表单 | 拉伸 | 右侧操作面板
+        content_layout.addWidget(self.form_widget)
+        content_layout.addStretch()
+        content_layout.addWidget(self.action_panel)
+
+        bg_layout.addLayout(content_layout)
 
 
     @override
