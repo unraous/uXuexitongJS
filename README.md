@@ -92,11 +92,11 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
    ```
 4. **配置 API Key**
 
-   - 打开 [`src/py/config.py`](src/py/config.py) 或 `.env`，填写你的 AI 平台 key（如 [Moonshot](https://platform.moonshot.cn) 或 [OpenRouter](https://openrouter.ai/)）。
+   - 在gui里按要求填写并保存即可
 5. **启动后端服务，并按照终端提示运行**
 
    ```sh
-   python src/py/main.py # 无ui
+   python src/py/main.py # 无ui (暂时暂停维护)
    python main_with_gui.py # 有ui
    ```
 
