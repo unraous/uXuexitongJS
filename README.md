@@ -3,6 +3,7 @@
 ## 项目简介
 
 本项目灵感来自 [@chaolucky18](https://github.com/chaolucky18) 的 [xuexitongScript](https://github.com/chaolucky18/xuexitongScript)。在原有基础上重写，支持自动刷课、自动答题、AI 智能答题等功能，适配新版学习通网页版。
+(issue上的bug仍存在,目前正在由于历史遗留问题正在重构代码,不久会发布更新进行修复)
 
 （如果觉得有用，欢迎 star 支持！✨）
 
