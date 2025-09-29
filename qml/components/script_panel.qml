@@ -18,7 +18,7 @@ Rectangle {
 
     Item {
         id: settingCont;
-        x: scriptPanel.settingOpen ? 65 : parent.width - width - 60
+        x: scriptPanel.settingOpen ? 50 : parent.width - width - 60
         y: 40
         width: setting.width; height: setting.height;
         property bool hovered: false;
@@ -250,6 +250,7 @@ Rectangle {
 
             OptionBox {
                 id: opt1;
+                width: parent.width;
                 key: "Log";
                 value: "Yes";
                 crypt: false;

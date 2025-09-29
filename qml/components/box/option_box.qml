@@ -7,7 +7,6 @@ Rectangle {
     id: tbx;
     width: 400;
     height: 50;
-    anchors.horizontalCenter: parent.horizontalCenter;
     color: "transparent";
 
     property string key: "TestKey";
@@ -18,11 +17,13 @@ Rectangle {
         anchors.fill: parent;
         width: parent.width;
         height: parent.height;
+        leftPadding: parent.width * 0.1;
+        rightPadding: parent.width * 0.1;
         Label {
             text: tbx.key;
             color: "#79CEED";
             height: parent.height;
-            width: parent.width * 0.3;
+            width: parent.width * 0.4;
             font.pixelSize: 20;
             font.bold: true;
             verticalAlignment: Text.AlignVCenter;
@@ -34,7 +35,7 @@ Rectangle {
         }
 
         Rectangle {
-            width: parent.width * 0.5;
+            width: parent.width * 0.4;
             height: parent.height;
             border.color: "#79CEED";
             color: "transparent";
