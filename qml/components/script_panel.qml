@@ -48,11 +48,11 @@ Rectangle {
                 anchors.fill: parent;
                 gradient: Gradient {
                     orientation: Gradient.Horizontal;
-                    GradientStop { position: 0.0; color: "#60EFDB"; }   // 青绿色
-                    GradientStop { position: 0.25; color: "#BEF2E5"; }  // 浅青绿色
-                    GradientStop { position: 0.5; color: "#C5E7F1"; }   // 浅蓝色
-                    GradientStop { position: 0.75; color: "#79CEED"; }  // 天蓝色
-                    GradientStop { position: 1.0; color: "#6F89A2"; }   // 蓝灰色
+                    GradientStop { position: 0.0; color: "#60EFDB"; }
+                    GradientStop { position: 0.25; color: "#BEF2E5"; }
+                    GradientStop { position: 0.5; color: "#C5E7F1"; }
+                    GradientStop { position: 0.75; color: "#79CEED"; }
+                    GradientStop { position: 1.0; color: "#6F89A2"; }
                 }
                 visible: false;
             }

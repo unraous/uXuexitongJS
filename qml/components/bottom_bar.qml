@@ -105,6 +105,7 @@ Rectangle {
                 id: githubMask
                 anchors.fill: parent
                 source: rowGradient
+                cached: true
                 maskSource: Image {
                     source: "file:///D:\\Workspace\\uXuexitongJS\\data\\static\\svg\\github-142-svgrepo-com.svg"
                     fillMode: Image.PreserveAspectFit
