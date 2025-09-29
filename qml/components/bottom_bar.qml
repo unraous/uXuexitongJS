@@ -18,36 +18,36 @@ Rectangle {
         height: timeText.height;
 
         Text {
-            id: timeText
-            text: Qt.formatTime(new Date(), "hh:mm:ss")
-            font.family: bottomBar.family
-            font.pixelSize: 56
-            visible: false
-            bottomPadding: 30
+            id: timeText;
+            text: Qt.formatTime(new Date(), "hh:mm:ss");
+            font.family: bottomBar.family;
+            font.pixelSize: 56;
+            visible: false;
+            bottomPadding: 30;
 
             // 用于对齐到整秒
             Timer {
-                id: alignTimer
+                id: alignTimer;
                 interval: {
-                    var now = new Date()
-                    return 1000 - now.getMilliseconds()
+                    let now = new Date();
+                    return 1000 - now.getMilliseconds();
                 }
-                running: true
-                repeat: false
+                running: true;
+                repeat: false;
                 onTriggered: {
-                    timeText.text = Qt.formatTime(new Date(), "hh:mm:ss")
-                    syncTimer.start()
+                    timeText.text = Qt.formatTime(new Date(), "hh:mm:ss");
+                    syncTimer.start();
                 }
             }
 
             // 每秒刷新
             Timer {
-                id: syncTimer
-                interval: 1000
-                running: false
-                repeat: true
+                id: syncTimer;
+                interval: 1000;
+                running: false;
+                repeat: true;
                 onTriggered: {
-                    timeText.text = Qt.formatTime(new Date(), "hh:mm:ss")
+                    timeText.text = Qt.formatTime(new Date(), "hh:mm:ss");
                 }
             }
         }
@@ -102,30 +102,25 @@ Rectangle {
             height: rowLayout.w;
 
             OpacityMask {
-                id: githubMask
-                anchors.fill: parent
-                source: rowGradient
-                cached: true
+                id: githubMask;
+                anchors.fill: parent;
+                source: rowGradient;
                 maskSource: Image {
-                    source: "file:///D:\\Workspace\\uXuexitongJS\\data\\static\\svg\\github-142-svgrepo-com.svg"
-                    fillMode: Image.PreserveAspectFit
-                    antialiasing: true
-                    smooth: true
-                    mipmap: true
+                    source: "file:///D:\\Workspace\\uXuexitongJS\\data\\static\\svg\\github-142-svgrepo-com.svg";
+                    fillMode: Image.PreserveAspectFit;
                 }
             }
 
             MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: Qt.openUrlExternally("https://github.com/unraous/uXuexitongJS")
+                anchors.fill: parent;
+                cursorShape: Qt.PointingHandCursor;
+                onClicked: Qt.openUrlExternally("https://github.com/unraous/uXuexitongJS");
             }
         }
 
         OpacityMask {
-            width: textMask.width
-            height: textMask.height
-            source: rowGradient
+            width: textMask.width; height: textMask.height;
+            source: rowGradient;
             maskSource: Text {
                 id: textMask
                 text: "v1.0.0 by unraous";

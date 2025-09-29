@@ -12,15 +12,47 @@ Rectangle {
     property string family;
     property int process: 0; // 添加进度属性
 
-    Image {
-        id: setting
-        source: "file:///" + "D:/Workspace/uXuexitongJS/data/static/svg/setting.svg"
-        width: 48;
-        height: 48;
+    
+
+    Item {
         anchors.right: parent.right;
         anchors.top: parent.top;
         anchors.margins: 60;
-        fillMode: Image.PreserveAspectCrop;
+        width: setting.width; height: setting.height;
+        
+        Image {
+            id: setting;
+            source: "file:///" + "D:/Workspace/uXuexitongJS/data/static/svg/setting-1.svg";
+            width: 50;
+            height: 48;
+        }
+
+
+        Rectangle {
+            id: g;
+            anchors.fill: parent;
+            gradient: Gradient {
+                orientation: Gradient.Horizontal;
+                GradientStop { position: 0.0; color: "#60EFDB"; }
+                GradientStop { position: 0.25; color: "#BEF2E5"; }
+                GradientStop { position: 0.5; color: "#C5E7F1"; }
+                GradientStop { position: 0.75; color: "#79CEED"; }
+                GradientStop { position: 1.0; color: "#6F89A2"; }
+            }
+            visible: false;
+        }
+        
+        OpacityMask {
+            anchors.fill: setting;
+            source: g;
+            maskSource: setting;
+        }
+
+        MouseArea {
+            anchors.fill: parent;
+            cursorShape: Qt.PointingHandCursor;
+            onClicked: Qt.openUrlExternally("https://github.com/unraous/uXuexitongJS");
+        }
     }
 
     Column {
