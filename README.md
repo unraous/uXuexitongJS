@@ -90,15 +90,15 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
    ```sh
    pip install -r requirements.txt
    ```
-4. **配置 API Key**
-
-   - 打开 [`src/py/config.py`](src/py/config.py) 或 `.env`，填写你的 AI 平台 key（如 [Moonshot](https://platform.moonshot.cn) 或 [OpenRouter](https://openrouter.ai/)）。
-5. **启动后端服务，并按照终端提示运行**
+4. **启动后端服务**
 
    ```sh
-   python src/py/main.py # 无ui
-   python main_with_gui.py # 有ui
+   python src/main.py # 暂时不提供无UI模式
    ```
+5. **进入页面**
+   点击gui顶部的“uXuexitongScript”字样，按照弹出的教程操作即可
+
+   ![1759776499730](image/README/1759776499730.png)
 
 ---
 
@@ -119,13 +119,13 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 ## 联系方式
 
-- 作者：unraous
 - 邮箱：unraous@qq.com
 
 ---
 
 ## 版本历史
 
+- 2025-10-07 v1.3.0
 - 2025-06-08 v1.2.0
 - 2025-06-01 v1.1.0
 - 2025-05-28 v1.0.0

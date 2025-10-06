@@ -6,6 +6,6 @@ dist
 __pycache__/
 traffic
 UXS
-main_with_gui.spec
+*.spec
 config.toml
 tool_scripts/

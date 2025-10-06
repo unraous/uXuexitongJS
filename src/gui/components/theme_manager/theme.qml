@@ -41,7 +41,7 @@ QtObject {
     }
 
     function switchTo(name) {
-        if (theme.colorFamily.hasOwnProperty(name)) {
+        if (theme.colorFamily?.hasOwnProperty(name)) {
             theme.name = name;
             theme.color = theme.colorFamily[name];
             console.log(`已切换至主题: ${name}`);

@@ -1,6 +1,7 @@
 [metadata]
 version = "1.3.0"
 author = "unraous"
+theme = "ocean"
 
 # API相关配置
 
@@ -37,6 +38,20 @@ ink = [
   '#454545', '#ffffff',
   '#e7e7e7', '#d1d1d1',
   '#b6b6b6', '#9b9b9b'
+]
+silence = [
+  '#ffffff', '#e7e7e7',
+  '#d1d1d1', '#b6b6b6',
+  '#9b9b9b', '#000000',
+  '#262626', '#333333',
+  '#373737', '#454545', 
+]
+vira = [
+  '#89ddff', '#cef3c1',
+  '#ead7ac', '#fac3b3',
+  '#ffffff', '#232946',
+  '#353a58', '#2e304c',
+  '#202038', '#181926'
 ]
 
 # 路径相关配置(value为列表，方便os.path.join)
