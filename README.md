@@ -3,6 +3,7 @@
 ## 项目简介
 
 本项目灵感来自 [@chaolucky18](https://github.com/chaolucky18) 的 [xuexitongScript](https://github.com/chaolucky18/xuexitongScript)。在原有基础上重写，支持自动刷课、自动答题、AI 智能答题等功能，适配新版学习通网页版。
+(issue上的bug仍存在,目前正在由于历史遗留问题正在重构代码,不久会发布更新进行修复)
 
 （如果觉得有用，欢迎 star 支持！✨）
 
@@ -90,10 +91,21 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
    ```sh
    pip install -r requirements.txt
    ```
+<<<<<<< HEAD
 4. **启动后端服务**
 
    ```sh
    python src/main.py # 暂时不提供无UI模式
+=======
+4. **配置 API Key**
+
+   - 在gui里按要求填写并保存即可
+5. **启动后端服务，并按照终端提示运行**
+
+   ```sh
+   python src/py/main.py # 无ui (暂时暂停维护)
+   python main_with_gui.py # 有ui
+>>>>>>> 97a3b74325d3246f45ad4adac81bdb2f8ed30b89
    ```
 5. **进入页面**
    点击gui顶部的“uXuexitongScript”字样，按照弹出的教程操作即可
