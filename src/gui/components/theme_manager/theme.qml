@@ -52,9 +52,9 @@ QtObject {
 
     function getColor(name) {
         if (theme.colorFamily?.hasOwnProperty(name)) {
+            console.log(`获取主题 ${name} 的颜色: ${theme.colorFamily[name]}`);
             return [...theme.colorFamily[name]];
         } else {
-            console.warn(`主题 ${name} 不存在`);
             return [];
         }
     }

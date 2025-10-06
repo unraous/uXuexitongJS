@@ -67,14 +67,14 @@ ApplicationWindow {
                 MenuList {
                     id: menuList;
                     width: menuRow.width * 0.3;
-                    height: menuRow.height;
+                    height: window.height - titleBar.height;
                     parentPanel: menuRow;
                     padding: 80;
                 }
                 Item {
                     id: rightPanel;
                     width: parent.width * 0.7;
-                    height: menuRow.height;
+                    height: window.height - titleBar.height;
                     
                     Rectangle {
                         anchors.fill: parent;
