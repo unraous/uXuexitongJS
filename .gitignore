@@ -1,6 +1,7 @@
 .env
 .venv
 .cookies
+.vscode/
 build
 dist
 __pycache__/
@@ -9,3 +10,4 @@ UXS
 *.spec
 config.toml
 tool_scripts/
+test/
