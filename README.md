@@ -45,7 +45,7 @@
 
 api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
 
-## 命令行运行
+## 运行方式
 
 ### 方式一：仅刷课（无答题）
 
@@ -53,19 +53,19 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 1.在学习通网页版进入想要刷的课程的播放页面
 
-![1748434809500](resource/image/README/1748434809500.jpg)
+![1748434809500](image/README/1748434809500.jpg)
 
 2.按下F12打开开发者工具
 
-![1748434330109](resource/image/README/1748434330109.jpg)
+![1748434330109](image/README/1748434330109.jpg)
 
 3.将main.js的内容复制粘贴到控制台（FireFox为查看器）
 
-![1748434420451](resource/image/README/1748434420451.jpg)
+![1748434420451](image/README/1748434420451.jpg)
 
 4.enter后按照说明操作即可（Edge可能复制的时候要求先打一个“允许粘贴”）
 
-![1748434648962](resource/image/README/1748434648962.jpg)
+![1748434648962](image/README/1748434648962.jpg)
 
 ---
 
@@ -82,7 +82,7 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
      ```sh
      venv\Scripts\activate
      ```
-   - macOS/Linux:
+   - Linux:
      ```sh
      source venv/bin/activate
      ```
@@ -91,21 +91,10 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
    ```sh
    pip install -r requirements.txt
    ```
-<<<<<<< HEAD
 4. **启动后端服务**
 
    ```sh
    python src/main.py # 暂时不提供无UI模式
-=======
-4. **配置 API Key**
-
-   - 在gui里按要求填写并保存即可
-5. **启动后端服务，并按照终端提示运行**
-
-   ```sh
-   python src/py/main.py # 无ui (暂时暂停维护)
-   python main_with_gui.py # 有ui
->>>>>>> 97a3b74325d3246f45ad4adac81bdb2f8ed30b89
    ```
 5. **进入页面**
    点击gui顶部的“uXuexitongScript”字样，按照弹出的教程操作即可
