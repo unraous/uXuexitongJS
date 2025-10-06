@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>MainWindow</class>
+    <widget class="QMainWindow" name="MainWindow">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>900</width>
+                <height>700</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Tetris Battle</string>
+        </property>
+        <property name="styleSheet">
+            <string notr="true">QMainWindow {
+                background-color: #2D2D30;
+                }
+
+                QLabel {
+                color: #E0E0E0;
+                font-family: 'Arial', sans-serif;
+                }
+
+                QPushButton {
+                background-color: #0078D7;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+                font-size: 14px;
+                font-weight: bold;
+                }
+
+                QPushButton:hover {
+                background-color: #1E88E5;
+                }
+
+                QPushButton:pressed {
+                background-color: #0060AC;
+                }
+
+                QWidget#gameContainer1, QWidget#gameContainer2 {
+                background-color: #1E1E1E;
+                border: 2px solid #3E3E40;
+                border-radius: 5px;
+                }
+</string>
+        </property>
+        <widget class="QWidget" name="centralwidget">
+            <layout class="QGridLayout" name="mainLayout">
+                <item row="0" column="0" colspan="4">
+                    <widget class="QLabel" name="titleLabel">
+                        <property name="font">
+                            <font>
+                                <pointsize>28</pointsize>
+                                <bold>true</bold>
+                            </font>
+                        </property>
+                        <property name="styleSheet">
+                            <string notr="true">color: #29B6F6;</string>
+                        </property>
+                        <property name="text">
+                            <string>俄罗斯方块对战</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                    </widget>
+                </item>
+                <item row="1" column="0" colspan="2">
+                    <widget class="QPushButton" name="playerVsPlayerButton">
+                        <property name="minimumSize">
+                            <size>
+                                <width>0</width>
+                                <height>40</height>
+                            </size>
+                        </property>
+                        <property name="text">
+                            <string>玩家对战</string>
+                        </property>
+                        <property name="icon">
+                            <iconset>
+                                <normaloff>icons/users.png</normaloff>icons/users.png</iconset>
+                        </property>
+                    </widget>
+                </item>
+                <item row="1" column="2" colspan="2">
+                    <widget class="QPushButton" name="playerVsAiButton">
+                        <property name="minimumSize">
+                            <size>
+                                <width>0</width>
+                                <height>40</height>
+                            </size>
+                        </property>
+                        <property name="text">
+                            <string>人机对战</string>
+                        </property>
+                        <property name="icon">
+                            <iconset>
+                                <normaloff>icons/robot.png</normaloff>icons/robot.png</iconset>
+                        </property>
+                    </widget>
+                </item>
+                <item row="2" column="0" colspan="2">
+                    <widget class="QWidget" name="gameContainer1" native="true">
+                        <property name="minimumSize">
+                            <size>
+                                <width>250</width>
+                                <height>450</height>
+                            </size>
+                        </property>
+                    </widget>
+                </item>
+                <item row="2" column="2" colspan="2">
+                    <widget class="QWidget" name="gameContainer2" native="true">
+                        <property name="minimumSize">
+                            <size>
+                                <width>250</width>
+                                <height>450</height>
+                            </size>
+                        </property>
+                    </widget>
+                </item>
+                <item row="3" column="0" colspan="2">
+                    <widget class="QLabel" name="scoreLabel1">
+                        <property name="font">
+                            <font>
+                                <pointsize>16</pointsize>
+                                <bold>true</bold>
+                            </font>
+                        </property>
+                        <property name="styleSheet">
+                            <string notr="true">color: #FFC107;</string>
+                        </property>
+                        <property name="text">
+                            <string>玩家1得分: 0</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                    </widget>
+                </item>
+                <item row="3" column="2" colspan="2">
+                    <widget class="QLabel" name="scoreLabel2">
+                        <property name="font">
+                            <font>
+                                <pointsize>16</pointsize>
+                                <bold>true</bold>
+                            </font>
+                        </property>
+                        <property name="styleSheet">
+                            <string notr="true">color: #FFC107;</string>
+                        </property>
+                        <property name="text">
+                            <string>玩家2得分: 0</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                    </widget>
+                </item>
+                <item row="4" column="0" colspan="4">
+                    <widget class="QLabel" name="infoLabel">
+                        <property name="font">
+                            <font>
+                                <pointsize>14</pointsize>
+                                <italic>true</italic>
+                            </font>
+                        </property>
+                        <property name="styleSheet">
+                            <string notr="true">color: #9E9E9E;</string>
+                        </property>
+                        <property name="text">
+                            <string>选择游戏模式开始</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                    </widget>
+                </item>
+                <item row="5" column="0" colspan="4">
+                    <widget class="QLabel" name="controlsLabel">
+                        <property name="font">
+                            <font>
+                                <pointsize>12</pointsize>
+                            </font>
+                        </property>
+                        <property name="styleSheet">
+                            <string notr="true">color: #80CBC4;</string>
+                        </property>
+                        <property name="text">
+                            <string>玩家1: WASD控制 | 玩家2: 方向键控制</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                        </property>
+                    </widget>
+                </item>
+            </layout>
+        </widget>
+        <widget class="QMenuBar" name="menubar">
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>900</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <widget class="QMenu" name="menuGame">
+                <property name="title">
+                    <string>游戏</string>
+                </property>
+                <addaction name="actionNew_Game" />
+                <addaction name="actionExit" />
+            </widget>
+            <widget class="QMenu" name="menuHelp">
+                <property name="title">
+                    <string>帮助</string>
+                </property>
+                <addaction name="actionControls" />
+                <addaction name="actionAbout" />
+            </widget>
+            <addaction name="menuGame" />
+            <addaction name="menuHelp" />
+        </widget>
+        <widget class="QStatusBar" name="statusbar" />
+        <action name="actionNew_Game">
+            <property name="text">
+                <string>新游戏</string>
+            </property>
+            <property name="shortcut">
+                <string>Ctrl+N</string>
+            </property>
+        </action>
+        <action name="actionExit">
+            <property name="text">
+                <string>退出</string>
+            </property>
+            <property name="shortcut">
+                <string>Ctrl+Q</string>
+            </property>
+        </action>
+        <action name="actionControls">
+            <property name="text">
+                <string>控制说明</string>
+            </property>
+        </action>
+        <action name="actionAbout">
+            <property name="text">
+                <string>关于</string>
+            </property>
+        </action>
+    </widget>
+    <resources />
+    <connections />
+</ui>

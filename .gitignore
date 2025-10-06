@@ -5,9 +5,7 @@ build
 dist
 __pycache__/
 traffic
-data/config
-data/log
-data/temp
+UXS
 main_with_gui.spec
 config.toml
 tool_scripts/

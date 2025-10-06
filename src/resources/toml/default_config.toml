@@ -1,0 +1,56 @@
+[metadata]
+version = "1.3.0"
+author = "unraous"
+
+# API相关配置
+
+[openai]
+api_key = ""
+base_url = "https://api.moonshot.cn/v1"
+model = "kimi-k2-0905-preview"
+
+# 刷课相关配置
+
+[auto_course]
+browser = ""
+home_url = "https://mooc1.chaoxing.com/"
+login_url = "https://passport2-api.chaoxing.com/login?fid=&refer=https://mooc1.chaoxing.com/"
+history_url = ""
+user_cookies = ""
+restore_cookies = true
+force_speed = false
+speed = 2.0
+
+# 颜色主题
+
+[theme]
+ocean = [
+  '#60efdb', '#bef2e5',
+  '#c5e7f1', '#79ceed',
+  '#6f89a2', '#18324a',
+  '#204060', '#274a60',
+  '#1b3a4d', '#101a26'
+]
+ink = [
+  '#000000', '#262626',
+  '#333333', '#373737',
+  '#454545', '#ffffff',
+  '#e7e7e7', '#d1d1d1',
+  '#b6b6b6', '#9b9b9b'
+]
+
+# 路径相关配置(value为列表，方便os.path.join)
+
+[path_groups.writable]
+original_questions = ["UXS", "temp", "html", "question.html"]
+obf_font = ["UXS", "temp", "ttf", "obf_font.ttf"]
+obf_mapping = ["UXS", "temp", "json", "obf_mapping.json"]
+questions = ["UXS", "temp", "json", "questions.json"]
+decoded = ["UXS", "temp", "json", "questions_decoded.json"]
+qa_pairs = ["UXS", "temp", "json", "q&a_pairs.json"]
+answers = ["UXS", "temp", "json", "final_answers.json"]
+
+[path_groups.static]
+js_script = ["src", "main_script", "script.js"]
+app_icon = ["src", "resources", "ico", "the_icon.ico"]
+std_font = ["src", "resources", "ttf", "simsun.ttf"]

@@ -1,0 +1,7 @@
+BottomBar bottom_bar.qml
+ConfigPanel config_panel.qml
+MenuList menu_list.qml
+ScriptPanel script_panel.qml
+TitleBar title_bar.qml
+TutorialPage tutor_page.qml
+ThemePage theme_page.qml

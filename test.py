@@ -1,19 +1,11 @@
+import sys
+from pathlib import Path
 
-from PySide6.QtCore import QUrl
-from PySide6.QtWidgets import QApplication
-from PySide6.QtQml import QQmlApplicationEngine
+print(Path.cwd())
 
-from backend import Backend
+def static_path(*relative_path: str) -> Path:
+    """开发/打包双环境的静态路径适配"""
+    root: Path = Path(getattr(sys, '_MEIPASS', str(Path.cwd())))
+    return root.joinpath(*relative_path)
 
-app = QApplication([])
-backend = Backend()
-engine = QQmlApplicationEngine()
-engine.rootContext().setContextProperty("backend", backend)
-
-engine.load(QUrl("qml/main.qml"))
-
-
-# 在应用退出时调用清理函数
-app.aboutToQuit.connect(backend.cleanup)
-
-app.exec()
+print(static_path("src", "app", "utils", "file_path.py"))

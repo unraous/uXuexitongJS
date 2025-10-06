@@ -1,0 +1,3 @@
+BackgroundMask bg_mask.qml
+MainMask main_mask.qml
+ButtonMask btn_mask.qml
