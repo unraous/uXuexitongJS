@@ -26,44 +26,36 @@ speed = 2.0
 
 [theme]
 ocean = [
-  '#60efdb', '#bef2e5',
-  '#c5e7f1', '#79ceed',
-  '#6f89a2', '#18324a',
-  '#204060', '#274a60',
-  '#1b3a4d', '#101a26'
+  '#60efdb', '#bef2e5', '#c5e7f1', '#79ceed', '#6f89a2', 
+  '#18324a', '#204060', '#274a60', '#1b3a4d', '#101a26',
 ]
 ink = [
-  '#000000', '#262626',
-  '#333333', '#373737',
-  '#454545', '#ffffff',
-  '#e7e7e7', '#d1d1d1',
-  '#b6b6b6', '#9b9b9b'
+  '#000000', '#262626', '#333333', '#373737', '#454545', 
+  '#ffffff', '#e7e7e7', '#d1d1d1', '#b6b6b6', '#9b9b9b', 
 ]
 silence = [
-  '#ffffff', '#e7e7e7',
-  '#d1d1d1', '#b6b6b6',
-  '#9b9b9b', '#000000',
-  '#262626', '#333333',
-  '#373737', '#454545', 
+  '#ffffff', '#e7e7e7', '#d1d1d1', '#b6b6b6', '#9b9b9b', 
+  '#000000', '#262626', '#333333', '#373737', '#454545', 
 ]
 vira = [
-  '#89ddff', '#cef3c1',
-  '#ead7ac', '#fac3b3',
-  '#ffffff', '#232946',
-  '#353a58', '#2e304c',
-  '#202038', '#181926'
+  '#89ddff', '#cef3c1', '#ead7ac', '#fac3b3', '#ffffff', 
+  '#232946', '#353a58', '#2e304c', '#202038', '#181926',
+]
+tangerine = [
+  '#fc6076', '#fd765e', '#fe8c4b', '#ff9a44', '#f38b0c',
+  '#ddecd2', '#ddd3b5', '#ddbfa9', '#ddb4b1', '#ddd0c4',
 ]
 
 # 路径相关配置(value为列表，方便os.path.join)
 
 [path_groups.writable]
-original_questions = ["UXS", "temp", "html", "question.html"]
-obf_font = ["UXS", "temp", "ttf", "obf_font.ttf"]
-obf_mapping = ["UXS", "temp", "json", "obf_mapping.json"]
-questions = ["UXS", "temp", "json", "questions.json"]
-decoded = ["UXS", "temp", "json", "questions_decoded.json"]
-qa_pairs = ["UXS", "temp", "json", "q&a_pairs.json"]
-answers = ["UXS", "temp", "json", "final_answers.json"]
+original_questions = ["data", "temp", "html", "question.html"]
+obf_font = ["data", "temp", "ttf", "obf_font.ttf"]
+obf_mapping = ["data", "temp", "json", "obf_mapping.json"]
+questions = ["data", "temp", "json", "questions.json"]
+decoded = ["data", "temp", "json", "questions_decoded.json"]
+qa_pairs = ["data", "temp", "json", "q&a_pairs.json"]
+answers = ["data", "temp", "json", "final_answers.json"]
 
 [path_groups.static]
 js_script = ["src", "main_script", "script.js"]

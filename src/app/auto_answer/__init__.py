@@ -41,4 +41,3 @@ async def answer_questions() -> None:
 
     answer_questions_file(decoded_json_path, answered_json_path)
     extract_simple_answers(answered_json_path, simplified_json_path)
-

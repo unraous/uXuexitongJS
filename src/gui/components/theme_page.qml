@@ -40,5 +40,11 @@ ScrollView {
             height: 120
             color: Theme.getColor(text);
         }
+        ThemeButton {
+            text: "tangerine"
+            width: scrollView.width
+            height: 120
+            color: Theme.getColor(text);
+        }
     }
 }

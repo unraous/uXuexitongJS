@@ -29,7 +29,7 @@ def setup_logging() -> None:
     """日志初始化"""
     timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path: Path = utils.writable_path(
-        "UXS", "log", "py", f"python_{timestamp}.log"
+        "data", "log", "py", f"python_{timestamp}.log"
     )
 
     logging.basicConfig(

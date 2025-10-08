@@ -20,11 +20,11 @@ ScrollView {
         wrapMode: TextEdit.Wrap
         readOnly: true
         font.family: scrollView.font.family
-        font.pixelSize: 14
+        font.pixelSize: 16
+        font.letterSpacing: 1.25
         color : Theme.color[2];
         selectionColor: Theme.color[9];
         selectedTextColor: Theme.color[2];
-
         property bool isHoveringLink: false
 
         onLinkActivated: function(link) {
