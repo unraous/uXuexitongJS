@@ -1,5 +1,5 @@
+// 主菜单按钮样式, 同时适用于侧边栏菜单按钮
 pragma ComponentBehavior: Bound
-// 最主要的按钮样式
 import QtQuick
 import QtQuick.Controls.Basic
 import Qt5Compat.GraphicalEffects
@@ -20,6 +20,9 @@ Button {
     signal after();
 
     contentItem: Item {
+        scale: btn.hovered ? (btn.pressed ? 0.9 : 1.1) : 1.0;
+
+        Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 200; } }
 
         Text {
             id: textItem;

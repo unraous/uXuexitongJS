@@ -1,5 +1,5 @@
-pragma ComponentBehavior: Bound
 // 最主要的按钮样式
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
 
@@ -9,10 +9,12 @@ import "../theme_manager"
 
 Button {
     id: btn;
-
+    scale: btn.enabled ? (
+        btn.hovered ? (btn.pressed ? 0.95 : 1.05) : 1.0
+    ) : 1.0;
     property int pixelSize: 18;
     property real gradientPos: btn.finished ? 0.0 : (
-        btn.hovered ? (
+        btn.hovered && !btn.loading ? (
             btn.pressed ? 0.0 : 2.5
         ) : 1.0
     );
@@ -25,6 +27,8 @@ Button {
 
     signal task();
     signal after();
+
+    Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
 
     // 使用Loader根据状态显示文本或加载动画
     contentItem: Loader {

@@ -4,7 +4,6 @@ import QtQuick.Controls
 import QtQuick.Window
 
 import "components"
-import "components/button"
 import "components/mask"
 import "components/theme_manager"
 

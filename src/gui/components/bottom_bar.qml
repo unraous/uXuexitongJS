@@ -87,8 +87,39 @@ Rectangle {
         }
 
         Item {
+            id: githubIcon;
             width: rowLayout.w;
             height: rowLayout.w;
+            scale: githubIcon.hovered ? 1.3 : 1.0;
+
+            property bool hovered: false;
+            property real rotationAngle: 0;
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 200; } }
+
+            transform: Rotation {
+                origin.x: githubIcon.width / 2
+                origin.y: githubIcon.height / 2
+                angle: githubIcon.rotationAngle
+            }
+
+            SequentialAnimation {
+                id: swingAnim
+                running: false
+                NumberAnimation { target: githubIcon; property: "rotationAngle"; to: -6; duration: 200; easing.type: Easing.InOutQuad }
+                NumberAnimation { target: githubIcon; property: "rotationAngle"; to: 6;  duration: 200; easing.type: Easing.InOutQuad }
+                NumberAnimation { target: githubIcon; property: "rotationAngle"; to: 0;  duration: 200; easing.type: Easing.InOutQuad }
+            }
+
+            // 取消悬停时平滑回到 0 的动画（用于中断 swingAnim 后的平滑收尾）
+            NumberAnimation {
+                id: returnAnim
+                target: githubIcon
+                property: "rotationAngle"
+                to: 0
+                duration: 150
+                easing.type: Easing.InOutQuad
+            }
 
             OpacityMask {
                 id: githubMask;
@@ -104,6 +135,18 @@ Rectangle {
                 anchors.fill: parent;
                 cursorShape: Qt.PointingHandCursor;
                 onClicked: Qt.openUrlExternally("https://github.com/unraous/uXuexitongJS");
+                hoverEnabled: true;
+                onHoveredChanged: {
+                    githubIcon.hovered = !githubIcon.hovered; // 使用事件提供的 hovered 状态
+                    if (githubIcon.hovered) {
+                        returnAnim.stop();
+                        swingAnim.start();
+                    } else {
+                        // 停止摆动并平滑回正
+                        swingAnim.stop();
+                        returnAnim.start();
+                    }
+                }
             }
         }
 

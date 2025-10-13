@@ -21,11 +21,13 @@ Rectangle {
     
 
     Item {
+
         id: settingCont;
         x: script.settingOpen ? 50 : parent.width - width - 60
         y: 40
         width: setting.width; height: setting.height;
         property bool hovered: false;
+        property bool pressed: false;
         Behavior on x { NumberAnimation { duration: 500; easing.type: Easing.InOutCubic; } }
         transform: Rotation {
             origin.x: setting.width / 2
@@ -39,20 +41,29 @@ Rectangle {
             source: "../resources/svg/setting.svg";
             width: 50;
             height: 48;
+            scale: settingCont.pressed ? 0.9 : (settingCont.hovered ? 1.1 : 1.0);
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
         }
 
 
         Rectangle {
             id: g1;
+            scale: settingCont.pressed ? 0.9 : (settingCont.hovered ? 1.1 : 1.0);
             anchors.fill: parent;
             gradient: MainMask { orientation: Gradient.Horizontal; }
             visible: false;
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
         }
         
         OpacityMask {
             anchors.fill: setting;
             source: g1;
             maskSource: setting;
+            scale: settingCont.pressed ? 0.9 : (settingCont.hovered ? 1.1 : 1.0);
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
         }
 
         MouseArea {
@@ -65,18 +76,23 @@ Rectangle {
             onClicked: {
                 script.settingOpen = !script.settingOpen;
             }
+            onPressed: {
+                settingCont.pressed = true;
+            }
+            onReleased: {
+                settingCont.pressed = false;
+            }
         }
     }
 
     Row {
+
         anchors.fill: parent;
         width: parent.width;
         height: parent.height;
         anchors.topMargin: 80;
         anchors.bottomMargin: 80;
-        
-
-        
+      
         Column {  //主控部分
             id: step;
             width: script.settingOpen ? 0 : parent.width;
@@ -117,6 +133,7 @@ Rectangle {
             }
 
             Row {
+
                 leftPadding: step.width * 0.149;
 
                 Rectangle {
@@ -138,6 +155,7 @@ Rectangle {
                 }
 
                 Column {
+
                     width: step.width * 0.67;
                     spacing: 15;
 
@@ -192,6 +210,7 @@ Rectangle {
         }
 
         Column {  //设置部分
+
             id: config;
             width: parent.width;
             height: parent.height;
@@ -237,6 +256,7 @@ Rectangle {
             }
 
             ScrollView {
+
                 width: parent.width * 0.6;
                 height: parent.height - 100;
                 anchors.horizontalCenter: parent.horizontalCenter;

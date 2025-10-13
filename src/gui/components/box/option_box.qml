@@ -40,17 +40,24 @@ Rectangle {
             }
 
             Rectangle {
+                id: optionCircle;
                 width: parent.width * 0.3;
                 height: parent.height;
                 color: "transparent";
+
+                property bool hovered: false;
+                property bool pressed: false;
+
                 Rectangle {
+                    id: circleBorder
                     anchors.centerIn: parent;
                     width: height; height: parent.height * 0.5;
                     radius: width / 2;
                     border.width: 2;
                     border.color: obx.chosen ? Theme.color[3] : Theme.color[4];
                     color: "transparent";
-
+                    scale: optionCircle.hovered ? (optionCircle.pressed ? 0.9 : 1.2) : 1.0;
+                    Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 200; } }
                     Behavior on border.color { ColorAnimation { duration: 200; } }
                 }
 
@@ -72,6 +79,15 @@ Rectangle {
                         cursorShape: Qt.PointingHandCursor;
                         onClicked: {
                             obx.chosen = !obx.chosen;
+                        }
+                        onPressed: {
+                            optionCircle.pressed = true;
+                        }
+                        onReleased: {
+                            optionCircle.pressed = false;
+                        }
+                        onHoveredChanged: {
+                            optionCircle.hovered = !optionCircle.hovered;
                         }
                     }
                 }
