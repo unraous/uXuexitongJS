@@ -1,12 +1,12 @@
 pragma Singleton
 import QtQuick
 
-import "../interface.js" as Interface
+import "../bridge.js" as BackendBridge
 
 QtObject {
     id: theme
-    property int colorId: Interface.dispatch("get_config", ["theme"]);
-    property int changeId: Interface.dispatch("get_config", ["metadata", "theme"]);
+    property int colorId: BackendBridge.dispatch("get_config", ["theme"]);
+    property int changeId: BackendBridge.dispatch("get_config", ["metadata", "theme"]);
     property string name: "ocean"
     property var color: [
         "#60EFDB", "#BEF2E5", "#C5E7F1", "#79CEED", "#6F89A2",
@@ -14,11 +14,10 @@ QtObject {
     ]
     property var font : FontLoader {
         id: fontFamily;
-        source: "../../resources/ttf/mixture.ttf";
+        source: "../../../resources/ttf/mixture.ttf";
     }
     property var colorFamily : {}
 
-    // 正则表达式解析 Python 字典
     function parsePythonDict(pythonStr) {
         const result = {};
         
@@ -55,6 +54,7 @@ QtObject {
             console.log(`获取主题 ${name} 的颜色: ${theme.colorFamily[name]}`);
             return [...theme.colorFamily[name]];
         } else {
+            console.warn(`主题 ${name} 未加载`);
             return [];
         }
     }
@@ -64,13 +64,13 @@ QtObject {
         function onFinished(finishedJobId) {
             if (theme.colorId === finishedJobId) {
                 console.log(`主题加载任务 ${finishedJobId} 已完成'!`);
-                const resultStr = Interface.getResult(theme.colorId);
+                const resultStr = BackendBridge.getResult(theme.colorId);
                 try {
                     const result = theme.parsePythonDict(resultStr);  // 使用正则表达式解析
                     
                     if (Object.keys(result).length > 0) {
                         theme.colorFamily = result;
-                        console.log(`主题加载成功: ${JSON.stringify(theme.colorFamily)}`);
+                        console.log("主题加载成功");
                         
                     } else {
                         console.warn(`主题加载失败: 解析结果为空`);
@@ -80,7 +80,7 @@ QtObject {
                 }
             } else if (theme.changeId === finishedJobId) {
                 console.log(`主题切换任务 ${finishedJobId} 已完成'!`);
-                theme.switchTo(Interface.getResult(theme.changeId));
+                theme.switchTo(BackendBridge.getResult(theme.changeId));
             }
         }
     }

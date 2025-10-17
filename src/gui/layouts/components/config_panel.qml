@@ -4,7 +4,7 @@ import Qt5Compat.GraphicalEffects
 import "button"
 import "box"
 import "mask"
-import "interface.js" as Interface
+import "bridge.js" as Interface
 
 Rectangle {
     id: configPanel;

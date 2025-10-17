@@ -3,7 +3,7 @@ import QtQuick
 import Qt5Compat.GraphicalEffects
 
 import "mask"
-import "interface.js" as Interface
+import "bridge.js" as BackendBridge
 
 Rectangle {
     id: bottomBar;
@@ -12,7 +12,6 @@ Rectangle {
     color: "transparent";
     property string family;
 
-    
 
     Item {
         id: titleContainer;
@@ -24,7 +23,7 @@ Rectangle {
             id: timeText;
             text: Qt.formatTime(new Date(), "hh:mm:ss");
             font.family: bottomBar.family;
-            font.pixelSize: 56;
+            font.pixelSize: 64;
             visible: false;
             bottomPadding: 30;
 
@@ -74,8 +73,9 @@ Rectangle {
         anchors.right: parent.right;
         anchors.verticalCenter: parent.verticalCenter;
         spacing: 12;
-        rightPadding: 48;
-        property int w: 32;
+        rightPadding: 60;
+        bottomPadding: 12;
+        property int contentWidth: 32;
 
             // 统一渐变
         Rectangle {
@@ -88,8 +88,8 @@ Rectangle {
 
         Item {
             id: githubIcon;
-            width: rowLayout.w;
-            height: rowLayout.w;
+            width: rowLayout.contentWidth;
+            height: rowLayout.contentWidth;
             scale: githubIcon.hovered ? 1.3 : 1.0;
 
             property bool hovered: false;
@@ -126,7 +126,7 @@ Rectangle {
                 anchors.fill: parent;
                 source: rowGradient;
                 maskSource: Image {
-                    source: "../resources/svg/github.svg";
+                    source: "../../resources/svg/github.svg";
                     fillMode: Image.PreserveAspectFit;
                 }
             }
@@ -154,12 +154,12 @@ Rectangle {
             id: textMask;
             width: text.width; height: text.height;
             source: rowGradient;
-            property int jobId: Interface.dispatch("get_config", ["metadata", "version"]);
+            property int jobId: BackendBridge.dispatch("get_config", ["metadata", "version"]);
             maskSource: Text {
                 id: text;
                 text: "v0.0.0 by unraous";
                 font.family: bottomBar.family;
-                height: rowLayout.w;
+                height: rowLayout.contentWidth;
                 font.pixelSize: 14;
                 color: "white";
                 verticalAlignment: Text.AlignVCenter;
@@ -171,6 +171,6 @@ Rectangle {
     }
     
     Component.onCompleted: {
-        text.text = `v${Interface.getResult(textMask.jobId)} by unraous`;
+        text.text = `v${BackendBridge.getResult(textMask.jobId)} by unraous`;
     }        
 }

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "theme_manager"
-import "interface.js" as Interface
+import "bridge.js" as BackendBridge
 
 
 ScrollView {
@@ -43,7 +43,7 @@ ScrollView {
         }
 
         Component.onCompleted: {
-            Interface.readFile('../resources/docs/tutorial.md').then((content) => {
+            BackendBridge.readFile('../../resources/docs/tutorial.md').then((content) => {
                 text = content;
             }).catch((err) => {
                 console.error('读取失败:', err);

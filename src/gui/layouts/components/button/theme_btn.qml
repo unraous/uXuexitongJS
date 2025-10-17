@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 
 import "../theme_manager"
-import "../interface.js" as Interface
+import "../bridge.js" as BackendBridge
 
 Button {
     id: btn;
@@ -75,7 +75,7 @@ Button {
     onClicked: {
         Theme.switchTo(btn.text);
         console.log(`切换到主题 ${btn.text}`);
-        Interface.dispatch("set_config", [["metadata", "theme"], btn.text]);
-        Interface.dispatch("commit_config", []);
+        BackendBridge.dispatch("set_config", [["metadata", "theme"], btn.text]);
+        BackendBridge.dispatch("commit_config", []);
     }
 }

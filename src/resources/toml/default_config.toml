@@ -1,7 +1,7 @@
 [metadata]
-version = "1.3.2"
+version = "1.3.3"
 author = "unraous"
-theme = "ocean"
+theme = "aoguchi"
 
 # API相关配置
 
@@ -25,25 +25,41 @@ speed = 2.0
 # 颜色主题
 
 [theme]
-ocean = [
-  '#60efdb', '#bef2e5', '#c5e7f1', '#79ceed', '#6f89a2', 
-  '#18324a', '#204060', '#274a60', '#1b3a4d', '#101a26',
+aoguchi = [
+  '#fffbf8', '#f7f5f2', '#efeeea', '#e7e7e2', '#dfdfda',
+  '#6bb3b7', '#5ca3a7', '#509296', '#468686', '#3c7878',
 ]
 ink = [
   '#000000', '#262626', '#333333', '#373737', '#454545', 
   '#ffffff', '#e7e7e7', '#d1d1d1', '#b6b6b6', '#9b9b9b', 
 ]
+gummy = [
+  '#fc6076', '#fd765e', '#f28444', '#e48838', '#dc8923',
+  '#ddecd2', '#ddd3b5', '#ddbfa9', '#ddb4b1', '#ddd0c4',
+]
+prussian = [
+  '#003153', '#002a44', '#00406a', '#004880', '#005490',
+  '#e5ddd7', '#d7d1cb', '#c9c3bf', '#bbb5b3', '#ada7a7',
+]
+regal = [
+  '#60efdb', '#bef2e5', '#c5e7f1', '#79ceed', '#6f89a2', 
+  '#18324a', '#204060', '#274a60', '#1b3a4d', '#101a26',
+]
+rosmarinus = [
+  '#7c5ca8', '#6a4ea0', '#594090', '#483280', '#372470',
+  '#f3e8ff', '#e6d1ff', '#d9bbff', '#cca3ff', '#bf8cff',
+]
 silence = [
   '#ffffff', '#e7e7e7', '#d1d1d1', '#b6b6b6', '#9b9b9b', 
   '#000000', '#262626', '#333333', '#373737', '#454545', 
 ]
+vandyke = [
+  '#8d5742', '#7c4c3a', '#6b4132', '#5a362a', '#492d22',
+  '#e5d6c6', '#dccab6', '#d3bfa7', '#cbb397', '#c2a788',
+]
 vira = [
   '#89ddff', '#cef3c1', '#ead7ac', '#fac3b3', '#ffffff', 
   '#232946', '#353a58', '#2e304c', '#202038', '#181926',
-]
-tangerine = [
-  '#fc6076', '#fd765e', '#fe8c4b', '#ff9a44', '#f38b0c',
-  '#ddecd2', '#ddd3b5', '#ddbfa9', '#ddb4b1', '#ddd0c4',
 ]
 
 # 路径相关配置(value为列表，方便os.path.join)
