@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../test.js" as Test
+import "theme_manager"
+import "bridge.js" as BackendBridge
 
 
 ScrollView {
@@ -20,7 +21,10 @@ ScrollView {
         readOnly: true
         font.family: scrollView.font.family
         font.pixelSize: 16
-
+        font.letterSpacing: 1.25
+        color : Theme.color[2];
+        selectionColor: Theme.color[9];
+        selectedTextColor: Theme.color[2];
         property bool isHoveringLink: false
 
         onLinkActivated: function(link) {
@@ -39,7 +43,7 @@ ScrollView {
         }
 
         Component.onCompleted: {
-            Test.readFile('../src/gui/resources/docs/tutorial.md').then((content) => {
+            BackendBridge.readFile('../../resources/docs/tutorial.md').then((content) => {
                 text = content;
             }).catch((err) => {
                 console.error('读取失败:', err);

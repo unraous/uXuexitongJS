@@ -3,7 +3,7 @@ import QtQuick
 import Qt5Compat.GraphicalEffects
 
 import "mask"
-import "interface.js" as Interface
+import "bridge.js" as BackendBridge
 
 Rectangle {
     id: bottomBar;
@@ -12,7 +12,6 @@ Rectangle {
     color: "transparent";
     property string family;
 
-    
 
     Item {
         id: titleContainer;
@@ -24,7 +23,7 @@ Rectangle {
             id: timeText;
             text: Qt.formatTime(new Date(), "hh:mm:ss");
             font.family: bottomBar.family;
-            font.pixelSize: 56;
+            font.pixelSize: 64;
             visible: false;
             bottomPadding: 30;
 
@@ -74,8 +73,9 @@ Rectangle {
         anchors.right: parent.right;
         anchors.verticalCenter: parent.verticalCenter;
         spacing: 12;
-        rightPadding: 48;
-        property int w: 32;
+        rightPadding: 60;
+        bottomPadding: 12;
+        property int contentWidth: 32;
 
             // 统一渐变
         Rectangle {
@@ -87,15 +87,46 @@ Rectangle {
         }
 
         Item {
-            width: rowLayout.w;
-            height: rowLayout.w;
+            id: githubIcon;
+            width: rowLayout.contentWidth;
+            height: rowLayout.contentWidth;
+            scale: githubIcon.hovered ? 1.3 : 1.0;
+
+            property bool hovered: false;
+            property real rotationAngle: 0;
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 200; } }
+
+            transform: Rotation {
+                origin.x: githubIcon.width / 2
+                origin.y: githubIcon.height / 2
+                angle: githubIcon.rotationAngle
+            }
+
+            SequentialAnimation {
+                id: swingAnim
+                running: false
+                NumberAnimation { target: githubIcon; property: "rotationAngle"; to: -6; duration: 200; easing.type: Easing.InOutQuad }
+                NumberAnimation { target: githubIcon; property: "rotationAngle"; to: 6;  duration: 200; easing.type: Easing.InOutQuad }
+                NumberAnimation { target: githubIcon; property: "rotationAngle"; to: 0;  duration: 200; easing.type: Easing.InOutQuad }
+            }
+
+            // 取消悬停时平滑回到 0 的动画（用于中断 swingAnim 后的平滑收尾）
+            NumberAnimation {
+                id: returnAnim
+                target: githubIcon
+                property: "rotationAngle"
+                to: 0
+                duration: 150
+                easing.type: Easing.InOutQuad
+            }
 
             OpacityMask {
                 id: githubMask;
                 anchors.fill: parent;
                 source: rowGradient;
                 maskSource: Image {
-                    source: "../resources/svg/github.svg";
+                    source: "../../resources/svg/github.svg";
                     fillMode: Image.PreserveAspectFit;
                 }
             }
@@ -104,6 +135,18 @@ Rectangle {
                 anchors.fill: parent;
                 cursorShape: Qt.PointingHandCursor;
                 onClicked: Qt.openUrlExternally("https://github.com/unraous/uXuexitongJS");
+                hoverEnabled: true;
+                onHoveredChanged: {
+                    githubIcon.hovered = !githubIcon.hovered; // 使用事件提供的 hovered 状态
+                    if (githubIcon.hovered) {
+                        returnAnim.stop();
+                        swingAnim.start();
+                    } else {
+                        // 停止摆动并平滑回正
+                        swingAnim.stop();
+                        returnAnim.start();
+                    }
+                }
             }
         }
 
@@ -111,12 +154,12 @@ Rectangle {
             id: textMask;
             width: text.width; height: text.height;
             source: rowGradient;
-            property int jobId: Interface.dispatch("get_config", ["metadata", "version"]);
+            property int jobId: BackendBridge.dispatch("get_config", ["metadata", "version"]);
             maskSource: Text {
                 id: text;
                 text: "v0.0.0 by unraous";
                 font.family: bottomBar.family;
-                height: rowLayout.w;
+                height: rowLayout.contentWidth;
                 font.pixelSize: 14;
                 color: "white";
                 verticalAlignment: Text.AlignVCenter;
@@ -128,6 +171,6 @@ Rectangle {
     }
     
     Component.onCompleted: {
-        text.text = `v${Interface.getResult(textMask.jobId)} by unraous`;
+        text.text = `v${BackendBridge.getResult(textMask.jobId)} by unraous`;
     }        
 }

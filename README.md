@@ -3,6 +3,7 @@
 ## 项目简介
 
 本项目灵感来自 [@chaolucky18](https://github.com/chaolucky18) 的 [xuexitongScript](https://github.com/chaolucky18/xuexitongScript)。在原有基础上重写，支持自动刷课、自动答题、AI 智能答题等功能，适配新版学习通网页版。
+(issue上的bug仍存在,目前正在由于历史遗留问题正在重构代码,不久会发布更新进行修复)
 
 （如果觉得有用，欢迎 star 支持！✨）
 
@@ -44,7 +45,7 @@
 
 api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zUESf)
 
-## 命令行运行
+## 运行方式
 
 ### 方式一：仅刷课（无答题）
 
@@ -52,19 +53,19 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
 
 1.在学习通网页版进入想要刷的课程的播放页面
 
-![1748434809500](resource/image/README/1748434809500.jpg)
+![1748434809500](image/README/1748434809500.jpg)
 
 2.按下F12打开开发者工具
 
-![1748434330109](resource/image/README/1748434330109.jpg)
+![1748434330109](image/README/1748434330109.jpg)
 
 3.将main.js的内容复制粘贴到控制台（FireFox为查看器）
 
-![1748434420451](resource/image/README/1748434420451.jpg)
+![1748434420451](image/README/1748434420451.jpg)
 
 4.enter后按照说明操作即可（Edge可能复制的时候要求先打一个“允许粘贴”）
 
-![1748434648962](resource/image/README/1748434648962.jpg)
+![1748434648962](image/README/1748434648962.jpg)
 
 ---
 
@@ -81,7 +82,7 @@ api申请教程：[open-ai密钥申请](https://www.bilibili.com/video/BV1crM4zU
      ```sh
      venv\Scripts\activate
      ```
-   - macOS/Linux:
+   - Linux:
      ```sh
      source venv/bin/activate
      ```

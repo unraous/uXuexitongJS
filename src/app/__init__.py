@@ -12,8 +12,8 @@ from typing import Any
 
 from PySide6.QtCore import QObject, QThread, Signal, Slot
 
-from .config import Configuration
-from .driver import CourseHandler
+from ._config_manager import Configuration
+from ._driver_manager import CourseHandler
 
 
 class TaskExecutor(QObject):

@@ -9,10 +9,10 @@ from pathlib import Path
 import aiofiles
 
 from ..utils import get_path_config as get_path
-from .core_of_answer import answer_questions_file, extract_simple_answers
-from .create_map import create_font_mapping
-from .depry_question import decode_questions
-from .extract_html import extract_font_from_html, extract_questions_from_html
+from ._core_of_answer import answer_questions_file, extract_simple_answers
+from ._create_map import create_font_mapping
+from ._depry_question import decode_questions
+from ._extract_html import extract_font_from_html, extract_questions_from_html
 
 
 async def answer_questions() -> None:
@@ -41,4 +41,3 @@ async def answer_questions() -> None:
 
     answer_questions_file(decoded_json_path, answered_json_path)
     extract_simple_answers(answered_json_path, simplified_json_path)
-

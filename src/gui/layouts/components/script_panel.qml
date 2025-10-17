@@ -7,7 +7,7 @@ import "button"
 import "box"
 import "mask"
 import "theme_manager"
-import "interface.js" as Interface
+import "bridge.js" as BackendBridge
 
 Rectangle {
     id: script;
@@ -21,11 +21,13 @@ Rectangle {
     
 
     Item {
+
         id: settingCont;
         x: script.settingOpen ? 50 : parent.width - width - 60
         y: 40
         width: setting.width; height: setting.height;
         property bool hovered: false;
+        property bool pressed: false;
         Behavior on x { NumberAnimation { duration: 500; easing.type: Easing.InOutCubic; } }
         transform: Rotation {
             origin.x: setting.width / 2
@@ -36,23 +38,32 @@ Rectangle {
         
         Image {
             id: setting;
-            source: "../resources/svg/setting.svg";
+            source: "../../resources/svg/setting.svg";
             width: 50;
             height: 48;
+            scale: settingCont.pressed ? 0.9 : (settingCont.hovered ? 1.1 : 1.0);
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
         }
 
 
         Rectangle {
             id: g1;
+            scale: settingCont.pressed ? 0.9 : (settingCont.hovered ? 1.1 : 1.0);
             anchors.fill: parent;
             gradient: MainMask { orientation: Gradient.Horizontal; }
             visible: false;
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
         }
         
         OpacityMask {
             anchors.fill: setting;
             source: g1;
             maskSource: setting;
+            scale: settingCont.pressed ? 0.9 : (settingCont.hovered ? 1.1 : 1.0);
+
+            Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 150; } }
         }
 
         MouseArea {
@@ -65,18 +76,23 @@ Rectangle {
             onClicked: {
                 script.settingOpen = !script.settingOpen;
             }
+            onPressed: {
+                settingCont.pressed = true;
+            }
+            onReleased: {
+                settingCont.pressed = false;
+            }
         }
     }
 
     Row {
+
         anchors.fill: parent;
         width: parent.width;
         height: parent.height;
         anchors.topMargin: 80;
         anchors.bottomMargin: 80;
-        
-
-        
+      
         Column {  //主控部分
             id: step;
             width: script.settingOpen ? 0 : parent.width;
@@ -117,6 +133,7 @@ Rectangle {
             }
 
             Row {
+
                 leftPadding: step.width * 0.149;
 
                 Rectangle {
@@ -138,6 +155,7 @@ Rectangle {
                 }
 
                 Column {
+
                     width: step.width * 0.67;
                     spacing: 15;
 
@@ -147,7 +165,7 @@ Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter;
                         width: step.width * 0.444;
                         height: 50;
-                        onTask: { btn1.currentJobId = Interface.dispatch("launch_driver", []); }
+                        onTask: { btn1.currentJobId = BackendBridge.dispatch("launch_driver", []); }
                         onAfter: { script.process++; }
                         once: true;
                     }
@@ -166,7 +184,7 @@ Rectangle {
                         text: "注入脚本";
                         width: step.width * 0.444;
                         height: 50;
-                        onTask: { btn2.currentJobId = Interface.dispatch("launch_script", []); }
+                        onTask: { btn2.currentJobId = BackendBridge.dispatch("launch_script", []); }
                         onAfter: { script.process++; }
                         once: true;
                     }
@@ -183,7 +201,7 @@ Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter;
                         width: step.width * 0.444;
                         height: 50;  
-                        onTask: { btn3.currentJobId = Interface.dispatch("pretend_active", []); }
+                        onTask: { btn3.currentJobId = BackendBridge.dispatch("pretend_active", []); }
                         onAfter: { script.process++; }
                         once: true;    
                     }
@@ -192,6 +210,7 @@ Rectangle {
         }
 
         Column {  //设置部分
+
             id: config;
             width: parent.width;
             height: parent.height;
@@ -237,6 +256,7 @@ Rectangle {
             }
 
             ScrollView {
+
                 width: parent.width * 0.6;
                 height: parent.height - 100;
                 anchors.horizontalCenter: parent.horizontalCenter;
@@ -249,9 +269,9 @@ Rectangle {
                         id: log;
                         width: parent.width;
                         option: "Keep Login";
-                        jobId: Interface.dispatch("get_config", ["auto_course", "restore_cookies"]);
+                        jobId: BackendBridge.dispatch("get_config", ["auto_course", "restore_cookies"]);
                         Component.onCompleted: {
-                            const chosen_text = Interface.getResult(jobId);
+                            const chosen_text = BackendBridge.getResult(jobId);
                             log.chosen = (chosen_text === "True") ? true : false;
                         }
                     }
@@ -262,12 +282,12 @@ Rectangle {
                         expand: true;
                         option: "Force Speed";
                         key: "Speed";
-                        jobId: Interface.dispatch("get_config", ["auto_course", "force_speed"]);
-                        jobId2: Interface.dispatch("get_config", ["auto_course", "speed"]);
+                        jobId: BackendBridge.dispatch("get_config", ["auto_course", "force_speed"]);
+                        jobId2: BackendBridge.dispatch("get_config", ["auto_course", "speed"]);
                         Component.onCompleted: {
-                            const chosen_text = Interface.getResult(jobId);
+                            const chosen_text = BackendBridge.getResult(jobId);
                             speed.chosen = (chosen_text === "True") ? true : false;
-                            speed.value = Interface.getResult(jobId2);
+                            speed.value = BackendBridge.getResult(jobId2);
 
                         }
                     }
@@ -284,11 +304,11 @@ Rectangle {
                 height: 50;
                 anchors.horizontalCenter: parent.horizontalCenter;
                 onTask: {
-                    Interface.dispatch("set_config", [["auto_course", "restore_cookies"], log.chosen]);
-                    Interface.dispatch("set_config", [["auto_course", "force_speed"], speed.chosen]);
-                    Interface.dispatch("set_config", [["auto_course", "speed"], Number(speed.value)]);
-                    Interface.dispatch("refresh_settings", []);
-                    saveBtn.currentJobId = Interface.dispatch("commit_config", []);
+                    BackendBridge.dispatch("set_config", [["auto_course", "restore_cookies"], log.chosen]);
+                    BackendBridge.dispatch("set_config", [["auto_course", "force_speed"], speed.chosen]);
+                    BackendBridge.dispatch("set_config", [["auto_course", "speed"], Number(speed.value)]);
+                    BackendBridge.dispatch("refresh_settings", []);
+                    saveBtn.currentJobId = BackendBridge.dispatch("commit_config", []);
                 } 
             }
         }

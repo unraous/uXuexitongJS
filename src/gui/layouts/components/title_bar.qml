@@ -39,27 +39,13 @@ Rectangle {
     // 关闭动画
     SequentialAnimation {
         id: closeAnimation
-        property int time: 350
+        property int time: 250
         
         ParallelAnimation {
             NumberAnimation { 
                 target: titleBar.window
-                property: "width"
-                to: 0
-                duration: closeAnimation.time
-                easing.type: Easing.InQuad
-            }
-            NumberAnimation { 
-                target: titleBar.window
                 property: "height"
                 to: 0
-                duration: closeAnimation.time
-                easing.type: Easing.InQuad
-            }
-            NumberAnimation { 
-                target: titleBar.window
-                property: "x"
-                to: titleBar.window.x + titleBar.window.width / 2
                 duration: closeAnimation.time
                 easing.type: Easing.InQuad
             }

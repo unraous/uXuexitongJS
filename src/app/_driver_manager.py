@@ -59,7 +59,6 @@ class CourseHandler:
         que_path: Path = get_path_config(False, "original_questions")
         ans_path: Path = get_path_config(False, "answers")
         async for msg in websocket:
-            logging.info("收到WebSocket消息: %s", msg)
             data: dict = json.loads(msg)
             if data.get("type") == "testDocHtml":
                 html_str: str = data.get("html", "")

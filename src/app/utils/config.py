@@ -13,7 +13,7 @@ from .file_path import static_path, writable_path
 
 DEFAULT_CONFIG_PATH: Final[Path] = static_path("src", "resources", "toml", "default_config.toml")
 # 默认配置文件路径, 硬编码在此处, 如非必要请勿修改
-CONFIG_PATH: Final[Path] = writable_path("UXS", "config.toml")
+CONFIG_PATH: Final[Path] = writable_path("data", "config.toml")
 
 global_config: dict[str, Any] = {}
 """由配置toml生成的全局作用域字典"""

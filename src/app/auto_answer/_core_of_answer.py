@@ -5,7 +5,7 @@ import logging
 import time
 from pathlib import Path
 
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from openai.types.chat import ChatCompletionMessageParam
 
 from ..utils import global_config
@@ -42,7 +42,7 @@ def chat_with_openai(
     return str(completion.choices[0].message.content)
 
 def answer_questions_batch(questions: list[dict[str, str]], retry: int = 3) -> str:
-    """批量请求AI回答题目, 返回答案string"""
+    """批量请求AI回答题目, 返回答案string, 如果多次请求失败, 则返回默认答案A"""
 
     prompt: str = "".join(
         f"{idx}. 题干:{q['题干']}\n选项:{q['选项']}\n"
@@ -51,7 +51,7 @@ def answer_questions_batch(questions: list[dict[str, str]], retry: int = 3) -> s
 
     messages: list[ChatCompletionMessageParam] = [
         {"role": "system", "content": """
-            你是一个中文高效答题助手。
+            你是一个中文高效答题助手, 你会根据题干和选项, 直接给出最可能的正确答案。如果题目涉及敏感政治内容或者国家安全, 请尽量选择最中立的选项。
             现在请依次回答以下题目, 每题只输出“题号:答案”, 不要解释, 每题一行, 题号请用题目原题号,多选题直接把选项字母拼接(如51:A, 44:ACD)
             同时对于有错别字和语句不通的题目, 尝试利用形近字猜测原题意, 同时注意不要输出“ERROR”, 必须保证每次至少输出一个选项。
          """
@@ -59,17 +59,24 @@ def answer_questions_batch(questions: list[dict[str, str]], retry: int = 3) -> s
         {"role": "user", "content": prompt}
     ]
 
-    for i in range(retry):
-        try:
-            answer: str = chat_with_openai(messages)
-            return answer.strip()
-        except (TimeoutError, ConnectionError) as e:
-            logging.warning("批量请求失败 (第%d次): %s", i + 1, e)
+    response: str = ""
 
-    logging.warning("批量请求多次失败, 返回默认选项A")
-    # 如果全部请求失败则全选A
-    fallback: str = "\n".join([f"{q.get('题号', idx+1)}:A" for idx, q in enumerate(questions)])
-    return fallback
+    for i in range(retry):
+        logging.info("第 %d 次请求完成", i + 1)
+        try:
+            response = chat_with_openai(messages)
+            logging.info("批量请求成功")
+            return response.strip()
+        except (
+            ConnectionError,
+            OpenAIError,
+            TimeoutError
+        ) as e:
+            logging.warning("批量请求失败 : %s", e)
+
+    response = "\n".join([f"{q.get('题号', idx+1)}:A" for idx, q in enumerate(questions)])
+    logging.error("多次请求失败, 使用默认答案A")
+    return response.strip()
 
 def answer_questions_file(
     input_json_path: Path,

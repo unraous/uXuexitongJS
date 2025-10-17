@@ -3,10 +3,11 @@ import QtQuick
 import QtQuick.Controls.Basic
 
 import "../theme_manager"
-import "../interface.js" as Interface
+import "../bridge.js" as BackendBridge
 
 Button {
     id: btn;
+
 
     property int pixelSize: 48;
     property real gradientPos: btn.hovered ? (
@@ -27,10 +28,12 @@ Button {
         font.bold: true;
         horizontalAlignment: Text.AlignHCenter;
         verticalAlignment: Text.AlignVCenter;
+        scale: btn.hovered ? (btn.pressed ? 0.9 : 1.1) : 1.0;
         color: {
             if (!btn.color || btn.color.length < 10) return "transparent";
             return btn.hovered ? btn.saveGetColor(4) : btn.saveGetColor(0);
         }
+        Behavior on scale { SpringAnimation { spring: 3; damping: 0.3; duration: 200; } }
         Behavior on color { ColorAnimation { duration: 200; } }
     }
 
@@ -72,7 +75,7 @@ Button {
     onClicked: {
         Theme.switchTo(btn.text);
         console.log(`切换到主题 ${btn.text}`);
-        Interface.dispatch("set_config", [["metadata", "theme"], btn.text]);
-        Interface.dispatch("commit_config", []);
+        BackendBridge.dispatch("set_config", [["metadata", "theme"], btn.text]);
+        BackendBridge.dispatch("commit_config", []);
     }
 }
