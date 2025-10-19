@@ -5,7 +5,6 @@
  * - 自动识别课程树结构，自动切换章节
  * - 自动播放视频、自动回答互动题目、自动切换倍速
  * - 自动检测 PDF 文档并自动翻页
- * - 2nm的容错处理
  * 
  * 注意事项：
  * - 目前单一章节只识别第一个视频/PDF元素，可能会漏刷
@@ -17,7 +16,7 @@
  * 1. 仅在学习通平台页面使用，具体用法参见README.md。
  * 2. 启动脚本后，需手动点击页面以激活脚本。
  * 3. 如需停止，刷新页面即可。
- * 4. 请勿用于商业用途或违反相关法律法规。（这坨玩意有人商用？？？）
+ * 4. 请勿用于商业用途或违反相关法律法规。
  * 
  * 作者：unraous
  * 邮箱：unraous@qq.com
@@ -28,7 +27,7 @@
 
 const DEFAULT_TEST_OPTION = LAUNCH_OPTION ?? 0;
 const DEFAULT_SPEED_OPTION = FORCE_SPEED ?? false;
-const DEFAULT_SPEED = SPEED ?? 2.0;
+const DEFAULT_SPEED = SPEED ?? 2;
 
 const DEFAULT_SLEEP_TIME = 400 + Math.floor(Math.random() * 200); // 默认延迟400-600ms
 const DEFAULT_INTERVAL_TIME = 85 + Math.floor(Math.random() * 30); // 默认轮询间隔85-115ms
@@ -73,7 +72,7 @@ const IFRAME_MAIN_FEATURE_CLASS = '.left';
 
 
 let allTaskDown = false; 
-let courseTree = [];
+const courseTree = CourseTree();
 let courseTreeIndex = 0;
 let nextLock = false; 
 let skipSign = 0;
@@ -84,65 +83,58 @@ let videoLock = false; // 视频锁，防止多次点击播放按钮
 
 if (DEFAULT_TEST_OPTION === 1) {
     console.log('已开启课后答题功能,正在创建端口连接...');
-    window._ws = new WebSocket("ws://localhost:8765");
-    window._ws.onopen = function() {
+    globalThis._ws = new WebSocket("ws://localhost:8765");
+    globalThis._ws.onopen = () => {
         console.log("WebSocket已连接Python端口");
     };
-    window._ws.onerror = function(e) {
+    globalThis._ws.onerror = (e) => {
         console.warn("WebSocket连接失败", e);
     };
-    window._ws.onclose = function() {
-        console.warn("WebSocket已关闭");
+    globalThis._ws.onclose = () => {
+        console.log("WebSocket已关闭");
     };
 }
 
 
 
-function getCourseTree() {
-    const courseTree = [];
-    const treeDiv = document.getElementById(COURSE_TREE_ID);
-    if (!treeDiv) {
-        console.warn(`未找到id为${COURSE_TREE_ID}的div`);
-        return courseTree;
-    }
-    const nodes = treeDiv.querySelectorAll(COURSE_TREE_NODE_FEATURE_CLASS);
-    nodes.forEach(node => {
-        courseTree.push(node);
-    });
+function CourseTree() {
+    try {
+        const container = document.getElementById(COURSE_TREE_ID);
+        const nodes = container?.querySelectorAll(COURSE_TREE_NODE_FEATURE_CLASS) ?? [];
 
-    return courseTree;
-}
+        if (nodes.length > 0) {
+            console.log(`已找到课程树节点, 数量: ${nodes.length}`);
+        } else {
+            console.warn('课程树节点为空');
+        }
 
-function findCourseTree() {
-    courseTree = getCourseTree();
-    if (courseTree.length === 0) {
-        console.error('未找到课程树, 请检查页面结构或联系作者');
+        return Array.from(nodes);
+    } catch (e) {
+        console.error(`查询课程树时发生异常: ${e}`);
+        return [];
     }
 }
+
 
 function nodeType(node) {
-    const span = node.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
-    if (!span) {
-        console.warn('未找到span.posCatalog_name');
-        const titleSpan = node.querySelector(COURSE_TREE_NODE_TITLE_FEATURE_CLASS);
-        if (titleSpan) {
-            console.log('使用span.posCatalog_title作为标题');
-            return 'Title';
-        }
-        return 'Unknown';
-    } else {
-        if (span.onclick == null) {
-            return 'Block';
 
-        } else {
-            const pending = node.querySelector('.orangeNew'); 
-            if (pending) {
-                return 'Pending';
-            } else {
-                return 'Finished';
-            }
+    const span = node?.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
+
+    if (span) {
+        if (span?.onclick === null) {
+            return 'Blocked';
         }
+        if (node.querySelector('.orangeNew')) {
+            return 'Pending';
+        }
+        return 'Finished';
     }
+
+    if (node.querySelector(COURSE_TREE_NODE_TITLE_FEATURE_CLASS)) {
+        return 'Title';
+    }
+
+    return 'Unknown';    
 }
 
 function nextCourse() {
@@ -1218,7 +1210,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             await timeSleep(DEFAULT_SLEEP_TIME);
                                                             const configElement = document.getElementById('workpop');
                                                             const configBtn = document.getElementById('popok');
-                                                            if (configElement && window.getComputedStyle(configElement).display !== 'none') {
+                                                            if (configElement && globalThis.getComputedStyle(configElement).display !== 'none') {
                                                                 if (configBtn) {
                                                                     configBtn.click();
                                                                     console.log('已自动点击确定按钮');
@@ -1252,11 +1244,11 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 }
                                                                 
                                                             }
-                                                        } else if (window._ws && window._ws.readyState === 1) {
+                                                        } else if (globalThis._ws && globalThis._ws.readyState === 1) {
                                                             console.log('已找到题目，开始传输');
                                                             const htmlStr = testDoc.documentElement.outerHTML;
                                                             if (answerTable) answerTable = [];
-                                                            window._ws.send(JSON.stringify({
+                                                            globalThis._ws.send(JSON.stringify({
                                                                 type: 'testDocHtml',
                                                                 html: htmlStr
                                                             }));
@@ -1270,7 +1262,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                         } catch (e) {
                                                                             // 不是json就忽略
                                                                             if (event.data === '收到') {
-                                                                                window._ws.removeEventListener('message', onMessage);
+                                                                                globalThis._ws.removeEventListener('message', onMessage);
                                                                                 console.log('收到Python回信，继续后续流程');
                                                                                 resolve();
                                                                             }
@@ -1278,21 +1270,21 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                         }
                                                                         // 如果能解析为json，自动填答
                                                                         autoFillAnswers(testList, answerJson);
-                                                                        window._ws.removeEventListener('message', onMessage);
+                                                                        globalThis._ws.removeEventListener('message', onMessage);
                                                                         console.log('已自动填充答案');
                                                                         resolve();
                                                                     } catch (e) {
                                                                         console.warn('处理回信时出错', e);
                                                                     }
                                                                 }
-                                                                window._ws.addEventListener('message', onMessage);
+                                                                globalThis._ws.addEventListener('message', onMessage);
                                                             });
                                                             //confirm('已创建答案，准备提交');
                                                             submitBtn.click();
                                                             await timeSleep(DEFAULT_SLEEP_TIME);
                                                             const configElement = document.getElementById('workpop');
                                                             const configBtn = document.getElementById('popok');
-                                                            if (configElement && window.getComputedStyle(configElement).display !== 'none') {
+                                                            if (configElement && globalThis.getComputedStyle(configElement).display !== 'none') {
                                                                 if (configBtn) {
                                                                     configBtn.click();
                                                                     console.log('已自动点击确定按钮');
@@ -1440,9 +1432,9 @@ document.addEventListener('visibilitychange', function(e) {
     e.stopImmediatePropagation();
 }, true);
 
-window.onblur = null;
-window.onfocus = null;
-window.addEventListener = new Proxy(window.addEventListener, {
+globalThis.onblur = null;
+globalThis.onfocus = null;
+globalThis.addEventListener = new Proxy(globalThis.addEventListener, {
     apply(target, thisArg, args) {
         if (['blur', 'focus'].includes(args[0])) return;
         return Reflect.apply(target, thisArg, args);
