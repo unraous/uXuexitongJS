@@ -136,9 +136,9 @@ class CourseHandler:
 
         logging.info("脚本已加载, 长度: %d", len(main_script))
         options: str = f"""
-            const LAUNCH_OPTION = 1;
-            const FORCE_SPEED = {str(self._settings.force_speed).lower()};
-            const SPEED = {self._settings.speed};
+            globalThis.LAUNCH_OPTION = 1;
+            globalThis.FORCE_SPEED = {str(self._settings.force_speed).lower()};
+            globalThis.SPEED = {self._settings.speed};
         """
         return "\n".join([options, main_script])
 
