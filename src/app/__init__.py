@@ -80,6 +80,15 @@ class TaskManager(QObject):
         self._thread.start()
         self._results: dict[int, object] = {}
 
+    def _show_result(self, result: object, max_length: int = 10, encrypt: bool = False) -> str:
+        """格式化结果显示内容"""
+        result_str = str(result)
+        if encrypt:
+            return "sk-******"
+        if len(result_str) > max_length:
+            return result_str[:max_length] + "..."
+        return result_str
+
     @Slot(str, list, result=int)
     def dispatch(self, task_name: str, args: list) -> int:
         """分发业务到工作线程并返回业务ID"""
@@ -94,19 +103,20 @@ class TaskManager(QObject):
     @Slot(int, object)
     def on_finished(self, job_id: int, result: object) -> None:
         """业务完成回调"""
-        logging.info("业务(ID: %d)完成, 返回值: %s", job_id, result)
+        logging.info("业务(ID: %d)完成", job_id)
         self._results[job_id] = result
         self.finished.emit(job_id, result)
 
     @Slot(int, result=str)
     def get_result(self, job_id: int) -> str:
         """获取指定ID的业务结果"""
-        result = self._results.pop(job_id, "")
-        logging.info("获取业务(ID: %d)结果: %s",
+        result = str(self._results.pop(job_id, ""))
+        encrypt = result.startswith("sk-")  # 防止apikey暴露在日志里
+        logging.info("获取结果成功(ID: %d): %s",
             job_id,
-            str(result)
+            self._show_result(result=result, encrypt=encrypt)
         )
-        return str(result)
+        return result
 
     def close(self) -> None:
         """清理工作线程和业务执行器"""
