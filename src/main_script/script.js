@@ -71,7 +71,7 @@ const NEXTBTN_ID = 'prevNextFocusNext';
 const OUTER_IFRAME_ID = 'iframe'; 
 const INNER_COURSE_IFRAME_ID = 'iframe.ans-attach-online';
 const INNER_COURSE_IFRAME_FEATURE_CLASS = 'ans-attach-online';
-const IFRAME_MAIN_FEATURE_CLASS = '.left';
+const IFRAME_MAIN_FEATURE_CLASS = '.content'; // 适配左右目录布局
 
 
 
