@@ -85,6 +85,7 @@ let answerTable = [];
 let handleIframeLock = false;
 let nextCooldown = false;
 let videoLock = false; // 视频锁，防止多次点击播放按钮
+let hasEnterdct2 = false; // 临时补丁，防止多次进入测验题目处理流程
 
 if (DEFAULT_TEST_OPTION === 1) {
     console.log('已开启课后答题功能,正在创建端口连接...');
@@ -742,6 +743,11 @@ function findPdfElement(innerDoc) {
         return null;
     }
 
+    const pdfBody = finalDoc.body;
+    if (!pdfBody || !pdfBody.childNodes || pdfBody.childNodes.length === 0) {
+        console.log('[调试] PDF 文档 body 为空或不存在');
+        return null;
+    }
     console.log('已找到 pdf 元素:', pdfHtml);
     return { pdfHtml };
 }
@@ -1055,7 +1061,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                 if (learningTestFix) {
                                     learningTest = learningTestFix;
                                 }
-                                if (learningTest && (prama === 1 || prama === 3)) {
+                                if (learningTest && (prama === 1 || prama === 3) && !hasEnterdct2) {
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
@@ -1064,6 +1070,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                         // 没有未完成任务点
                                         console.log('所有任务点已完成');
                                         learningTest.click();
+                                        hasEnterdct2 = true;
                                         await timeSleep(DEFAULT_SLEEP_TIME);
                                         handleIframeLock = false; //
                                         await handleIframeChange(1);  
@@ -1073,7 +1080,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     console.log('此章节学习测验已处理');
                                     if (prama !== 2) answerTable = [];
                                     console.log('已处理完所有章节任务，准备跳转到下一章节');
-                                    await timeSleep(25 * DEFAULT_SLEEP_TIME);
+                                    if (DEFAULT_TEST_OPTION !== 0) await timeSleep(25 * DEFAULT_SLEEP_TIME);
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
@@ -1082,6 +1089,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     } else {
                                         // 没有未完成任务点
                                         console.log('所有任务点已完成');
+                                        hasEnterdct2 = false;
                                         continueToNextChapter();
                                     }
                                     
@@ -1252,6 +1260,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 } else {
                                                                     // 没有未完成任务点
                                                                     console.log('所有任务点已完成');
+                                                                    hasEnterdct2 = false;
                                                                     continueToNextChapter();
                                                                 }
                                                                 
@@ -1325,6 +1334,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 } else {
                                                                     // 没有未完成任务点
                                                                     console.log('所有任务点已完成');
+                                                                    hasEnterdct2 = false;
                                                                     continueToNextChapter();
                                                                 }
                                                                                                                             
@@ -1353,7 +1363,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                 if (learningTestFix) {
                                     learningTest = learningTestFix;
                                 }
-                                if (learningTest && (prama === 1 || prama === 3)) {
+                                if (learningTest && (prama === 1 || prama === 3) && !hasEnterdct2) {
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
@@ -1362,8 +1372,9 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                         // 没有未完成任务点
                                         console.log('所有任务点已完成');
                                          
-                                    }    
+                                    }
                                     learningTest.click();
+                                    hasEnterdct2 = true;
                                     await timeSleep(DEFAULT_SLEEP_TIME);
                                     handleIframeLock = false; //
                                     await handleIframeChange(1);                                
@@ -1371,7 +1382,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     console.log('此章节学习测验已处理');
                                     if (prama !== 2) answerTable = [];
                                     console.log('已处理完所有章节任务，准备跳转到下一章节');
-                                    await timeSleep(25 * DEFAULT_SLEEP_TIME);
+                                    if (DEFAULT_TEST_OPTION !== 0) await timeSleep(25 * DEFAULT_SLEEP_TIME);
                                     const unfinished = outerDoc.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
@@ -1380,7 +1391,8 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                         // 没有未完成任务点
                                         console.log('所有任务点已完成');
                                     
-                                    }   
+                                    }
+                                    hasEnterdct2 = false;   
                                     continueToNextChapter();   
                                 }
                             }
