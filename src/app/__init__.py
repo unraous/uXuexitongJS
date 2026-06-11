@@ -35,7 +35,7 @@ class TaskExecutor(QObject):
         ]
         for handler in handlers:
             for name, _ in inspect.getmembers(handler, predicate=inspect.ismethod):
-                if not name.startswith('_'):
+                if not name.startswith("_"):
                     if name in self._task_registry:
                         logging.warning("业务%s已存在, 原有业务将被覆盖", name)
                     self._task_registry[name] = handler
@@ -62,9 +62,9 @@ class TaskExecutor(QObject):
         logging.info("业务执行器已关闭, 业务列表已清空。")
 
 
-
 class TaskManager(QObject):
     """业务管理器, 负责管理工作线程和业务分发"""
+
     finished: Signal = Signal(int, object)
     _execute: Signal = Signal(int, str, list)  # jobId, taskName, args
 
@@ -102,10 +102,7 @@ class TaskManager(QObject):
     def get_result(self, job_id: int) -> str:
         """获取指定ID的业务结果"""
         result = self._results.pop(job_id, "")
-        logging.info("获取业务(ID: %d)结果: %s",
-            job_id,
-            str(result)
-        )
+        logging.info("获取业务(ID: %d)结果: %s", job_id, str(result))
         return str(result)
 
     def close(self) -> None:

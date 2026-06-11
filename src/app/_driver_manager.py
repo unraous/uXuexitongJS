@@ -1,4 +1,5 @@
 """浏览器驱动模块"""
+
 import asyncio
 import dataclasses
 import json
@@ -23,6 +24,7 @@ from .utils import get_path_config, global_config, save_config
 @dataclasses.dataclass
 class CourseSettings:
     """刷课相关设置"""
+
     browser: str
     url: dict[str, str]
     user_cookies: str
@@ -30,23 +32,23 @@ class CourseSettings:
     force_speed: bool
     speed: float
 
+
 def load_settings() -> CourseSettings:
     """从 global_config 加载刷课相关设置"""
     ac_cfg: dict = global_config.get("auto_course", {})
     return CourseSettings(
         browser=ac_cfg.get("browser", ""),
-        url={
-            key: ac_cfg.get(f"{key}_url", "")
-            for key in ["home", "login", "history"]
-        },
+        url={key: ac_cfg.get(f"{key}_url", "") for key in ["home", "login", "history"]},
         user_cookies=ac_cfg.get("user_cookies", ""),
         restore_cookies=ac_cfg.get("restore_cookies", True),
         force_speed=ac_cfg.get("force_speed", False),
         speed=ac_cfg.get("speed", 2.0),
     )
 
+
 class CourseHandler:
     """网课处理类, 包含selenium浏览器驱动启动和 AI 答题所需的JS/PY 双向 WebSocket 服务"""
+
     def __init__(self):
         self._driver: webdriver.Firefox | webdriver.Edge | webdriver.Chrome
         self._ws_thread: threading.Thread
@@ -78,16 +80,16 @@ class CourseHandler:
 
     def _launch_websocket(self):
         """启动 WebSocket 服务器"""
+
         async def run(port: int = 8765):
             async with websockets.serve(self._messenger, "localhost", port):
                 logging.info("WebSocket服务器已启动 ws://localhost:%d", port)
                 await asyncio.Future()
+
         asyncio.run(run())
 
     def _init_driver(
-        self,
-        headless: bool = True,
-        browser: str = "Firefox"
+        self, headless: bool = True, browser: str = "Firefox"
     ) -> webdriver.Firefox | webdriver.Edge | webdriver.Chrome:
         """初始化浏览器驱动"""
         driver_map: dict = {
@@ -110,10 +112,10 @@ class CourseHandler:
     def _parse_cookies(self, cookie_str: str) -> list:
         """将标准 cookie 字符串解析为 selenium cookies 列表"""
         cookies = []
-        for item in cookie_str.split(';'):
-            if '=' in item:
-                name, value = item.strip().split('=', 1)
-                cookies.append({'name': name, 'value': value})
+        for item in cookie_str.split(";"):
+            if "=" in item:
+                name, value = item.strip().split("=", 1)
+                cookies.append({"name": name, "value": value})
         return cookies
 
     def _inject_cookies(self) -> None:
@@ -187,11 +189,13 @@ class CourseHandler:
         logging.info(
             "未指定浏览器内核, 尝试依次启动 Firefox、Edge、Chrome"
             if self._settings.browser == ""
-            else "尝试启动指定的 %s 浏览器", self._settings.browser
+            else "尝试启动指定的 %s 浏览器",
+            self._settings.browser,
         )
 
         for browser in (
-            ["Firefox", "Edge", "Chrome"] if self._settings.browser == ""
+            ["Firefox", "Edge", "Chrome"]
+            if self._settings.browser == ""
             else [self._settings.browser]
         ):
             try:
@@ -214,6 +218,7 @@ class CourseHandler:
 
     def pretend_active(self) -> None:
         """模拟鼠标活动, 防止被检测为挂机"""
+
         def mouse_action():
             while True:
                 handles = self._driver.window_handles
@@ -221,11 +226,9 @@ class CourseHandler:
 
                 # 模拟鼠标滚轮轻微滚动(向下/向上)
                 scroll_value = secrets.randbelow(101) - 50  # -50 to 50
-                self._driver.execute_script(
-                    "window.scrollBy(0, arguments[0]);",
-                    scroll_value
-                )
+                self._driver.execute_script("window.scrollBy(0, arguments[0]);", scroll_value)
                 time.sleep(secrets.randbelow(31) + 30)  # 30 to 60
+
         self._mouse_thread = threading.Thread(target=mouse_action, daemon=True)
         self._mouse_thread.start()
 

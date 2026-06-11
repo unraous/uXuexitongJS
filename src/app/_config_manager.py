@@ -1,4 +1,5 @@
 """配置读写模块"""
+
 import logging
 from typing import Any
 
@@ -18,9 +19,9 @@ class Configuration:
         if keys[-1] in tmp and not isinstance(tmp[keys[-1]], value.__class__):
             logging.warning(
                 "[%s]出现类型变化: %s -> %s",
-                '.'.join(keys),
+                ".".join(keys),
                 tmp[keys[-1]].__class__.__name__,
-                value.__class__.__name__
+                value.__class__.__name__,
             )
         tmp[keys[-1]] = value
 
@@ -31,10 +32,10 @@ class Configuration:
             if isinstance(tmp, dict) and key in tmp:
                 tmp = tmp[key]
             else:
-                logging.warning("[%s]不在配置字典中", '.'.join(keys))
+                logging.warning("[%s]不在配置字典中", ".".join(keys))
                 return ""
 
-        logging.info("成功获取[%s]: %s (%s)", '.'.join(keys), tmp, tmp.__class__.__name__)
+        logging.info("成功获取[%s]: %s (%s)", ".".join(keys), tmp, tmp.__class__.__name__)
         return tmp
 
     def commit_config(self):
