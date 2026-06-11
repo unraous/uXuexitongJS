@@ -1,4 +1,5 @@
 """从 HTML 中提取题目和字体"""
+
 import base64
 import logging
 import re
@@ -38,6 +39,7 @@ def extract_font_from_html(html_content: str, output_ttf_path: Path) -> bool:
     logging.warning("未检测到 font-cxsecret 的 base64 字体数据")
     return False
 
+
 def extract_questions_from_html(html_content: str) -> list[dict]:
     """从 HTML 内容中提取题目数据"""
     soup = BeautifulSoup(html_content, "html.parser")
@@ -55,10 +57,5 @@ def extract_questions_from_html(html_content: str) -> list[dict]:
         for li in q.find_all("li"):
             opt = li.get_text(separator="", strip=True)
             options.append(opt)
-        questions.append({
-            "题号": num,
-            "题型": qtype,
-            "题干": stem,
-            "选项": options
-        })
+        questions.append({"题号": num, "题型": qtype, "题干": stem, "选项": options})
     return questions

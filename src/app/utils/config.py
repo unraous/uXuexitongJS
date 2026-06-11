@@ -3,6 +3,7 @@
 负责加载、保存配置文件至全局字典 global_config
 包含
 """
+
 import logging
 from pathlib import Path
 from typing import Any, Final
@@ -17,6 +18,7 @@ CONFIG_PATH: Final[Path] = writable_path("data", "config.toml")
 
 global_config: dict[str, Any] = {}
 """由配置toml生成的全局作用域字典"""
+
 
 def init_config() -> None:
     """初始化配置toml至 global_config"""
@@ -35,15 +37,18 @@ def init_config() -> None:
         global_config.update(tomlkit.loads(default_content))
         logging.info("未找到配置文件, 已创建默认配置文件 (路径: %s)", CONFIG_PATH)
 
+
 def get_path_config(static: bool, name: str) -> Path:
     """输入路径组名称和路径名称, 从配置中获取并返回对应绝对路径"""
     path_groups: dict = global_config.get("path_groups", {})
     result_path: Path = (
         static_path(*path_groups.get("static", {}).get(name, []))
-        if static else writable_path(*path_groups.get("writable", {}).get(name, []))
+        if static
+        else writable_path(*path_groups.get("writable", {}).get(name, []))
     )
     logging.info("成功获取路径: {'%s' : %s}", name, result_path)
     return result_path
+
 
 def save_config() -> None:
     """保存字典至配置toml"""
