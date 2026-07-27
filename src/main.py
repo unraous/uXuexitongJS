@@ -54,18 +54,22 @@ def ensure_files(
 
 if __name__ == "__main__":
     setup_logging()
-    utils.init_config()
+    try:
+        utils.init_config()
 
-    ensure_files(
-        utils.global_config.get("path_groups", {}).get("writable", {}),
-        utils.writable_path,
-        utils.ensure_file,
-    )
-    ensure_files(
-        utils.global_config.get("path_groups", {}).get("static", {}),
-        utils.static_path,
-        utils.check_file,
-    )
+        ensure_files(
+            utils.global_config.get("path_groups", {}).get("writable", {}),
+            utils.writable_path,
+            utils.ensure_file,
+        )
+        ensure_files(
+            utils.global_config.get("path_groups", {}).get("static", {}),
+            utils.static_path,
+            utils.check_file,
+        )
+    except Exception:  # 打包后 stderr 不可见, 启动失败必须写进日志
+        logging.critical("初始化失败, 程序自动退出", exc_info=True)
+        sys.exit(1)
 
     os.environ["QML_XHR_ALLOW_FILE_READ"] = "1"  # 授权 QML 读取资源文件
     application = QApplication([])

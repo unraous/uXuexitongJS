@@ -3,6 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 import concurrent.futures
 import json
+import logging
 from pathlib import Path
 
 import imagehash
@@ -81,6 +82,9 @@ def create_font_mapping(
             if res:
                 std_hashes[res[0]] = res[1]
 
+    if not std_hashes:
+        raise ValueError(f"未能从标准字体生成任何字形哈希: {std_font_path}")
+
     mapping = {}
 
     def enc_worker_wrapper(enc_code):
@@ -95,5 +99,5 @@ def create_font_mapping(
     if output_json:
         with output_json.open("w", encoding="utf-8") as f:
             json.dump(mapping, f, ensure_ascii=False, indent=2)
-        print(f"映射已保存到 {output_json}")
+        logging.info("映射已保存到 %s", output_json)
     return mapping

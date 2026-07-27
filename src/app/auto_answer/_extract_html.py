@@ -1,6 +1,7 @@
 """从 HTML 中提取题目和字体"""
 
 import base64
+import binascii
 import logging
 import re
 from pathlib import Path
@@ -29,7 +30,11 @@ def extract_font_from_html(html_content: str, output_ttf_path: Path) -> bool:
     match = pattern.search(html_content)
     if match:
         base64_str = match.group(1)
-        font_bytes = base64.b64decode(base64_str)
+        try:
+            font_bytes = base64.b64decode(re.sub(r"\s", "", base64_str), validate=True)
+        except binascii.Error:
+            logging.exception("font-cxsecret 字体的 base64 数据无法解码")
+            return False
         # 写入可写目录
         with output_ttf_path.open("wb") as f:
             f.write(font_bytes)

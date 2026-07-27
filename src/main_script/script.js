@@ -101,6 +101,71 @@ if (DEFAULT_TEST_OPTION === 1) {
     };
 }
 
+const ANSWER_WAIT_TIMEOUT = 5 * 60 * 1000;
+
+/**
+ * 把题目 HTML 发给 Python 端并等待答案。
+ * 无论成功、失败、超时还是连接断开都会结束等待，避免流程永久卡死。
+ * @returns {Promise<boolean>} 是否成功填充了答案
+ */
+function requestAnswersFromPython(testList, htmlStr) {
+    const ws = window._ws;
+    return new Promise(resolve => {
+        let settled = false;
+        const finish = (filled, reason) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            ws.removeEventListener('message', onMessage);
+            ws.removeEventListener('error', onFailure);
+            ws.removeEventListener('close', onFailure);
+            if (!filled) console.warn('未能获取答案:', reason);
+            resolve(filled);
+        };
+
+        function onFailure() {
+            finish(false, 'WebSocket 连接已断开');
+        }
+
+        function onMessage(event) {
+            let answerJson;
+            try {
+                answerJson = JSON.parse(event.data);
+            } catch (e) {
+                // 不是json就忽略，只有约定的回信才结束等待
+                if (event.data === '收到') {
+                    console.log('收到Python回信，继续后续流程');
+                    finish(true);
+                }
+                return;
+            }
+            if (answerJson && answerJson.type === 'error') {
+                finish(false, answerJson.reason);
+                return;
+            }
+            try {
+                autoFillAnswers(testList, answerJson);
+                console.log('已自动填充答案');
+                finish(true);
+            } catch (e) {
+                console.error('填充答案时出错', e);
+                finish(false, e.message);
+            }
+        }
+
+        const timer = setTimeout(() => finish(false, '等待Python回信超时'), ANSWER_WAIT_TIMEOUT);
+        ws.addEventListener('message', onMessage);
+        ws.addEventListener('error', onFailure);
+        ws.addEventListener('close', onFailure);
+
+        try {
+            ws.send(JSON.stringify({ type: 'testDocHtml', html: htmlStr }));
+        } catch (e) {
+            finish(false, `发送题目失败: ${e.message}`);
+        }
+    });
+}
+
 
 
 function getCourseTree() {
@@ -1269,37 +1334,12 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             console.log('已找到题目，开始传输');
                                                             const htmlStr = testDoc.documentElement.outerHTML;
                                                             if (answerTable) answerTable = [];
-                                                            window._ws.send(JSON.stringify({
-                                                                type: 'testDocHtml',
-                                                                html: htmlStr
-                                                            }));
-                                                            await new Promise(resolve => {
-                                                                function onMessage(event) {
-                                                                    try {
-                                                                        // 判断是否收到的是答案json（一般不是"收到"而是json字符串）
-                                                                        let answerJson;
-                                                                        try {
-                                                                            answerJson = JSON.parse(event.data);
-                                                                        } catch (e) {
-                                                                            // 不是json就忽略
-                                                                            if (event.data === '收到') {
-                                                                                window._ws.removeEventListener('message', onMessage);
-                                                                                console.log('收到Python回信，继续后续流程');
-                                                                                resolve();
-                                                                            }
-                                                                            return;
-                                                                        }
-                                                                        // 如果能解析为json，自动填答
-                                                                        autoFillAnswers(testList, answerJson);
-                                                                        window._ws.removeEventListener('message', onMessage);
-                                                                        console.log('已自动填充答案');
-                                                                        resolve();
-                                                                    } catch (e) {
-                                                                        console.warn('处理回信时出错', e);
-                                                                    }
-                                                                }
-                                                                window._ws.addEventListener('message', onMessage);
-                                                            });
+                                                            const filled = await requestAnswersFromPython(testList, htmlStr);
+                                                            if (!filled) {
+                                                                console.error('自动答题失败，已跳过本次提交');
+                                                                handleIframeLock = false;
+                                                                return;
+                                                            }
                                                             //confirm('已创建答案，准备提交');
                                                             submitBtn.click();
                                                             await timeSleep(DEFAULT_SLEEP_TIME);

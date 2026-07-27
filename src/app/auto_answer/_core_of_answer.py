@@ -17,6 +17,10 @@ def get_openai_client(config: dict[str, str]) -> tuple[OpenAI, str]:
     base_url: str = config.get("base_url", "")
     model: str = config.get("model", "")
 
+    if not api_key or not model:
+        # 缺少密钥/模型时请求必定失败, 提前报错以免退化成全 A 的默认答案
+        raise ValueError("OpenAI 配置不完整, 请在设置中填写 api_key 和 model")
+
     client: OpenAI = OpenAI(
         base_url=base_url,
         api_key=api_key,
@@ -37,7 +41,12 @@ def chat_with_openai(messages: list[ChatCompletionMessageParam], model: str | No
         messages=messages,
         timeout=40,
     )
-    return str(completion.choices[0].message.content)
+    if not completion.choices:
+        raise ValueError("OpenAI 接口未返回任何回答")
+    content = completion.choices[0].message.content
+    if not content:
+        raise ValueError("OpenAI 接口返回了空回答")
+    return content
 
 
 def answer_questions_batch(questions: list[dict[str, str]], retry: int = 3) -> str:
@@ -61,17 +70,19 @@ def answer_questions_batch(questions: list[dict[str, str]], retry: int = 3) -> s
 
     response: str = ""
 
+    last_error: Exception | None = None
     for i in range(retry):
         logging.info("第 %d 次请求完成", i + 1)
         try:
             response = chat_with_openai(messages)
             logging.info("批量请求成功")
             return response.strip()
-        except (ConnectionError, OpenAIError, TimeoutError) as e:
+        except (ConnectionError, OpenAIError, TimeoutError, ValueError) as e:
+            last_error = e
             logging.warning("批量请求失败 : %s", e)
 
     response = "\n".join([f"{q.get('题号', idx + 1)}:A" for idx, q in enumerate(questions)])
-    logging.error("多次请求失败, 使用默认答案A")
+    logging.error("多次请求失败(最后一次错误: %s), 使用默认答案A", last_error)
     return response.strip()
 
 
@@ -103,7 +114,7 @@ def answer_questions_file(
                 q["AI答案"] = a
         else:
             for q in batch:
-                q["AI答案"] = answer_map.get(q["题号"], "ERROR")
+                q["AI答案"] = answer_map.get(q.get("题号", ""), "ERROR")
         time.sleep(2)
     with output_json_path.open("w", encoding="utf-8") as f:
         json.dump(questions, f, ensure_ascii=False, indent=4)

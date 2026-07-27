@@ -1,6 +1,7 @@
 """主程序模块"""
 
 __all__: list[str] = [
+    "TaskError",
     "TaskManager",
 ]
 
@@ -14,6 +15,17 @@ from PySide6.QtCore import QObject, QThread, Signal, Slot
 
 from ._config_manager import Configuration
 from ._driver_manager import CourseHandler
+
+
+class TaskError:
+    """业务执行失败的结果, 用于把工作线程内的异常传递回界面"""
+
+    def __init__(self, task_name: str, error: BaseException):
+        self.task_name = task_name
+        self.error = error
+
+    def __str__(self) -> str:
+        return f"ERROR: 业务{self.task_name}失败({self.error.__class__.__name__}: {self.error})"
 
 
 class TaskExecutor(QObject):
@@ -45,18 +57,21 @@ class TaskExecutor(QObject):
         """执行指定业务"""
         handler = self._task_registry.get(task_name)
         result: Any = None
-        if handler is None:
-            logging.error("未找到业务%s", task_name)
-        else:
+        try:
+            if handler is None:
+                raise LookupError(f"未找到业务{task_name}")
             task_method = getattr(handler, task_name)
             result = task_method(*args)
-
-        if self._finish:
-            self._finish(job_id, result)
+        except Exception as e:  # 工作线程内的异常不能逃逸, 否则界面会永远等待结果
+            logging.exception("业务'%s'(ID: %d)执行失败", task_name, job_id)
+            result = TaskError(task_name, e)
+        finally:
+            if self._finish:
+                self._finish(job_id, result)
 
     def shutdown(self) -> None:
         """关闭业务执行器, 释放资源"""
-        self.exec(0, "driver_quit", [])
+        self.exec(0, "driver_quit", [])  # exec 内部已捕获异常, 保证清理流程继续
         self._task_registry.clear()
         self._finish = None
         logging.info("业务执行器已关闭, 业务列表已清空。")
@@ -88,13 +103,17 @@ class TaskManager(QObject):
         if self._thread.isRunning():
             self._execute.emit(job_id, task_name, args)
         else:
-            logging.error("工作线程未启动。")
+            logging.error("工作线程未启动, 业务'%s'(ID: %d)无法执行", task_name, job_id)
+            self.on_finished(job_id, TaskError(task_name, RuntimeError("工作线程未启动")))
         return job_id
 
     @Slot(int, object)
     def on_finished(self, job_id: int, result: object) -> None:
         """业务完成回调"""
-        logging.info("业务(ID: %d)完成, 返回值: %s", job_id, result)
+        if isinstance(result, TaskError):
+            logging.error("业务(ID: %d)失败: %s", job_id, result)
+        else:
+            logging.info("业务(ID: %d)完成, 返回值: %s", job_id, result)
         self._results[job_id] = result
         self.finished.emit(job_id, result)
 

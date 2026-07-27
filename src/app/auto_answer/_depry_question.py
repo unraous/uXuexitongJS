@@ -1,6 +1,7 @@
 """对题目中的加密汉字进行解密"""
 
 import json
+import logging
 import re
 from pathlib import Path
 
@@ -32,4 +33,4 @@ def decode_questions(input_json: Path, output_json: Path, mapping_json: Path):
         q["选项"] = [decode_text(opt, decode_map) for opt in q.get("选项", [])]
     with output_json.open("w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    print(f"解密完成, 已输出 {output_json}")
+    logging.info("解密完成, 已输出 %s", output_json)

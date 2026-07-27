@@ -12,7 +12,7 @@ from pathlib import Path
 import aiofiles
 import websockets
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchDriverException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
@@ -61,11 +61,20 @@ class CourseHandler:
         que_path: Path = get_path_config(False, "original_questions")
         ans_path: Path = get_path_config(False, "answers")
         async for msg in websocket:
-            data: dict = json.loads(msg)
-            if data.get("type") == "testDocHtml":
-                html_str: str = data.get("html", "")
-                logging.info("收到问题HTML, 长度: %d", len(html_str))
+            try:
+                data: dict = json.loads(msg)
+            except json.JSONDecodeError:
+                logging.exception("无法解析收到的消息")
+                await self._send_error(websocket, "消息不是合法的 JSON")
+                continue
 
+            if data.get("type") != "testDocHtml":
+                logging.info("收到非HTML消息: %s", data)
+                continue
+
+            html_str: str = data.get("html", "")
+            logging.info("收到问题HTML, 长度: %d", len(html_str))
+            try:
                 async with aiofiles.open(que_path, "w", encoding="utf-8") as f:
                     await f.write(html_str)
                 logging.info("HTML已保存到 %s", que_path)
@@ -75,8 +84,16 @@ class CourseHandler:
                 async with aiofiles.open(ans_path, encoding="utf-8") as f:
                     ans_json = await f.read()
                 await websocket.send(ans_json)
-            else:
-                logging.info("收到非HTML消息: %s", data)
+            except Exception as e:  # 单次答题失败不应弄断连接, 但必须告知前端
+                logging.exception("答题流程失败")
+                await self._send_error(websocket, f"{e.__class__.__name__}: {e}")
+
+    async def _send_error(self, websocket: websockets.ServerConnection, reason: str) -> None:
+        """向前端发送错误消息, 避免 JS 端无限等待回信"""
+        try:
+            await websocket.send(json.dumps({"type": "error", "reason": reason}))
+        except websockets.WebSocketException:
+            logging.exception("发送错误消息失败")
 
     def _launch_websocket(self):
         """启动 WebSocket 服务器"""
@@ -86,7 +103,10 @@ class CourseHandler:
                 logging.info("WebSocket服务器已启动 ws://localhost:%d", port)
                 await asyncio.Future()
 
-        asyncio.run(run())
+        try:
+            asyncio.run(run())
+        except Exception:  # 守护线程内的异常不会冒泡, 必须在此记录
+            logging.exception("WebSocket服务器异常退出, 自动答题功能已不可用")
 
     def _init_driver(
         self, headless: bool = True, browser: str = "Firefox"
@@ -125,16 +145,27 @@ class CourseHandler:
             return
 
         cookies = self._parse_cookies(self._settings.user_cookies)
+        injected = 0
         for cookie in cookies:
-            self._driver.add_cookie(cookie)
-        logging.info("已成功设置 %d 个 Cookie", len(cookies))
+            try:
+                self._driver.add_cookie(cookie)
+            except WebDriverException as e:
+                logging.warning("Cookie '%s' 注入失败: %s", cookie["name"], e)
+            else:
+                injected += 1
+        if injected < len(cookies):
+            logging.warning("部分 Cookie 注入失败, 可能需要重新登录")
+        logging.info("已成功设置 %d/%d 个 Cookie", injected, len(cookies))
 
     def _init_script(self) -> str:
         """初始化 JS 脚本"""
         script_path: Path = get_path_config(True, "js_script")
         logging.info("正在加载脚本: %s", script_path)
-        with Path(script_path).open(encoding="utf-8") as f:
-            main_script: str = f.read()
+        try:
+            with Path(script_path).open(encoding="utf-8") as f:
+                main_script: str = f.read()
+        except OSError as e:
+            raise RuntimeError(f"无法读取主脚本: {script_path}") from e
 
         logging.info("脚本已加载, 长度: %d", len(main_script))
         options: str = f"""
@@ -179,6 +210,7 @@ class CourseHandler:
                 self._driver.get(self._settings.url["login"])
         except WebDriverException as e:
             logging.error("访问页面失败: %s, 请检查网络连接并重启应用", e)
+            raise
 
     def refresh_settings(self) -> None:
         """刷新配置"""
@@ -193,20 +225,29 @@ class CourseHandler:
             self._settings.browser,
         )
 
-        for browser in (
+        candidates: list[str] = (
             ["Firefox", "Edge", "Chrome"]
             if self._settings.browser == ""
             else [self._settings.browser]
-        ):
+        )
+        for browser in candidates:
             try:
                 self._verify_browser(browser)
                 break
-            except NoSuchDriverException:
-                logging.warning("%s内核启动失败", browser)
+            except WebDriverException as e:  # NoSuchDriverException 也属于此类
+                logging.warning("%s内核启动失败: %s", browser, e)
+        else:
+            raise RuntimeError(
+                f"浏览器驱动启动失败(已尝试: {', '.join(candidates)}), 请检查浏览器及驱动安装"
+            )
+
         self._open_website()
 
     def launch_script(self) -> None:
         """启动并注入js脚本"""
+        if not hasattr(self, "_driver"):
+            raise RuntimeError("浏览器驱动未启动, 无法注入脚本")
+
         self._script_code = self._init_script()
         self._launch_ws_server()
 
@@ -219,14 +260,21 @@ class CourseHandler:
     def pretend_active(self) -> None:
         """模拟鼠标活动, 防止被检测为挂机"""
 
+        if not hasattr(self, "_driver"):
+            raise RuntimeError("浏览器驱动未启动, 无法模拟鼠标活动")
+
         def mouse_action():
             while True:
-                handles = self._driver.window_handles
-                self._driver.switch_to.window(handles[-1])
+                try:
+                    handles = self._driver.window_handles
+                    self._driver.switch_to.window(handles[-1])
 
-                # 模拟鼠标滚轮轻微滚动(向下/向上)
-                scroll_value = secrets.randbelow(101) - 50  # -50 to 50
-                self._driver.execute_script("window.scrollBy(0, arguments[0]);", scroll_value)
+                    # 模拟鼠标滚轮轻微滚动(向下/向上)
+                    scroll_value = secrets.randbelow(101) - 50  # -50 to 50
+                    self._driver.execute_script("window.scrollBy(0, arguments[0]);", scroll_value)
+                except WebDriverException:
+                    logging.warning("浏览器不可用, 已停止模拟鼠标活动")
+                    return
                 time.sleep(secrets.randbelow(31) + 30)  # 30 to 60
 
         self._mouse_thread = threading.Thread(target=mouse_action, daemon=True)
@@ -249,7 +297,10 @@ class CourseHandler:
             except WebDriverException:
                 logging.error("驱动被人为关闭, 保存 cookies 和 history_url 失败")
             finally:
-                self._driver.quit()
-                logging.info("浏览器驱动已关闭")
+                try:
+                    self._driver.quit()
+                    logging.info("浏览器驱动已关闭")
+                except WebDriverException:
+                    logging.exception("关闭浏览器驱动失败")
         else:
             logging.info("浏览器驱动未启动")
