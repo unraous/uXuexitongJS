@@ -2,12 +2,14 @@
 
 import asyncio
 import dataclasses
+import http
 import json
 import logging
 import secrets
 import threading
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import aiofiles
 import websockets
@@ -19,6 +21,18 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 from .auto_answer import answer_questions
 from .utils import get_path_config, global_config, save_config
+
+# 只允许来自学习通域名的页面连接本地 WebSocket 服务, 防止 CSWSH 跨站 WebSocket 劫持,
+# 否则用户浏览器中打开的任意网页都能连上 ws://localhost:8765 并消耗其 AI 接口额度。
+ALLOWED_WS_ORIGIN_HOSTS: tuple[str, ...] = ("chaoxing.com", "edu.cn")
+
+
+def is_allowed_ws_origin(origin: str | None) -> bool:
+    """校验 WebSocket 连接的 Origin 是否在允许的域名白名单内"""
+    if not origin:
+        return False
+    host: str = (urlparse(origin).hostname or "").lower()
+    return any(host == d or host.endswith(f".{d}") for d in ALLOWED_WS_ORIGIN_HOSTS)
 
 
 @dataclasses.dataclass
@@ -78,11 +92,26 @@ class CourseHandler:
             else:
                 logging.info("收到非HTML消息: %s", data)
 
+    def _reject_foreign_origin(
+        self, connection: websockets.ServerConnection, request: websockets.http11.Request
+    ) -> websockets.http11.Response | None:
+        """握手阶段校验 Origin, 拒绝来自非学习通页面的连接"""
+        origin: str | None = request.headers.get("Origin")
+        if not is_allowed_ws_origin(origin):
+            logging.warning("拒绝非法来源的 WebSocket 连接, Origin: %s", origin)
+            return connection.respond(http.HTTPStatus.FORBIDDEN, "Forbidden origin\n")
+        return None
+
     def _launch_websocket(self):
         """启动 WebSocket 服务器"""
 
         async def run(port: int = 8765):
-            async with websockets.serve(self._messenger, "localhost", port):
+            async with websockets.serve(
+                self._messenger,
+                "localhost",
+                port,
+                process_request=self._reject_foreign_origin,
+            ):
                 logging.info("WebSocket服务器已启动 ws://localhost:%d", port)
                 await asyncio.Future()
 
@@ -137,10 +166,17 @@ class CourseHandler:
             main_script: str = f.read()
 
         logging.info("脚本已加载, 长度: %d", len(main_script))
+        # 强制转换为布尔/浮点数, 避免配置中的异常值被拼接进注入的 JS 造成脚本注入
+        force_speed: bool = bool(self._settings.force_speed)
+        try:
+            speed: float = float(self._settings.speed)
+        except (TypeError, ValueError):
+            logging.warning("speed 配置非法: %s, 回退为 2.0", self._settings.speed)
+            speed = 2.0
         options: str = f"""
             globalThis.LAUNCH_OPTION = 1;
-            globalThis.FORCE_SPEED = {str(self._settings.force_speed).lower()};
-            globalThis.SPEED = {self._settings.speed};
+            globalThis.FORCE_SPEED = {str(force_speed).lower()};
+            globalThis.SPEED = {speed};
         """
         return "\n".join([options, main_script])
 
