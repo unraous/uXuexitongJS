@@ -1,6 +1,5 @@
 """答题逻辑核心, 调用OpenAI接口获取答案"""
 
-import json
 import logging
 import time
 from pathlib import Path
@@ -8,7 +7,7 @@ from pathlib import Path
 from openai import OpenAI, OpenAIError
 from openai.types.chat import ChatCompletionMessageParam
 
-from ..utils import global_config
+from ..utils import global_config, read_json, write_json
 
 
 def get_openai_client(config: dict[str, str]) -> tuple[OpenAI, str]:
@@ -80,8 +79,7 @@ def answer_questions_file(
 ) -> None:
     """从文件读取题目, 批量请求AI并写入带答案的json"""
 
-    with input_json_path.open(encoding="utf-8") as f:
-        questions: list[dict[str, str]] = json.load(f)
+    questions: list[dict[str, str]] = read_json(input_json_path)
 
     for batch_start in range(0, len(questions), batch_size):
         batch: list[dict[str, str]] = questions[batch_start : batch_start + batch_size]
@@ -105,20 +103,15 @@ def answer_questions_file(
             for q in batch:
                 q["AI答案"] = answer_map.get(q["题号"], "ERROR")
         time.sleep(2)
-    with output_json_path.open("w", encoding="utf-8") as f:
-        json.dump(questions, f, ensure_ascii=False, indent=4)
-    logging.info("已生成 %s", output_json_path)
+    write_json(output_json_path, questions, indent=4)
 
 
 def extract_simple_answers(input_json_path: Path, output_json_path: Path) -> None:
     """简化答案, 生成最终json"""
-    with input_json_path.open(encoding="utf-8") as f:
-        questions: list[dict[str, str]] = json.load(f)
+    questions: list[dict[str, str]] = read_json(input_json_path)
 
     result: list[dict[str, str]] = [
         {"题号": q["题号"], "答案": q.get("AI答案", "")} for q in questions if "AI答案" in q
     ]
 
-    with output_json_path.open("w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=4)
-    logging.info("已生成 %s", output_json_path)
+    write_json(output_json_path, result, indent=4)

@@ -7,9 +7,9 @@ import logging
 import secrets
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 
-import aiofiles
 import websockets
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchDriverException, WebDriverException
@@ -18,7 +18,7 @@ from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 from .auto_answer import answer_questions
-from .utils import get_path_config, global_config, save_config
+from .utils import get_path_config, global_config, read_text, save_config, write_text
 
 
 @dataclasses.dataclass
@@ -46,6 +46,13 @@ def load_settings() -> CourseSettings:
     )
 
 
+def start_daemon(target: Callable[[], None]) -> threading.Thread:
+    """启动并返回一个守护线程"""
+    thread = threading.Thread(target=target, daemon=True)
+    thread.start()
+    return thread
+
+
 class CourseHandler:
     """网课处理类, 包含selenium浏览器驱动启动和 AI 答题所需的JS/PY 双向 WebSocket 服务"""
 
@@ -66,15 +73,11 @@ class CourseHandler:
                 html_str: str = data.get("html", "")
                 logging.info("收到问题HTML, 长度: %d", len(html_str))
 
-                async with aiofiles.open(que_path, "w", encoding="utf-8") as f:
-                    await f.write(html_str)
-                logging.info("HTML已保存到 %s", que_path)
+                await write_text(que_path, html_str)
 
                 await answer_questions()
 
-                async with aiofiles.open(ans_path, encoding="utf-8") as f:
-                    ans_json = await f.read()
-                await websocket.send(ans_json)
+                await websocket.send(await read_text(ans_path))
             else:
                 logging.info("收到非HTML消息: %s", data)
 
@@ -146,8 +149,11 @@ class CourseHandler:
 
     def _launch_ws_server(self) -> None:
         """启动 WebSocket 服务器线程"""
-        self._ws_thread = threading.Thread(target=self._launch_websocket, daemon=True)
-        self._ws_thread.start()
+        self._ws_thread = start_daemon(self._launch_websocket)
+
+    def _focus_last_window(self) -> None:
+        """切换到最新打开的标签页"""
+        self._driver.switch_to.window(self._driver.window_handles[-1])
 
     def _cookies_to_str(self, cookies: list) -> str:
         """将 selenium cookies 列表转为标准 cookie 字符串"""
@@ -210,8 +216,7 @@ class CourseHandler:
         self._script_code = self._init_script()
         self._launch_ws_server()
 
-        handles = self._driver.window_handles
-        self._driver.switch_to.window(handles[-1])
+        self._focus_last_window()
         time.sleep(2)
         self._driver.execute_script(self._script_code)
         logging.info("js脚本注入成功")
@@ -221,23 +226,20 @@ class CourseHandler:
 
         def mouse_action():
             while True:
-                handles = self._driver.window_handles
-                self._driver.switch_to.window(handles[-1])
+                self._focus_last_window()
 
                 # 模拟鼠标滚轮轻微滚动(向下/向上)
                 scroll_value = secrets.randbelow(101) - 50  # -50 to 50
                 self._driver.execute_script("window.scrollBy(0, arguments[0]);", scroll_value)
                 time.sleep(secrets.randbelow(31) + 30)  # 30 to 60
 
-        self._mouse_thread = threading.Thread(target=mouse_action, daemon=True)
-        self._mouse_thread.start()
+        self._mouse_thread = start_daemon(mouse_action)
 
     def driver_quit(self) -> None:
         """关闭浏览器驱动"""
         if hasattr(self, "_driver"):
             try:
-                handles = self._driver.window_handles
-                self._driver.switch_to.window(handles[-1])
+                self._focus_last_window()
                 if self._settings.restore_cookies:
                     global_config["auto_course"]["user_cookies"] = self._cookies_to_str(
                         self._driver.get_cookies()

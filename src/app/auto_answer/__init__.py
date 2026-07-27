@@ -2,13 +2,11 @@
 
 __all__ = ["answer_questions"]
 
-import json
 import logging
 from pathlib import Path
 
-import aiofiles
-
 from ..utils import get_path_config as get_path
+from ..utils import read_text, write_json_async
 from ._core_of_answer import answer_questions_file, extract_simple_answers
 from ._create_map import create_font_mapping
 from ._depry_question import decode_questions
@@ -27,15 +25,13 @@ async def answer_questions() -> None:
     answered_json_path: Path = get_path(False, "qa_pairs")
     simplified_json_path: Path = get_path(False, "answers")
 
-    async with aiofiles.open(html_path, encoding="utf-8") as f:
-        html_content = await f.read()
+    html_content = await read_text(html_path)
     extract_font_from_html(html_content, ttf_path)
 
     questions = extract_questions_from_html(html_content)
-    async with aiofiles.open(questions_path, "w", encoding="utf-8") as f:
-        await f.write(json.dumps(questions, ensure_ascii=False, indent=2))
+    await write_json_async(questions_path, questions)
 
-    logging.info("题目已保存到 %s, 共 %d 题", questions_path, len(questions))
+    logging.info("共 %d 题", len(questions))
     create_font_mapping(ttf_path, std_font_path, mapping_json_path)
     decode_questions(questions_path, decoded_json_path, mapping_json_path)
 
