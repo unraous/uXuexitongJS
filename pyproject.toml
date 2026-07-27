@@ -43,6 +43,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # 允许未使用的导入
 "test_*.py" = ["S101"]    # 测试文件允许 assert
+# 测试中允许访问私有成员、直接比较字面量以及自定义辅助异常命名
+"tests/*" = ["SLF001", "PLR2004", "N818"]
 
 # 复杂度配置
 [tool.ruff.lint.mccabe]
@@ -58,3 +60,21 @@ quote-style = "double"           # 使用双引号
 indent-style = "space"           # 使用空格缩进
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+# 测试配置
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+# 覆盖率配置
+[tool.coverage.run]
+source = ["src/app"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+  "pragma: no cover",
+  "if __name__ == .__main__.:",
+]

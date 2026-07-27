@@ -11,3 +11,6 @@ test/
 __pycache__
 *.spec
 build
+.coverage
+.pytest_cache
+htmlcov

@@ -29,9 +29,28 @@
    ```sh
    pip install -r requirements.txt
    ```
-4. **前端依赖（如有）**
+4. **安装开发依赖（测试、lint）**
+
+   ```sh
+   pip install -r requirements-dev.txt
+   ```
+5. **前端依赖（如有）**
 
    - 若涉及 JS 依赖，请在 `src/js/` 目录下说明。
+
+---
+
+## 运行测试
+
+单元测试位于 `tests/` 目录, 使用 pytest 运行(配置见 `pyproject.toml`):
+
+```sh
+pytest                      # 运行全部单元测试
+pytest --cov                # 附带 src/app 覆盖率报告
+ruff check src tests        # 静态检查
+```
+
+测试不会启动浏览器、不会访问网络, 也不会读写仓库内的配置文件, 新增测试请保持这一约定。
 
 ---
 
