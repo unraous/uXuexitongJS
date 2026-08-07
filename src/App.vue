@@ -17,7 +17,9 @@ globalThis.addEventListener("keydown", (e) => {
 </script>
 
 <template>
-  <MainLayout />
+  <div @contextmenu.prevent>
+    <MainLayout />
+  </div>
 </template>
 
 <style>
