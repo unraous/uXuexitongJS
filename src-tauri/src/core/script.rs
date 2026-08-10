@@ -7,7 +7,7 @@ use tauri::{Emitter, Manager};
 /// 根据 URL 类型获取对应的 JavaScript 静态脚本内容。
 pub fn obtain(t: Type) -> Option<&'static str> {
     match t {
-        // Type::Course => Some(include_str!("../scripts/core.js")),
+        Type::Course => Some(include_str!("../scripts/core.js")),
         Type::MainSpace => Some(include_str!("../scripts/modify-targets.js")),
         Type::Mask => Some(include_str!("../scripts/show-mask.js")),
         Type::Login => Some(include_str!("../scripts/click-auto-login.js")),

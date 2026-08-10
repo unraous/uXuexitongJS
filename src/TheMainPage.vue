@@ -15,7 +15,13 @@ globalThis.addEventListener("keydown", (e) => {
 </script>
 
 <template>
+<<<<<<< HEAD:src/TheMainPage.vue
   <TheMainLayout />
+=======
+  <div @contextmenu.prevent>
+    <MainLayout />
+  </div>
+>>>>>>> origin/master:src/App.vue
 </template>
 
 <style>
