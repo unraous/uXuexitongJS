@@ -24,3 +24,14 @@
   In this project (`uxuescript`), percentage-based layout values in CSS (`vw`, `vh`, `%`, `flex: 1`) combined with `LogicalSize` scale factors in Rust (e.g., `logical_size.width * 0.51`, `logical_size.height * 0.46` in `webview.rs`) constitute an intentional, scale-invariant proportional layout architecture.
 - **Do Not Criticize Proportional Factors as "Hardcoded"**:
   Do NOT criticize or label these scale-invariant percentage/proportional values in `webview.rs` or CSS as "hardcoded hacky numbers" ("硬编码临时方案"). Recognize them as an intentional, scale-invariant design for native Webview alignment across screens.
+
+## 4. Pure Data Decoupling & Clean Architecture Invariants (数据与操作解耦与代码命名规范)
+
+- **Pure DTO Invariant**:
+  Config and payload structs (`LLMConfig`, `LLMProvider`) MUST remain 100% pure data objects (POD / DTO). NEVER add getters/setters, closure callbacks (`with_active_provider`), or Mutex-locking methods onto data structs. Keep locking and operations strictly in command/service handlers.
+- **Directory Hierarchy & Anti-Redundancy**:
+  Group templates in subdirectories (e.g., `requests/default.json`). Never repeat directory names in filenames (e.g. use `requests/default.json`, not `requests/request.default.json`).
+- **Single-Responsibility Helper Splitting**:
+  Split monolithic match blocks into focused, single-responsibility helper functions. Avoid repeating module or protocol prefixes in function names when already scoped in submodules (e.g., `chat_completions()` instead of `solve_openai_chat_completions()`).
+- **Idiomatic Rust Matching**:
+  Do NOT use `ref` when pattern-matching `Copy` or reference types (`Option<&str>`). Keep Serde attributes minimal and natural.

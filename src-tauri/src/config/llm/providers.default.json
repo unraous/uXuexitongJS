@@ -1,0 +1,106 @@
+{
+  "bigmodel": {
+    "name": "BigModel",
+    "protocol": "OpenAIChatCompletions",
+    "base_url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    "api_key": null,
+    "models": [
+      "glm-4.7-flash",
+      "glm-4.7",
+      "glm-5",
+      "glm-5-turbo",
+      "glm-5.1"
+    ],
+    "chosen_model": 0,
+    "extra_body": {
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "response_format": { "type": "json_object" }
+    }
+  },
+  "deepseek": {
+    "name": "DeepSeek",
+    "protocol": "OpenAIChatCompletions",
+    "base_url": "https://api.deepseek.com/chat/completions",
+    "api_key": null,
+    "models": [
+      "deepseek-v4-flash",
+      "deepseek-v4-pro"
+    ],
+    "chosen_model": 0,
+    "extra_body": {
+      "temperature": 0.3,
+      "top_p": 0.95,
+      "response_format": { "type": "json_object" }
+    }
+  },
+  "google": {
+    "name": "Google",
+    "protocol": "GoogleGemini",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/models",
+    "api_key": null,
+    "models": [
+      "gemini-3.1-flash-lite",
+      "gemini-3.5-flash",
+      "gemini-3.1-pro",
+      "gemini-flash-lite-latest",
+      "gemini-flash-latest",
+      "gemini-pro-latest",
+      "gemma-4-31b-it"
+    ],
+    "chosen_model": 0,
+    "extra_body": null
+  },
+  "moonshot": {
+    "name": "Moonshot",
+    "protocol": "OpenAIChatCompletions",
+    "base_url": "https://api.moonshot.cn/v1/chat/completions",
+    "api_key": null,
+    "models": [
+      "moonshot-v1-8k",
+      "kimi-k2.6",
+      "kimi-k2.5"
+    ],
+    "chosen_model": 0,
+    "extra_body": null
+  },
+  "openai": {
+    "name": "OpenAI",
+    "protocol": "OpenAIResponses",
+    "base_url": "https://api.openai.com/v1/responses",
+    "api_key": null,
+    "models": [
+      "gpt-5-nano",
+      "gpt-5",
+      "gpt-5.4-mini",
+      "gpt-5.4"
+    ],
+    "chosen_model": 1,
+    "extra_body": null
+  },
+  "openrouter": {
+    "name": "OpenRouter",
+    "protocol": "OpenAIChatCompletions",
+    "base_url": "https://openrouter.ai/api/v1/chat/completions",
+    "api_key": null,
+    "models": [
+      "moonshotai/kimi-k2.6:free",
+      "deepseek/deepseek-v4-flash:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "google/gemma-4-31b-it:free"
+    ],
+    "chosen_model": 0,
+    "extra_body": null
+  },
+  "ollama": {
+    "name": "Ollama",
+    "protocol": "OpenAIChatCompletions",
+    "base_url": "http://localhost:11434/api/chat",
+    "api_key": null,
+    "models": [],
+    "chosen_model": null,
+    "extra_body": {
+      "stream": false
+    }
+  }
+}

@@ -1,66 +1,55 @@
-mod bigmodel;
-mod deepseek;
-mod google;
-mod moonshot;
-mod ollama;
-mod openai;
-mod openrouter;
-
-pub use bigmodel::BigModelConfig;
-pub use deepseek::DeepSeekConfig;
-pub use google::GoogleConfig;
-pub use moonshot::MoonshotConfig;
-pub use ollama::OllamaConfig;
-pub use openai::OpenAIConfig;
-pub use openrouter::OpenrouterConfig;
-
-use crate::core::quiz::llm::LLM;
+pub(crate) mod ollama;
 
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumIter, EnumString};
+use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug, Default, EnumIter, EnumString, AsRefStr)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
-pub enum LLMProvider {
-    #[default]
-    BigModel,
-    DeepSeek,
-    Google,
-    Moonshot,
-    OpenAI,
-    Openrouter,
-    Ollama,
+/// 支持的大模型 API 发包协议族
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LLMProtocol {
+    OpenAIChatCompletions, // 通用 OpenAI 兼容协议 (Chat Completions)
+    OpenAIResponses,       // OpenAI Responses 特殊协议 (/v1/responses)
+    GoogleGemini,          // Google Gemini 协议 (:generateContent)
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+/// 统一的大模型提供商结构体（内置与用户自定义提供商通用纯数据 DTO）
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LLMProvider {
+    pub name: String,                // 提供商显示名称 (如 "DeepSeek 官方", "我的私有中转站")
+    pub protocol: LLMProtocol,       // 采用的 API 协议族
+    pub base_url: String,            // 接口基础 URL
+    pub api_key: Option<String>,     // API Key (Option 允许免 Key / 未配置)
+    pub models: Vec<String>,         // 支持的模型列表
+    pub chosen_model: Option<usize>, // 当前选择的模型在 models 列表中的索引
+    pub extra_body: Option<serde_json::Value>, // 协议特定额外 Body 参数 (如 temperature, stream)
+}
+
+/// 应用全局大语言模型配置 (纯 Plain Data 结构体)
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct LLMConfig {
-    pub provider: Mutex<LLMProvider>,
-    pub bigmodel: BigModelConfig,
-    pub deepseek: DeepSeekConfig,
-    pub google: GoogleConfig,
-    pub moonshot: MoonshotConfig,
-    pub openai: OpenAIConfig,
-    pub openrouter: OpenrouterConfig,
-    pub ollama: OllamaConfig,
+    pub active_provider: Mutex<String>, // 当前激活的提供商 ID
+    pub providers: Mutex<HashMap<String, LLMProvider>>, // 注册的全部提供商 (HashMap)
 }
 
-impl LLMConfig {
-    pub fn switch_to(&self, provider: LLMProvider) {
-        *self.provider.lock() = provider;
-    }
+impl Default for LLMConfig {
+    fn default() -> Self {
+        let mut providers: HashMap<String, LLMProvider> =
+            serde_json::from_str(include_str!("./llm/providers.default.json"))
+                .expect("无法解析默认 LLM 提供商预设配置文件 (providers.default.json)");
 
-    pub fn current(&self) -> &dyn LLM {
-        match *self.provider.lock() {
-            LLMProvider::BigModel => &self.bigmodel,
-            LLMProvider::DeepSeek => &self.deepseek,
-            LLMProvider::Google => &self.google,
-            LLMProvider::Moonshot => &self.moonshot,
-            LLMProvider::OpenAI => &self.openai,
-            LLMProvider::Openrouter => &self.openrouter,
-            LLMProvider::Ollama => &self.ollama,
+        // 初始化时从本地 Ollama 服务拉取可用模型列表
+        if let Some(p) = providers.get_mut("ollama") {
+            let models = ollama::fetch_models(&p.base_url);
+            if !models.is_empty() {
+                p.models = models;
+                p.chosen_model = Some(0);
+            }
+        }
+
+        Self {
+            active_provider: Mutex::new("bigmodel".to_string()),
+            providers: Mutex::new(providers),
         }
     }
 }

@@ -1,0 +1,32 @@
+{
+  "model": "",
+  "instructions": "",
+  "input": "",
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "answer_lists",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": { "type": "string" },
+                "explanation": { "type": "string" },
+                "content": { "type": "string" }
+              },
+              "required": ["index", "explanation", "content"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["answers"],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

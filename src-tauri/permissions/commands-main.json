@@ -19,6 +19,7 @@
           "models",
           "options",
           "providers",
+          "refresh_ollama_models",
           "reload",
           "save_config",
           "send_chapter_status",

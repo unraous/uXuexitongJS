@@ -1,15 +1,10 @@
-mod bigmodel;
-mod deepseek;
-mod google;
-mod local_ollama;
-mod moonshot;
-mod openai;
-mod openrouter;
+mod dispatcher;
+
+pub use dispatcher::solve;
 
 use super::html::Question;
 
 use anyhow::Result;
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 const SYSTEM_PROMPT: &str = include_str!("./system_prompt.txt");
@@ -22,17 +17,6 @@ pub struct AnswerItem {
     pub explanation: String,
     #[serde(alias = "答案", alias = "answer")]
     pub content: String,
-}
-
-#[async_trait]
-pub trait LLM {
-    fn api_key(&self) -> String;
-    fn set_key(&self, key: &str);
-    fn available_models(&self) -> Vec<String>;
-    fn current_model(&self) -> String;
-    fn switch_model(&self, model: &str);
-
-    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>>;
 }
 
 pub fn validate(model: &str, questions: &[Question]) -> Result<()> {

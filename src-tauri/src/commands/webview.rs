@@ -1,4 +1,4 @@
-/// 仅供主界面 [main] Webview 调用的超星 [Chaoxing] Webview 专属控制指令集。
+/// 供主界面 [main] Webview 控制超星 [Chaoxing] Webview 的命令集。
 use super::CommandsResult;
 
 use crate::app::webview::UrlStack;
