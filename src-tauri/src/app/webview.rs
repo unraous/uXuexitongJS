@@ -65,12 +65,13 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
 
     let (builder, position, size) = match label {
         "main" => (
-            WebviewBuilder::new(label, WebviewUrl::default()).background_color((0, 0, 0, 0).into()),
+            WebviewBuilder::new(label, WebviewUrl::App("main.html".into()))
+                .background_color((0, 0, 0, 0).into()),
             LogicalPosition::new(0.0, 0.0),
             LogicalSize::new(logical_size.width, logical_size.height),
         ),
         "mask" => (
-            WebviewBuilder::new(label, WebviewUrl::External("about:blank".parse()?))
+            WebviewBuilder::new(label, WebviewUrl::App("mask.html".into()))
                 .background_color((0, 0, 0, 0).into()),
             LogicalPosition::new(0.0, 0.0),
             LogicalSize::new(logical_size.width, logical_size.height),

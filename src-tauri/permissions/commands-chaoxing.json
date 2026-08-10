@@ -11,7 +11,7 @@
                 "deny": []
             },
             "description": "allowing commands invocation for chaoxing webview",
-            "identifier": "chaoxing-commands"
+            "identifier": "commands-chaoxing"
         }
     ]
 }

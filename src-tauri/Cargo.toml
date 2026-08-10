@@ -23,6 +23,8 @@ tauri-build = { version = "2.6.3", features = [] }
 [dependencies]
 tauri = { version = "2.11.5", features = [
     "unstable",
+    "macos-private-api",
+    "webview-data-url",
     "image-ico",
     "image-png",
 ] }

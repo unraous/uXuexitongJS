@@ -26,6 +26,10 @@ export const commands = {
 	setKey: (key: string) => __TAURI_INVOKE<void>("set_key", { key }),
 	/**  Save configuration to file. */
 	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
+	/**  Close the application window with a fade-out animation. */
+	close: () => __TAURI_INVOKE<void>("close"),
+	/**  Minimize the application window. */
+	minimize: () => __TAURI_INVOKE<void>("minimize"),
 	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
 	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),
@@ -34,10 +38,6 @@ export const commands = {
 	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
 	currentUrl: () => __TAURI_INVOKE<string | null>("current_url"),
 	reload: () => typedError<null, string>(__TAURI_INVOKE("reload")),
-	/**  Close the application window with a fade-out animation. */
-	close: () => __TAURI_INVOKE<void>("close"),
-	/**  Minimize the application window. */
-	minimize: () => __TAURI_INVOKE<void>("minimize"),
 };
 
 /* Types */

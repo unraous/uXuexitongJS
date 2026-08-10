@@ -63,7 +63,7 @@ pub fn register(_: TokenStream) -> TokenStream {
     let manifest_path = PathBuf::from(&manifest_dir);
 
     let commands_dir = manifest_path.join("src").join("commands");
-    let perm_file = manifest_path.join("permissions").join("main-commands.json");
+    let perm_file = manifest_path.join("permissions").join("commands-main.json");
 
     let mut commands: Vec<CommandEntry> = Vec::new();
     let mut tracked_files = Vec::new();
