@@ -38,5 +38,3 @@ impl PathsConfig {
         Ok(())
     }
 }
-
-
