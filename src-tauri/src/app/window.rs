@@ -2,18 +2,50 @@ use super::webview;
 
 use crate::config::CONFIG;
 
-use tauri::{image::Image, WindowBuilder};
+use std::time::Duration;
+use tauri::{image::Image, window::Window, Emitter, Manager, WindowBuilder};
 
-fn close() {
-    log::debug!("执行程序收尾工作，即将关闭应用");
-    CONFIG.save().ok();
+/// 执行窗口关闭前的应用状态刷新与持久化收尾工作
+async fn flush_app_state() {
+    if let Err(e) = CONFIG.save() {
+        log::error!("保存配置失败: {}", e);
+    } else {
+        log::debug!("配置成功保存");
+    }
 }
 
-/// Handles window events, specifically preventing the window from closing when a close request is made.
-fn listener(event: &tauri::WindowEvent) {
+/// 触发前端遮罩层退场动画与事件通知
+async fn notify_exit_animation(window: &Window) {
+    if let Some(mask) = window.get_webview("mask") {
+        log::debug!("执行关闭动画并关闭窗口");
+        mask.show().ok();
+        if let Err(e) = mask.emit("close-event", &()) {
+            log::error!("发送关闭动画事件失败: {}", e);
+        }
+        log::debug!("关闭动画触发完毕");
+    } else {
+        log::error!("未找到遮罩Webview，无法执行关闭动画");
+    }
+}
+
+async fn close(window: Window) {
+    log::debug!("执行程序收尾工作，即将关闭应用");
+    tokio::join!(
+        tokio::time::sleep(Duration::from_millis(750)),
+        notify_exit_animation(&window),
+        flush_app_state(),
+    );
+    window.destroy().ok();
+}
+
+/// 负责在接收到关闭请求时阻止默认销毁的窗口事件处理。
+pub fn listener(window: &tauri::Window, event: &tauri::WindowEvent) {
     log::debug!("监听到窗口事件: {:?}", event);
     match event {
-        tauri::WindowEvent::CloseRequested { .. } => close(),
+        tauri::WindowEvent::CloseRequested { api, .. } => {
+            api.prevent_close();
+            tauri::async_runtime::spawn(close(window.clone()));
+        }
         tauri::WindowEvent::Destroyed => {
             log::debug!("主程序窗口已销毁，应用已关闭");
         }
@@ -62,13 +94,11 @@ pub fn init(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error:
         .icon(Image::from_bytes(include_bytes!("../../icons/icon.ico"))?)?
         .build()?;
 
-    window.on_window_event(listener);
-
     webview::init_on(&window, "main")?;
     webview::init_on(&window, "chaoxing")?;
     webview::init_on(&window, "mask")?.hide()?;
 
-    log::info!("应用窗口初始化成功");
+    log::info!("初始化应用窗口成功");
 
     Ok(())
 }
