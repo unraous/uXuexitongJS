@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import MainLayout from "@/layouts/TheMainLayout.vue";
+import TheMainLayout from "@/layouts/TheMainLayout.vue";
 
 const isDev = import.meta.env.DEV;
 globalThis.addEventListener("keydown", (e) => {
   const key = e.key.toLowerCase();
-  // 1. 任何环境下都禁用的系统默认快捷键
   if ((e.ctrlKey || e.metaKey) && ["p", "s", "f"].includes(key)) {
     e.preventDefault();
     return;
   }
-  // 2. 仅在生产打包构建模式下禁用刷新 (Ctrl+R / F5)
   if (!isDev && (((e.ctrlKey || e.metaKey) && key === "r") || key === "f5")) {
     e.preventDefault();
   }
@@ -17,7 +15,7 @@ globalThis.addEventListener("keydown", (e) => {
 </script>
 
 <template>
-  <MainLayout />
+  <TheMainLayout />
 </template>
 
 <style>
@@ -25,6 +23,15 @@ globalThis.addEventListener("keydown", (e) => {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 @font-face {
