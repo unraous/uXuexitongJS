@@ -1,22 +1,25 @@
-use crate::{config::CONFIG, core::script::obtain};
+use crate::config::CONFIG;
 
-use tauri::{window, Manager};
+use std::time::Duration;
+use tauri::{window, Emitter, Manager};
 
 /// Close the application window with a fade-out animation.
 #[tauri::command]
 #[specta::specta]
 pub async fn close(window: window::Window) {
-    log::debug!("正在执行关闭动画并关闭窗口");
     if let Some(mask) = window.get_webview("mask") {
+        log::debug!("执行关闭动画并关闭窗口");
         mask.show().ok();
-        if let Err(e) = mask.eval(obtain(crate::core::url::Type::Mask).unwrap()) {
-            log::error!("执行脚本失败 {}", e);
+        if let Err(e) = mask.emit("close-event", &()) {
+            log::error!("发送关闭动画事件失败: {}", e);
         }
+
+        log::debug!("关闭动画执行完毕");
     } else {
         log::error!("未找到遮罩Webview，无法执行关闭动画");
     }
 
-    let sleep = tokio::time::sleep(std::time::Duration::from_millis(750));
+    let sleep = tokio::time::sleep(Duration::from_millis(750));
     let cleanup = async {
         CONFIG.save().ok();
         log::debug!("配置成功保存");
