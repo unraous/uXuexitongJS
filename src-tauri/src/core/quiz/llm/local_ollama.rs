@@ -10,7 +10,7 @@ use async_trait::async_trait;
 impl LLM for OllamaConfig {
     fn api_key(&self) -> String {
         String::new()
-    } // Ollama has no API key, return empty string
+    } // Ollama 本地服务无需设置 API Key，固定返回空字符串
     fn set_key(&self, _key: &str) {
         log::warn!("Ollama 无 API Key 可设置")
     }

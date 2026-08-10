@@ -27,8 +27,8 @@ impl LLM for GoogleConfig {
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 Google 模型 {} 进行推理", *self.chosen_model.lock());
-        // see reference: https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
-        // the mimeType is not string but enum, so need to use ""APPLICATION_JSON"" instead of "application/json"
+        // 参考 Gemini 官方 REST API 文档：https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
+        // 此处的 responseMimeType 需传入大写字符串常量 "APPLICATION_JSON"
         let mut body: serde_json::Value =
             serde_json::from_str(include_str!("./google-request.json"))?;
         body["contents"] = json!([{

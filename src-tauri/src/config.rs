@@ -24,8 +24,7 @@ pub struct Config {
 }
 
 impl Config {
-    // In there the logget has not been initialized, so just ignore the error and use default config when failed to load the config file.
-    // Hope there won't be a hidden danger in this.
+    // 此处日志系统尚未初始化完成，读取配置文件失败时将直接降级回退至默认配置。
     fn load() -> Self {
         let config = Self::default();
         match toml::from_str::<Config>(

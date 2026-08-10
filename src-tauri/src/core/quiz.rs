@@ -12,8 +12,7 @@ use mapper::decrypt;
 use crate::config::CONFIG;
 use anyhow::Result;
 
-/// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
-/// solves them via the active LLM configured in CONFIG, and returns the solved AnswerItems.
+/// 使用 CRNN ONNX 模型动态解析与解密混淆题目，并结合当前全局配置的大语言模型自动生成测验答案。
 pub async fn solve(html: &str) -> Result<Vec<AnswerItem>> {
     let decrypted = decrypt(HtmlExtractPayload::new(html)?);
     CONFIG.llm.current().solve(decrypted).await

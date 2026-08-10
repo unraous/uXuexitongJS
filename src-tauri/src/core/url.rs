@@ -1,5 +1,5 @@
-/// This module provides functions for classifying URLs and determining if they require modification scripts.
-/// Represents the type of a URL based on its structure and domain.
+/// 提供基于 URL 结构与域名分类判定及脚本匹配功能的核心模块。
+/// 基于结构与域名特征进行归类的 URL 类型枚举。
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Type {
     Course,
@@ -10,9 +10,7 @@ pub enum Type {
     Unknown,
 }
 
-/// Returns the type of the given URL based on its structure and domain.
-/// This function checks if the URL belongs to the "chaoxing.com" domain
-/// and classifies it.
+/// 判定传入 URL 是否属于超星域名并返回其具体分类类型。
 pub fn classify(url: &tauri::Url) -> Type {
     let host = url.host_str().unwrap_or_default();
 

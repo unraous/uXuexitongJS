@@ -4,7 +4,7 @@ use crate::config::{llm::LLMProvider, metadata::MetadataConfig, options::Options
 
 use strum::IntoEnumIterator;
 
-/// Get application metadata such as version and author information.
+/// 获取包含版本及作者信息的应用元数据。
 #[tauri::command]
 #[specta::specta]
 pub fn metadata() -> MetadataConfig {
@@ -31,7 +31,7 @@ pub fn set_options(options: OptionsConfig) {
     log::info!("成功设置配置信息: {:?}", options);
 }
 
-/// Get the list of available LLM providers.
+/// 获取当前可用的全部大语言模型提供商列表。
 #[tauri::command]
 #[specta::specta]
 pub fn providers() -> Vec<String> {
@@ -43,7 +43,7 @@ pub fn providers() -> Vec<String> {
     providers
 }
 
-/// Get the current LLM provider.
+/// 获取当前选中的大语言模型提供商。
 #[tauri::command]
 #[specta::specta]
 pub fn current_provider() -> String {
@@ -52,7 +52,7 @@ pub fn current_provider() -> String {
     provider.as_ref().to_string()
 }
 
-///Switch the current LLM provider to the specified one.
+/// 将当前大语言模型提供商切换为指定提供商。
 #[tauri::command]
 #[specta::specta]
 pub fn switch_provider(provider: String) -> CommandsResult<()> {
@@ -66,7 +66,7 @@ pub fn switch_provider(provider: String) -> CommandsResult<()> {
     Ok(())
 }
 
-/// Get the list of available models for the current LLM provider.
+/// 获取当前大语言模型提供商所支持的全部模型列表。
 #[tauri::command]
 #[specta::specta]
 pub fn models() -> Vec<String> {
@@ -76,7 +76,7 @@ pub fn models() -> Vec<String> {
     models
 }
 
-/// Get the current model for the current LLM provider.
+/// 获取当前大语言模型提供商正在使用的具体模型名称。
 #[tauri::command]
 #[specta::specta]
 pub fn current_model() -> String {
@@ -87,7 +87,7 @@ pub fn current_model() -> String {
     CONFIG.llm.current().current_model()
 }
 
-/// Switch the current model for the current LLM provider to the specified one.
+/// 将当前大语言模型提供商的选用模型切换为指定模型。
 #[tauri::command]
 #[specta::specta]
 pub fn switch_model(model: String) {
@@ -105,7 +105,7 @@ pub fn api_key() -> String {
     key
 }
 
-/// Set the API key for the current LLM provider.
+/// 设置当前大语言模型提供商的 API 密钥。
 #[tauri::command]
 #[specta::specta]
 pub fn set_key(key: String) {
@@ -114,7 +114,7 @@ pub fn set_key(key: String) {
     log::info!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
 }
 
-/// Save configuration to file.
+/// 将内存中的全局配置持久化保存至本地文件。
 #[tauri::command]
 #[specta::specta]
 pub fn save_config() -> CommandsResult<()> {

@@ -5,7 +5,7 @@ use fern::Dispatch;
 use log::info;
 use std::{fs::OpenOptions, io::Write, sync::mpsc, thread};
 
-/// Initializes the logging system using `fern` with an `mpsc` channel background thread for non-blocking I/O.
+/// 基于 `fern` 框架与 `mpsc` 通道后台线程实现的非阻塞日志系统初始化处理。
 pub fn init() -> Result<(), fern::InitError> {
     CONFIG.paths.ensure()?;
 

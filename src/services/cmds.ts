@@ -5,31 +5,27 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 /** Commands */
 export const commands = {
 	sendChapterStatus: (status: TaskStatus) => typedError<null, string>(__TAURI_INVOKE("send_chapter_status", { status })),
-	/**  Get application metadata such as version and author information. */
+	/**  获取包含版本及作者信息的应用元数据。 */
 	metadata: () => __TAURI_INVOKE<MetadataConfig>("metadata"),
 	options: () => __TAURI_INVOKE<OptionsConfig>("options"),
 	setOptions: (options: OptionsConfig) => __TAURI_INVOKE<void>("set_options", { options }),
-	/**  Get the list of available LLM providers. */
+	/**  获取当前可用的全部大语言模型提供商列表。 */
 	providers: () => __TAURI_INVOKE<string[]>("providers"),
-	/**  Get the current LLM provider. */
+	/**  获取当前选中的大语言模型提供商。 */
 	currentProvider: () => __TAURI_INVOKE<string>("current_provider"),
-	/** Switch the current LLM provider to the specified one. */
+	/**  将当前大语言模型提供商切换为指定提供商。 */
 	switchProvider: (provider: string) => typedError<null, string>(__TAURI_INVOKE("switch_provider", { provider })),
-	/**  Get the list of available models for the current LLM provider. */
+	/**  获取当前大语言模型提供商所支持的全部模型列表。 */
 	models: () => __TAURI_INVOKE<string[]>("models"),
-	/**  Get the current model for the current LLM provider. */
+	/**  获取当前大语言模型提供商正在使用的具体模型名称。 */
 	currentModel: () => __TAURI_INVOKE<string>("current_model"),
-	/**  Switch the current model for the current LLM provider to the specified one. */
+	/**  将当前大语言模型提供商的选用模型切换为指定模型。 */
 	switchModel: (model: string) => __TAURI_INVOKE<void>("switch_model", { model }),
 	apiKey: () => __TAURI_INVOKE<string>("api_key"),
-	/**  Set the API key for the current LLM provider. */
+	/**  设置当前大语言模型提供商的 API 密钥。 */
 	setKey: (key: string) => __TAURI_INVOKE<void>("set_key", { key }),
-	/**  Save configuration to file. */
+	/**  将内存中的全局配置持久化保存至本地文件。 */
 	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
-	/**  Close the application window with a fade-out animation. */
-	close: () => __TAURI_INVOKE<void>("close"),
-	/**  Minimize the application window. */
-	minimize: () => __TAURI_INVOKE<void>("minimize"),
 	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
 	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),
@@ -38,6 +34,10 @@ export const commands = {
 	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
 	currentUrl: () => __TAURI_INVOKE<string | null>("current_url"),
 	reload: () => typedError<null, string>(__TAURI_INVOKE("reload")),
+	/**  带有渐隐过渡效果的应用窗口关闭指令。 */
+	close: () => __TAURI_INVOKE<void>("close"),
+	/**  应用窗口最小化处理指令。 */
+	minimize: () => __TAURI_INVOKE<void>("minimize"),
 };
 
 /* Types */
