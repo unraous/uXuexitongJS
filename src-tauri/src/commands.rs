@@ -1,5 +1,5 @@
+pub mod chaoxing;
 pub mod config;
-pub mod quiz;
 pub mod webview;
 pub mod window;
 

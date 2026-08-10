@@ -4,6 +4,7 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 
 /** Commands */
 export const commands = {
+	sendChapterStatus: (status: TaskStatus) => typedError<null, string>(__TAURI_INVOKE("send_chapter_status", { status })),
 	/**  Get application metadata such as version and author information. */
 	metadata: () => __TAURI_INVOKE<MetadataConfig>("metadata"),
 	options: () => __TAURI_INVOKE<OptionsConfig>("options"),
@@ -53,6 +54,12 @@ export type OptionsConfig = {
 	muteWebview?: boolean,
 	speedLock?: boolean,
 	speedValue?: number | null,
+};
+
+export type TaskStatus = {
+	total: number,
+	completed: number,
+	title: string,
 };
 
 /* Tauri Specta runtime */

@@ -5,7 +5,8 @@
             "commands": {
                 "allow": [
                     "options",
-                    "solve_quiz"
+                    "solve_quiz",
+                    "send_chapter_status"
                 ],
                 "deny": []
             },

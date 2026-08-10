@@ -21,6 +21,7 @@
           "providers",
           "reload",
           "save_config",
+          "send_chapter_status",
           "set_key",
           "set_options",
           "set_zoom",
