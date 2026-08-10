@@ -31,7 +31,7 @@
         "deny": []
       },
       "description": "allowing commands invocation for main webview",
-      "identifier": "main-commands"
+      "identifier": "commands-main"
     }
   ]
 }

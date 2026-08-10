@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "chaoxing-webview",
-  "description": "超星第三方页面的安全隔离能力配置",
+  "identifier": "webview.chaoxing",
+  "description": "Limited capability for the Chaoxing webview",
   "webviews": [
     "chaoxing"
   ],
@@ -13,6 +13,6 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "chaoxing-commands"
+    "commands-chaoxing"
   ]
 }
