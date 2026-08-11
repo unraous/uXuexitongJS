@@ -2,13 +2,16 @@
 (function () {
   "use strict";
 
-  /** DOM 选择器及静态字符串统一配置表 */
-  const DOM = {
+  /** @type {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} */
+  let tauriInvoke = /** @type {any} */ (globalThis).__TAURI_INTERNALS__?.invoke;
+
+  /** SELECTORS 选择器及静态字符串统一配置表 */
+  const SELECTORS = {
     courseTree: {
       nodeClass: "div.posCatalog_select",
-      titleClass: "span.posCatalog_title",
       nameClass: "span.posCatalog_name",
-      unfinishedClass: ".orangeNew",
+      titleSelector: ":has(span.posCatalog_title)",
+      unfinishedSelector: ":has(.orangeNew)",
     },
     chapter: { tabClass: "div.prev_white" },
     video: { tag: "video", launchBtnClass: ".vjs-big-play-button" },
@@ -42,12 +45,34 @@
     },
   };
 
+  /** @type {(ms: number) => Promise<void>} */
+  const sleep = (ms) =>
+    new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+
+  /** @type {(cond: any, msg: string) => asserts cond} */
+  const assert = (cond, msg) => {
+    if (!cond) throw new Error(msg);
+  };
+
+  /** @type {(action: () => any, errorMessage: string) => Promise<void>} */
+  const safeRun = async (action, errorMessage) => {
+    try {
+      await action();
+    } catch (e) {
+      console.error(errorMessage, e);
+      if (config.debugTaskTypes.length) {
+        const msg = `【DEBUG 异常】\n提示: ${errorMessage}\n详情: ${e instanceof Error ? e.message : String(e)}\n\n确定：忽略并继续；取消：终止。`;
+        if (!confirm(msg)) throw e;
+      }
+    }
+  };
+
   /** @type {(iframe?: HTMLIFrameElement | null, prevDoc?: Document | null) => Document | null} */
   const getReadyIframeDoc = (iframe, prevDoc = null) => {
     try {
       const doc = iframe?.contentDocument;
       if (
-        doc?.location?.href !== DOM.frames.blankUrl &&
+        doc?.location?.href !== SELECTORS.frames.blankUrl &&
         doc !== prevDoc &&
         doc?.body?.children?.length
       ) {
@@ -72,15 +97,15 @@
      */
     debugTaskTypes = [];
 
-    /** @param {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} invoke */
-    async loadFromBackend(invoke) {
-      if (!invoke) {
+    async loadFromBackend() {
+      if (!tauriInvoke) {
+        tauriInvoke = async () => /** @type {any} */ (null);
         console.info("检测为无后端模式，使用默认配置");
         return;
       }
       try {
         console.info("正在从后端加载配置...");
-        const res = await invoke("options");
+        const res = await tauriInvoke("options");
         if (res) {
           this.hasBackend = true;
           this.muteVideo = res.muteWebview ?? this.muteVideo;
@@ -93,6 +118,9 @@
       }
     }
   }
+
+  /** 全局配置 */
+  const config = new AppConfig();
 
   /** DOM 异步等待工具库 */
   const wait = {
@@ -188,7 +216,7 @@
       if (!container) return Promise.resolve(true);
 
       const isDone = () =>
-        container.classList.contains(DOM.taskPoint.finishedClass);
+        container.classList.contains(SELECTORS.taskPoint.finishedClass);
       if (isDone()) return Promise.resolve(true);
 
       return new Promise((resolve) => {
@@ -207,30 +235,68 @@
     },
   };
 
-  /** @type {(action: () => any, errorMessage: string) => Promise<void>} */
-  const safeRun = async (action, errorMessage) => {
+  /**
+   * @typedef {{ total: number, title: string }} TotalProgressPayload
+   * @typedef {{ index: number, completed: number, title: string }} ChapterProgressPayload
+   * @typedef {{ total: number, index: number }} TabProgressPayload
+   * @typedef {{ index: number, category: string }} TaskProgressPayload
+   * @typedef {
+   *   | { totalProgress: TotalProgressPayload }
+   *   | { chapterProgress: ChapterProgressPayload }
+   *   | { tabProgress: TabProgressPayload }
+   *   | { taskProgress: TaskProgressPayload }
+   *   | "finished"
+   * } CourseStatus
+   */
+
+  /** @param {CourseStatus} status */
+  const invokeStatus = async (status) => {
     try {
-      await action();
-    } catch (e) {
-      console.error(errorMessage, e);
-      if (config.debugTaskTypes.length) {
-        const msg = `【DEBUG 异常】\n提示: ${errorMessage}\n详情: ${e instanceof Error ? e.message : String(e)}\n\n确定：忽略并继续；取消：终止。`;
-        if (!confirm(msg)) throw e;
+      if (tauriInvoke) {
+        await tauriInvoke("send_status", { status });
       }
+    } catch (e) {
+      console.error("[send_status] 发送进度状态失败:", e);
     }
   };
 
-  /** @type {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} */
-  const tauriInvoke = /** @type {any} */ (globalThis).__TAURI_INTERNALS__
-    ?.invoke;
-
-  /** @type {(ms: number) => Promise<void>} */
-  const sleep = (ms) =>
-    new Promise((resolve) => globalThis.setTimeout(resolve, ms));
-
-  /** @type {(cond: any, msg: string) => asserts cond} */
-  const assert = (cond, msg) => {
-    if (!cond) throw new Error(msg);
+  const emit = {
+    /** @type {(chapterList: HTMLElement[]) => Promise<void>} */
+    totalProgress: async (chapterList) => {
+      const total = chapterList.length;
+      const title =
+        document.querySelector(".course_name")?.textContent?.trim() ||
+        document.title ||
+        "课程页面";
+      await invokeStatus({ totalProgress: { total, title } });
+    },
+    /** @type {(index: number, node: HTMLElement, list: HTMLElement[]) => Promise<void>} */
+    chapterProgress: async (index, node, list) => {
+      const title =
+        node
+          .querySelector(SELECTORS.courseTree.nameClass)
+          ?.textContent?.trim() ||
+        node.textContent?.trim() ||
+        `章节 ${index + 1}`;
+      const completed = list.filter(
+        (node) => chapterNodeStatus(node) === "Finished",
+      ).length;
+      await invokeStatus({
+        chapterProgress: { index, completed, title },
+      });
+    },
+    /** @type {(index: number, total: number) => Promise<void>} */
+    tabProgress: async (index, total) => {
+      await invokeStatus({ tabProgress: { index, total } });
+    },
+    /** @type {(index: number, category: string) => Promise<void>} */
+    taskProgress: async (index, category) => {
+      await invokeStatus({ taskProgress: { index, category } });
+    },
+    /** @type {() => Promise<void>} */
+    finished: async () => {
+      await invokeStatus("finished");
+    },
   };
 
   /**
@@ -257,9 +323,6 @@
     });
   };
 
-  /** 全局配置 */
-  const config = new AppConfig();
-
   /**
    * 获取页面中所有课程章节 DOM 节点列表
    * @param {Document} document
@@ -267,7 +330,7 @@
    */
   const chapterNodes = (document) => {
     const nodes = /** @type {HTMLElement[]} */ (
-      Array.from(document.querySelectorAll(DOM.courseTree.nodeClass))
+      Array.from(document.querySelectorAll(SELECTORS.courseTree.nodeClass))
     );
     if (nodes.length > 0) console.info("获取课程列表成功：", nodes);
     else console.error("获取课程列表失败");
@@ -282,16 +345,13 @@
    */
   const chapterNodeStatus = (node) => {
     /** @type {HTMLElement | null} */
-    const nameSpan = node.querySelector(DOM.courseTree.nameClass);
-    if (!nameSpan) {
-      return node.querySelector(DOM.courseTree.titleClass)
+    const nameSpan = node.querySelector(SELECTORS.courseTree.nameClass);
+    if (!nameSpan)
+      return node.matches(SELECTORS.courseTree.titleSelector)
         ? "Title"
         : "Unknown";
-    }
-    if (nameSpan.onclick == null) {
-      return "Blocking";
-    }
-    return node.querySelector(DOM.courseTree.unfinishedClass)
+    if (nameSpan.onclick == null) return "Blocking";
+    return node.matches(SELECTORS.courseTree.unfinishedSelector)
       ? "Interactive"
       : "Finished";
   };
@@ -299,13 +359,13 @@
   /** @type {(taskDoc: Document) => "Video" | "PDF" | "Quiz"} */
   const classifyTask = (taskDoc) => {
     const url = taskDoc.location.href;
-    if (url.includes(DOM.urls.video)) return "Video";
-    if (url.includes(DOM.urls.pdf)) return "PDF";
-    if (url.includes(DOM.urls.quiz)) {
+    if (url.includes(SELECTORS.urls.video)) return "Video";
+    if (url.includes(SELECTORS.urls.pdf)) return "PDF";
+    if (url.includes(SELECTORS.urls.quiz)) {
       assert(config.hasBackend, "未开启后端服务，无法处理Quiz任务点");
       return "Quiz";
     }
-    assert(false, `未识别的任务点类型: ${url}`);
+    throw new Error(`未识别的任务点类型: ${url}`);
   };
 
   /** @type {(taskDoc: Document) => Promise<void>} */
@@ -313,18 +373,23 @@
     console.info("开始处理Video任务点");
     const launchBtn = await wait.element(
       null,
-      DOM.video.launchBtnClass,
+      SELECTORS.video.launchBtnClass,
       taskDoc,
-      false,
+      "未找到视频播放按钮",
     );
     const videoEl = /** @type {HTMLMediaElement} */ (
-      await wait.element(null, DOM.video.tag, taskDoc, "未找到视频播放控件")
+      await wait.element(
+        null,
+        SELECTORS.video.tag,
+        taskDoc,
+        "未找到视频播放控件",
+      )
     );
     if (config.muteVideo) muteVideo(videoEl);
 
     const isStarted = await wait.until(() => {
       if (videoEl?.currentTime > 0 && !videoEl.paused) return true;
-      launchBtn?.click();
+      launchBtn.click();
       return null;
     });
     if (!isStarted) throw new Error("视频多次尝试无法启动播放");
@@ -347,7 +412,7 @@
     console.info("开始处理PDF任务点");
     const pdfDoc = await wait.iframeDoc(
       null,
-      DOM.pdf.iframeId,
+      SELECTORS.pdf.iframeId,
       taskDoc,
       "获取 PDF 框架文档超时",
     );
@@ -386,7 +451,9 @@
    */
   const cleanup = (quizDiv) => {
     /** @type {NodeListOf<HTMLElement>} */
-    const selectedList = quizDiv.querySelectorAll(DOM.quiz.clearSelectedClass);
+    const selectedList = quizDiv.querySelectorAll(
+      SELECTORS.quiz.clearSelectedClass,
+    );
     for (const el of selectedList) /** @type {HTMLElement} */ (el).click();
   };
 
@@ -446,7 +513,7 @@
   const setUEditorContent = async (container, text, errorPrefix) => {
     const textarea = await wait.element(
       null,
-      DOM.quiz.textarea,
+      SELECTORS.quiz.textarea,
       container,
       `${errorPrefix}未找到答案 textarea 节点`,
     );
@@ -469,7 +536,11 @@
     const ansArr = String(content)
       .split(";")
       .map((s) => s.trim());
-    const itemDivs = await wait.elements(null, DOM.quiz.blankItemDiv, quizDiv);
+    const itemDivs = await wait.elements(
+      null,
+      SELECTORS.quiz.blankItemDiv,
+      quizDiv,
+    );
 
     for (const [index, itemDiv] of itemDivs.entries()) {
       assert(ansArr[index], `填空题缺少第 ${index + 1} 空的对应答案，拒绝提交`);
@@ -503,7 +574,7 @@
     };
     for (const [index, quizDiv] of quizList.entries()) {
       cleanup(quizDiv);
-      const titleEl = quizDiv.querySelector(DOM.quiz.titleClass);
+      const titleEl = quizDiv.querySelector(SELECTORS.quiz.titleClass);
       assert(
         titleEl?.textContent,
         `第 ${index + 1} 题未能获取题目标题，拒绝提交`,
@@ -520,13 +591,13 @@
     console.info("开始处理Quiz任务点");
     const quizDoc = await wait.iframeDoc(
       null,
-      DOM.quiz.frameContentId,
+      SELECTORS.quiz.frameContentId,
       taskDoc,
       "获取答题框架文档超时",
     );
     const quizList = await wait.elements(
       null,
-      DOM.quiz.singleQuesClass,
+      SELECTORS.quiz.singleQuesClass,
       quizDoc,
     );
 
@@ -546,7 +617,7 @@
 
     const submitBtn = await wait.element(
       null,
-      DOM.quiz.btnSubmitClass,
+      SELECTORS.quiz.btnSubmitClass,
       quizDoc,
       "未找到题目提交按钮",
     );
@@ -554,13 +625,13 @@
 
     const modal = await wait.element(
       null,
-      DOM.quiz.modalId,
+      SELECTORS.quiz.modalId,
       document,
       "未找到提交确认弹窗",
     );
     const popOkBtn = await wait.element(
       null,
-      DOM.quiz.modalOkBtnId,
+      SELECTORS.quiz.modalOkBtnId,
       modal,
       "未找到弹窗确认按钮",
     );
@@ -582,13 +653,18 @@
   const handleTab = async (chapterDoc) => {
     const containers = await wait.elements(
       null,
-      DOM.taskPoint.containerSelector,
+      SELECTORS.taskPoint.containerSelector,
       chapterDoc,
     );
     for (const [index, container] of containers.entries()) {
       const taskInfo = `第 ${index + 1}/${containers.length} 个任务点`;
-      const taskIframe = /** @type {HTMLIFrameElement | null} */ (
-        await wait.element(null, DOM.taskPoint.iframeTag, container, false)
+      const taskIframe = /** @type {HTMLIFrameElement} */ (
+        await wait.element(
+          null,
+          SELECTORS.taskPoint.iframeTag,
+          container,
+          "未找到任务点 iframe 节点",
+        )
       );
       const taskDoc = await wait.until(() => getReadyIframeDoc(taskIframe));
       assert(taskDoc, "获取任务文档失败，文档对象为空");
@@ -600,9 +676,10 @@
         Quiz: handleQuiz, // 依赖tauriInvoke来AI答题
       };
       const type = classifyTask(taskDoc);
+      await emit.taskProgress(index, type);
       const handler = taskHandler[type];
       const isFinished = container.classList.contains(
-        DOM.taskPoint.finishedClass,
+        SELECTORS.taskPoint.finishedClass,
       );
       if (isFinished && !config.debugTaskTypes.includes(type)) {
         console.info(`${taskInfo} 已完成，自动跳过`);
@@ -620,21 +697,23 @@
   /** @type {(node: HTMLElement) => Promise<void>} */
   const handleChapter = async (node) => {
     /** @type {HTMLElement | null} */
-    const nameSpan = node.querySelector(DOM.courseTree.nameClass);
+    const nameSpan = node.querySelector(SELECTORS.courseTree.nameClass);
     assert(nameSpan, "节点获取章节名称失败");
     console.info(`开始进入章节[${nameSpan.getAttribute("title")}]`);
 
-    // 单页章节依然保留了隐藏的 Tab 元素
-    for (const tab of await wait.elements(
+    // 单页章节依然保留了隐藏的 Tab 元素，因此至少有一个 Tab
+    const tabs = await wait.elements(
       () => nameSpan.click(),
-      DOM.chapter.tabClass,
+      SELECTORS.chapter.tabClass,
       document,
-    )) {
+    );
+    for (const [index, tab] of tabs.entries()) {
+      await emit.tabProgress(index, tabs.length);
       await safeRun(async () => {
         console.info("等待章节主框架加载");
         const chapterDoc = await wait.iframeDoc(
           () => tab.click(),
-          DOM.frames.chapterFrameId,
+          SELECTORS.frames.chapterFrameId,
           document,
           "获取章节主框架超时",
         );
@@ -646,7 +725,7 @@
 
   /** 脚本全流程执行主入口 */
   const main = async () => {
-    await config.loadFromBackend(tauriInvoke);
+    await config.loadFromBackend();
 
     const speedInfo = config.lockingSpeed
       ? `${config.videoSpeedValue}x (已锁定)`
@@ -666,7 +745,6 @@
 
 是否确认开始运行？`,
     );
-
     if (!isConfirmed) {
       console.info("用户已取消脚本运行");
       return;
@@ -675,26 +753,19 @@
       const status = chapterNodeStatus(node);
       return status === "Interactive" || status === "Finished";
     });
+    await emit.totalProgress(chapterList);
+
     for (const [index, node] of chapterList.entries()) {
+      await emit.chapterProgress(index, node, chapterList);
       if (
         chapterNodeStatus(node) === "Finished" &&
         config.debugTaskTypes.length === 0
       ) {
         continue;
       }
-      if (config.hasBackend) {
-        await tauriInvoke("send_chapter_status", {
-          status: {
-            total: chapterList.length,
-            completed: index + 1,
-            title: node
-              .querySelector(DOM.courseTree.nameClass)
-              ?.getAttribute("title"),
-          },
-        });
-      }
       await safeRun(() => handleChapter(node), "章节处理失败，自动跳过该章节");
     }
+    await emit.finished();
   };
 
   main();

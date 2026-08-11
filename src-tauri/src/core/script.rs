@@ -9,7 +9,6 @@ pub fn obtain(t: Type) -> Option<&'static str> {
     match t {
         Type::Course => Some(include_str!("../scripts/core.js")),
         Type::MainSpace => Some(include_str!("../scripts/modify-targets.js")),
-        Type::Mask => Some(include_str!("../scripts/show-mask.js")),
         Type::Login => Some(include_str!("../scripts/click-auto-login.js")),
         _ => None,
     }
@@ -33,8 +32,6 @@ pub fn load_on(webview: tauri::Webview, payload: tauri::webview::PageLoadPayload
             log::debug!("正在注入脚本到Webview \"{}\"...", webview.label());
             if let Err(e) = webview.eval(script) {
                 log::error!("Webview \"{}\" 脚本注入失败: {}", webview.label(), e);
-            } else {
-                log::info!("Webview \"{}\" 脚本注入成功", webview.label())
             }
         } else {
             log::debug!("当前URL不需要注入脚本, 跳过注入");

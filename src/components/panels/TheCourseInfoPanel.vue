@@ -28,14 +28,21 @@ onUnmounted(() => {
   <div class="body">
     <div class="config">
       <h2>章节处理状态</h2>
-      <div v-if="chapterStatus" class="status-card">
+      <div
+        v-if="chapterStatus"
+        class="status-card"
+      >
         <div class="status-item">
           <span class="label">当前章节：</span>
-          <span class="value title">{{ chapterStatus.title || "未知章节" }}</span>
+          <span class="value title">{{
+            chapterStatus.title || "未知章节"
+          }}</span>
         </div>
         <div class="status-item">
           <span class="label">处理进度：</span>
-          <span class="value">{{ chapterStatus.completed }} / {{ chapterStatus.total }}</span>
+          <span class="value"
+            >{{ chapterStatus.completed }} / {{ chapterStatus.total }}</span
+          >
         </div>
         <div class="progress-bar-bg">
           <div
@@ -46,7 +53,12 @@ onUnmounted(() => {
           ></div>
         </div>
       </div>
-      <p v-else class="placeholder">等待接收章节状态通知...</p>
+      <p
+        v-else
+        class="placeholder"
+      >
+        等待接收章节状态通知...
+      </p>
     </div>
   </div>
 </template>
