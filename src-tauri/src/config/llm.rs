@@ -34,22 +34,63 @@ pub struct LLMConfig {
 
 impl Default for LLMConfig {
     fn default() -> Self {
-        let mut providers: HashMap<String, LLMProvider> =
+        let providers: HashMap<String, LLMProvider> =
             serde_json::from_str(include_str!("./llm/providers.default.json"))
                 .expect("无法解析默认 LLM 提供商预设配置文件 (providers.default.json)");
-
-        // 初始化时从本地 Ollama 服务拉取可用模型列表
-        if let Some(p) = providers.get_mut("ollama") {
-            let models = ollama::fetch_models(&p.base_url);
-            if !models.is_empty() {
-                p.models = models;
-                p.chosen_model = Some(0);
-            }
-        }
 
         Self {
             active_provider: Mutex::new("bigmodel".to_string()),
             providers: Mutex::new(providers),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_llm_default_config_preset_providers() {
+        let config = LLMConfig::default();
+        assert_eq!(*config.active_provider.lock(), "bigmodel");
+
+        let providers = config.providers.lock();
+        let expected_online_providers = [
+            ("bigmodel", "BigModel", LLMProtocol::OpenAIChatCompletions),
+            ("deepseek", "DeepSeek", LLMProtocol::OpenAIChatCompletions),
+            ("google", "Google", LLMProtocol::GoogleGemini),
+            ("moonshot", "Moonshot", LLMProtocol::OpenAIChatCompletions),
+            ("openai", "OpenAI", LLMProtocol::OpenAIResponses),
+            ("openrouter", "OpenRouter", LLMProtocol::OpenAIChatCompletions),
+        ];
+
+        for (id, expected_name, expected_protocol) in expected_online_providers {
+            let provider = providers
+                .get(id)
+                .unwrap_or_else(|| panic!("默认预设必须包含提供商: {}", id));
+            assert_eq!(provider.name, expected_name);
+            assert_eq!(provider.protocol, expected_protocol);
+            assert!(
+                provider.base_url.starts_with("https://"),
+                "提供商 {} 的 URL 必须以 https:// 开头: {}",
+                id,
+                provider.base_url
+            );
+            assert!(
+                !provider.models.is_empty(),
+                "提供商 {} 的支持模型列表不能为空",
+                id
+            );
+            let chosen_idx = provider
+                .chosen_model
+                .unwrap_or_else(|| panic!("提供商 {} 必须有默认选中的模型索引", id));
+            assert!(
+                chosen_idx < provider.models.len(),
+                "提供商 {} 的选择索引超出范围: {} >= {}",
+                id,
+                chosen_idx,
+                provider.models.len()
+            );
         }
     }
 }

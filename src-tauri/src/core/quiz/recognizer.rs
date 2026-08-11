@@ -36,10 +36,18 @@ impl Default for CrnnEngine {
 
 impl CrnnEngine {
     fn decode_output(&self, indices: &[usize], length: usize) -> Result<String> {
+        Self::decode_output_with_labels(&self.labels, indices, length)
+    }
+
+    fn decode_output_with_labels(
+        labels: &[&str],
+        indices: &[usize],
+        length: usize,
+    ) -> Result<String> {
         let mut output = String::new();
         for i in 0..length {
             if indices[i] != 0 && !(i > 0 && indices[i - 1] == indices[i]) {
-                if let Some(label) = self.labels.get(indices[i] - 1) {
+                if let Some(label) = labels.get(indices[i] - 1) {
                     output.push_str(label);
                 }
             }
@@ -108,3 +116,30 @@ impl CrnnEngine {
 }
 
 pub static CRNN: LazyLock<CrnnEngine> = LazyLock::new(CrnnEngine::default);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ctc_decode_output_algorithm() {
+        let labels = vec!["A", "B", "C", "D"];
+
+        // 测试项 1: CTC Blank (0) 被滤除，连续重复字符被压缩
+        // 索引序列: [1, 1, 0, 2, 2, 3, 0, 4] -> 对应 1(A), 2(B), 3(C), 4(D) -> 结果应为 "ABCD"
+        let indices = vec![1, 1, 0, 2, 2, 3, 0, 4];
+        let decoded =
+            CrnnEngine::decode_output_with_labels(&labels, &indices, indices.len()).unwrap();
+        assert_eq!(decoded, "ABCD");
+
+        // 测试项 2: 空序列处理
+        let decoded_empty = CrnnEngine::decode_output_with_labels(&labels, &[], 0).unwrap();
+        assert_eq!(decoded_empty, "");
+
+        // 测试项 3: 全为 CTC Blank (0) 索引
+        let blanks = vec![0, 0, 0, 0];
+        let decoded_blanks =
+            CrnnEngine::decode_output_with_labels(&labels, &blanks, blanks.len()).unwrap();
+        assert_eq!(decoded_blanks, "");
+    }
+}

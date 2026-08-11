@@ -20,3 +20,26 @@ impl Default for OptionsConfig {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_options_config_serde_and_default() {
+        let opts = OptionsConfig::default();
+        assert!(opts.persist_session);
+        assert!(opts.mute_webview);
+        assert!(!opts.speed_lock);
+        assert_eq!(opts.speed_value, 2.0);
+
+        let json = serde_json::to_string(&opts).unwrap();
+        assert!(json.contains("\"persistSession\":true"));
+        assert!(json.contains("\"muteWebview\":true"));
+        assert!(json.contains("\"speedLock\":false"));
+        assert!(json.contains("\"speedValue\":2.0"));
+
+        let deserialized: OptionsConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.speed_value, 2.0);
+    }
+}
