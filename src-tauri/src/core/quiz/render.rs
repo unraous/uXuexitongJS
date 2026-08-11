@@ -26,58 +26,51 @@ fn codepoint(glyph_id: u16, cmap: ttf_parser::cmap::Table) -> Option<u32> {
     None
 }
 
+use rayon::prelude::*;
+
 pub fn render_glyphs(font_data: &[u8]) -> Result<Vec<GlyphImage>> {
     let face = Face::parse(font_data, 0)?;
     let font = Font::from_bytes(font_data, fontdue::FontSettings::default())
         .map_err(|e| anyhow::anyhow!(e))?;
+    let cmap = face.tables().cmap;
 
-    let mut results = Vec::new();
-
-    // 遍历字体中的所有字形
-    for glyph_id in 0..face.number_of_glyphs() {
-        let Some(cmap) = face.tables().cmap else {
-            continue;
-        };
-        if let Some(cp) = codepoint(glyph_id, cmap) {
-            let char_val = char::from_u32(cp).expect("Invalid character");
+    let num_glyphs = face.number_of_glyphs();
+    let results: Vec<GlyphImage> = (0..num_glyphs)
+        .into_par_iter()
+        .filter_map(|glyph_id| {
+            let cmap = cmap?;
+            let cp = codepoint(glyph_id, cmap)?;
+            let char_val = char::from_u32(cp)?;
             let (metrics, bitmap) = font.rasterize(char_val, 64.0);
 
             let orig_width = metrics.width as u32;
             let orig_height = metrics.height as u32;
 
             if orig_width == 0 || orig_height == 0 {
-                continue;
-            };
+                return None;
+            }
 
-            // 反转颜色
-            let inverted_bitmap: Vec<u8> = bitmap.iter().map(|&b| 255 - b).collect();
-
-            // 直接创建包含padding的图像
             let padded_width = orig_width + 2 * PADDING;
             let padded_height = orig_height + 2 * PADDING;
             let mut luma =
                 image::ImageBuffer::<image::Luma<u8>, Vec<u8>>::new(padded_width, padded_height);
 
-            // 填充白色背景
             for pixel in luma.pixels_mut() {
                 *pixel = image::Luma([255u8]);
             }
 
-            // 直接在中心位置复制bitmap数据
-            for (i, &b) in inverted_bitmap.iter().enumerate() {
+            for (i, &b) in bitmap.iter().enumerate() {
                 let x = (i % orig_width as usize) as u32 + PADDING;
                 let y = (i / orig_width as usize) as u32 + PADDING;
-                luma.put_pixel(x, y, image::Luma([b]));
+                luma.put_pixel(x, y, image::Luma([255 - b]));
             }
 
-            let img = DynamicImage::ImageLuma8(luma);
-
-            results.push(GlyphImage {
+            Some(GlyphImage {
                 original_char: char_val,
-                image: img,
-            });
-        }
-    }
+                image: DynamicImage::ImageLuma8(luma),
+            })
+        })
+        .collect();
 
     Ok(results)
 }

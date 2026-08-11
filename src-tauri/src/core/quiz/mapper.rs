@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::collections::HashMap;
 
 use super::html::{HtmlExtractPayload, Question};
@@ -5,20 +6,22 @@ use super::recognizer::CRNN;
 use super::render::render_glyphs;
 
 fn map_font(font: &[u8]) -> HashMap<char, char> {
-    let mut font_map = HashMap::new();
     let glyphs = render_glyphs(font).unwrap_or_default();
-    log::debug!("成功渲染 {} 个字形", glyphs.len());
 
-    for glyph in glyphs {
-        font_map.insert(
-            glyph.original_char,
-            CRNN.predict(glyph.image)
+    let font_map: HashMap<char, char> = glyphs
+        .into_par_iter()
+        .map(|glyph| {
+            let recognized_char = CRNN
+                .predict(glyph.image)
                 .unwrap_or_default()
                 .chars()
                 .next()
-                .unwrap_or('?'),
-        );
-    }
+                .unwrap_or('?');
+            (glyph.original_char, recognized_char)
+        })
+        .collect();
+
+    log::debug!("成功解析并识别 {} 个字形", font_map.len());
     font_map
 }
 
@@ -105,8 +108,9 @@ mod tests {
     fn test_decrypt_flow() {
         let html = include_str!("../../../tests/assets/course-page/webpage.html");
         let raw = HtmlExtractPayload::new(html).expect("Failed to parse HTML");
+        let start = std::time::Instant::now();
         let decrypted = decrypt(raw);
-        println!("Decrypted questions: {:#?}", decrypted);
+        println!("🚀 字体 OCR 解密解析 256 个字形总耗时: {:?}", start.elapsed());
 
         let f = std::fs::File::create("tests/assets/course-page/decrypted.json")
             .expect("create output file failed");

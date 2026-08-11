@@ -6387,6 +6387,7 @@ dependencies = [
  "image",
  "log",
  "parking_lot",
+ "rayon",
  "regex",
  "reqwest",
  "scraper",

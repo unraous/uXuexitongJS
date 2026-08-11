@@ -55,6 +55,7 @@ bytemuck = "1.25.2"
 parking_lot = { version = "0.12.5", features = ["serde"] }
 tract = "0.23.4"
 thiserror = "2.0.19"
+rayon = "1.10.0"
 
 
 [workspace]
