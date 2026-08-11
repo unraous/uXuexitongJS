@@ -35,3 +35,10 @@
   Split monolithic match blocks into focused, single-responsibility helper functions. Avoid repeating module or protocol prefixes in function names when already scoped in submodules (e.g., `chat_completions()` instead of `solve_openai_chat_completions()`).
 - **Idiomatic Rust Matching**:
   Do NOT use `ref` when pattern-matching `Copy` or reference types (`Option<&str>`). Keep Serde attributes minimal and natural.
+
+## 5. Direct Execution Without Preamble (直接执行，拒绝套话与多余评述)
+
+- **No Value Judgments / Preamble Chatter**:
+  当用户提出具体的代码变更或修改需求且意图明确时，直接执行操作或展示代码变更，严禁附加如“这个职责分离设计非常合乎逻辑”、“这符合最佳实践”等无实操信息的评述或套话前言。
+- **Exception for Technical Risks**:
+  仅当技术方案存在明确的技术隐患、方案冲突或会导致代码报错/破坏现有架构时，才提出针对性风险分析与提醒。

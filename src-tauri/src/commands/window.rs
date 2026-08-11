@@ -10,6 +10,5 @@ pub async fn close(window: Window) {
 #[tauri::command]
 #[specta::specta]
 pub fn minimize(window: Window) {
-    log::debug!("正在最小化窗口");
     window.minimize().ok();
 }

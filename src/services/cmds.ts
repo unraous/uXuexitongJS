@@ -26,8 +26,8 @@ export const commands = {
 	setKey: (key: string) => __TAURI_INVOKE<void>("set_key", { key }),
 	/**  将内存中的全局配置持久化保存至本地文件。 */
 	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
-	/**  从本地 Ollama 服务重新拉取可用模型列表并更新内存配置。 */
-	refreshOllamaModels: () => typedError<string[], string>(__TAURI_INVOKE("refresh_ollama_models")),
+	/**  从本地 Ollama 服务拉取可用模型列表更新至内存配置。 */
+	fetchOllamaModels: () => typedError<null, string>(__TAURI_INVOKE("fetch_ollama_models")),
 	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
 	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),

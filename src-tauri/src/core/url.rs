@@ -5,7 +5,6 @@ pub enum Type {
     Course,
     Login,
     MainSpace,
-    Mask,
     Other,
     Unknown,
 }
@@ -14,23 +13,17 @@ pub enum Type {
 pub fn classify(url: &tauri::Url) -> Type {
     let host = url.host_str().unwrap_or_default();
 
-    if url.as_str() == "about:blank" {
-        return Type::Mask;
-    }
-
     if host != "chaoxing.com" && !host.ends_with(".chaoxing.com") {
         return Type::Unknown;
     }
 
     let sub = host.split('.').next().unwrap_or_default();
-    let result = match sub {
+    match sub {
         "i" => Type::MainSpace,
         "mooc1" if url.path().starts_with("/mycourse/") => Type::Course,
         "passport2" if url.path().starts_with("/login") => Type::Login,
         _ => Type::Other,
-    };
-
-    result
+    }
 }
 
 #[cfg(test)]
@@ -49,9 +42,6 @@ mod tests {
             .parse()
             .unwrap();
         assert_eq!(classify(&url), Type::Login);
-
-        let url = "about:blank".parse().unwrap();
-        assert_eq!(classify(&url), Type::Mask);
 
         let url = "https://example.com".parse().unwrap();
         assert_eq!(classify(&url), Type::Unknown);
