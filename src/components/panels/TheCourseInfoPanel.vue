@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { TaskStatus } from "@/services/cmds";
+import type { CourseStatus } from "@/services/cmds";
 
-const chapterStatus = ref<TaskStatus | null>(null);
+const chapterStatus = ref<CourseStatus | null>(null);
 let unlisten: UnlistenFn | null = null;
 
 onMounted(async () => {
   try {
-    unlisten = await listen<TaskStatus>("chapter-status-update", (event) => {
+    unlisten = await listen<CourseStatus>("chapter-status-update", (event) => {
       chapterStatus.value = event.payload;
     });
   } catch (err) {
@@ -28,37 +28,6 @@ onUnmounted(() => {
   <div class="body">
     <div class="config">
       <h2>章节处理状态</h2>
-      <div
-        v-if="chapterStatus"
-        class="status-card"
-      >
-        <div class="status-item">
-          <span class="label">当前章节：</span>
-          <span class="value title">{{
-            chapterStatus.title || "未知章节"
-          }}</span>
-        </div>
-        <div class="status-item">
-          <span class="label">处理进度：</span>
-          <span class="value"
-            >{{ chapterStatus.completed }} / {{ chapterStatus.total }}</span
-          >
-        </div>
-        <div class="progress-bar-bg">
-          <div
-            class="progress-bar-fill"
-            :style="{
-              width: `${Math.min(100, Math.max(0, (chapterStatus.completed / chapterStatus.total) * 100))}%`,
-            }"
-          ></div>
-        </div>
-      </div>
-      <p
-        v-else
-        class="placeholder"
-      >
-        等待接收章节状态通知...
-      </p>
     </div>
   </div>
 </template>

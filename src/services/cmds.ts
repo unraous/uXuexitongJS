@@ -4,7 +4,7 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 
 /** Commands */
 export const commands = {
-	sendChapterStatus: (status: TaskStatus) => typedError<null, string>(__TAURI_INVOKE("send_chapter_status", { status })),
+	sendStatus: (status: CourseStatus) => typedError<null, string>(__TAURI_INVOKE("send_status", { status })),
 	/**  获取包含版本及作者信息的应用元数据。 */
 	metadata: () => __TAURI_INVOKE<MetadataConfig>("metadata"),
 	options: () => __TAURI_INVOKE<OptionsConfig>("options"),
@@ -43,6 +43,14 @@ export const commands = {
 };
 
 /* Types */
+export type ChapterProgressPayload = {
+	index: number,
+	completed: number,
+	title: string,
+};
+
+export type CourseStatus = ({ totalProgress: TotalProgressPayload }) & { chapterProgress?: never; tabProgress?: never; taskProgress?: never } | ({ chapterProgress: ChapterProgressPayload }) & { tabProgress?: never; taskProgress?: never; totalProgress?: never } | ({ tabProgress: TabProgressPayload }) & { chapterProgress?: never; taskProgress?: never; totalProgress?: never } | ({ taskProgress: TaskProgressPayload }) & { chapterProgress?: never; tabProgress?: never; totalProgress?: never } | "finished";
+
 export type MetadataConfig = {
 	author?: string,
 	title?: string,
@@ -58,9 +66,18 @@ export type OptionsConfig = {
 	speedValue?: number | null,
 };
 
-export type TaskStatus = {
+export type TabProgressPayload = {
 	total: number,
-	completed: number,
+	index: number,
+};
+
+export type TaskProgressPayload = {
+	index: number,
+	category: string,
+};
+
+export type TotalProgressPayload = {
+	total: number,
 	title: string,
 };
 

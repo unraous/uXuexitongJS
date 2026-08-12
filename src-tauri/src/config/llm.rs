@@ -15,11 +15,11 @@ pub enum LLMProtocol {
 /// 统一的大模型提供商结构体（内置与用户自定义提供商通用纯数据 DTO）
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LLMProvider {
-    pub name: String,                // 提供商显示名称 (如 "DeepSeek 官方", "我的私有中转站")
-    pub protocol: LLMProtocol,       // 采用的 API 协议族
-    pub base_url: String,            // 接口基础 URL
-    pub api_key: Option<String>,     // API Key (Option 允许免 Key / 未配置)
-    pub models: Vec<String>,         // 支持的模型列表
+    pub name: String,            // 提供商显示名称 (如 "DeepSeek 官方", "我的私有中转站")
+    pub protocol: LLMProtocol,   // 采用的 API 协议族
+    pub base_url: String,        // 接口基础 URL
+    pub api_key: Option<String>, // API Key (Option 允许免 Key / 未配置)
+    pub models: Vec<String>,     // 支持的模型列表
     pub chosen_model: Option<usize>, // 当前选择的模型在 models 列表中的索引
     pub extra_body: Option<serde_json::Value>, // 协议特定额外 Body 参数 (如 temperature, stream)
 }
@@ -61,7 +61,11 @@ mod tests {
             ("google", "Google", LLMProtocol::GoogleGemini),
             ("moonshot", "Moonshot", LLMProtocol::OpenAIChatCompletions),
             ("openai", "OpenAI", LLMProtocol::OpenAIResponses),
-            ("openrouter", "OpenRouter", LLMProtocol::OpenAIChatCompletions),
+            (
+                "openrouter",
+                "OpenRouter",
+                LLMProtocol::OpenAIChatCompletions,
+            ),
         ];
 
         for (id, expected_name, expected_protocol) in expected_online_providers {
