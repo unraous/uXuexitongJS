@@ -1,7 +1,6 @@
 mod html;
 mod mapper;
-mod recognizer;
-mod render;
+mod typr;
 
 pub mod llm;
 
@@ -12,7 +11,7 @@ use mapper::decrypt;
 use crate::config::CONFIG;
 use anyhow::Result;
 
-/// 使用 CRNN ONNX 模型动态解析与解密混淆题目，并结合当前全局配置的大语言模型自动生成测验答案。
+/// 使用字体哈希字典解密混淆题目，并结合当前全局配置的大语言模型自动生成测验答案。
 pub async fn solve(html: &str) -> Result<Vec<AnswerItem>> {
     let decrypted = decrypt(HtmlExtractPayload::new(html)?);
     if decrypted.is_empty() {
@@ -33,8 +32,6 @@ pub async fn solve(html: &str) -> Result<Vec<AnswerItem>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
-    use std::path::PathBuf;
 
     #[tokio::test]
     async fn test_solve_html_integration() {
@@ -42,10 +39,8 @@ mod tests {
         let api_key = std::env::var("BIGMODEL_API_KEY")
             .expect("请在 .env 文件或环境变量中设置 BIGMODEL_API_KEY");
 
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("tests/assets/course-page/webpage.html");
-        let html_content = fs::read_to_string(&path)
-            .unwrap_or_else(|_| panic!("Failed to find test webpage.html at {:?}", path));
+        let compressed = include_bytes!("../../tests/assets/course-page/webpage.html.gz");
+        let html_content = super::html::load_test_html(compressed);
 
         let payload =
             HtmlExtractPayload::new(&html_content).expect("Failed to parse HTML questions");

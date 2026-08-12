@@ -1,4 +1,3 @@
-// 关于 Tauri 命令调用的详细文档请参考：https://tauri.app/develop/calling-rust/
 pub mod app;
 pub mod commands;
 pub mod config;
@@ -12,7 +11,10 @@ pub fn run() {
     core::logger::init().expect("Failed to initialize logger");
 
     // 禁用 WebView2 硬件 GPU 加速以降低 100MB+ 内存占用并提升性能
-    std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
+    std::env::set_var(
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "--disable-gpu --lang=zh-CN --accept-lang=zh-CN,zh",
+    );
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
