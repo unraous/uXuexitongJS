@@ -1,0 +1,2 @@
+# 忽略代码自动生成目标文件
+src/services/cmds.ts

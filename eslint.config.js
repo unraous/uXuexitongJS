@@ -48,6 +48,6 @@ export default [
   },
   {
     // 忽略生成文件与依赖目录
-    ignores: ["dist/**", "src-tauri/target/**", "node_modules/**"],
+    ignores: ["dist/**", "src-tauri/target/**", "node_modules/**", "src/services/cmds.ts"],
   },
 ];

@@ -1,0 +1,67 @@
+{
+  "format_on_save": "on",
+  "formatter": "prettier",
+  "tab_size": 2,
+  "hard_tabs": false,
+  "inlay_hints": {
+    "enabled": true,
+  },
+  "languages": {
+    "Rust": {
+      "formatter": "language_server",
+      "inlay_hints": {
+        "enabled": true,
+      },
+    },
+  },
+  "lsp": {
+    "eslint": {
+      "settings": {
+        "eslint": {
+          "options": {
+            "--no-warn-ignored": true,
+          },
+        },
+      },
+    },
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": {
+          "command": "clippy",
+        },
+        "inlayHints": {
+          "bindingModeHints": {
+            "enable": true,
+          },
+          "closingBraceHints": {
+            "minLines": 25,
+          },
+          "closureCaptureHints": {
+            "enable": true,
+          },
+          "closureReturnTypeHints": {
+            "enable": "always",
+          },
+          "discriminantHints": {
+            "enable": "always",
+          },
+          "lifetimeElisionHints": {
+            "enable": "always",
+            "useParameterNames": true,
+          },
+          "parameterHints": {
+            "enable": true,
+          },
+          "reborrowHints": {
+            "enable": "always",
+          },
+          "typeHints": {
+            "enable": true,
+            "hideClosureInitialization": false,
+            "hideNamedConstructor": false,
+          },
+        },
+      },
+    },
+  },
+}
