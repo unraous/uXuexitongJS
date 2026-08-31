@@ -27,11 +27,8 @@ export default [
   },
   {
     rules: {
-      // 允许控制台打印
       "no-console": "off",
-      // 避免出现未使用的变量
       "@typescript-eslint/no-unused-vars": "warn",
-      // 与 Prettier 保持一致，允许 HTML 空元素自闭合 (<input />)
       "vue/html-self-closing": [
         "error",
         {
@@ -47,7 +44,11 @@ export default [
     },
   },
   {
-    // 忽略生成文件与依赖目录
-    ignores: ["dist/**", "src-tauri/target/**", "node_modules/**", "src/services/cmds.ts"],
+    ignores: [
+      "dist/**",
+      "src-tauri/target/**",
+      "node_modules/**",
+      "src/services/cmds.ts",
+    ],
   },
 ];

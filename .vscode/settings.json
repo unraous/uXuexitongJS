@@ -1,0 +1,14 @@
+{
+  "rust-analyzer.check.command": "clippy",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "[javascript]": {
+    "editor.tabSize": 2,
+  },
+  "[typescript]": {
+    "editor.tabSize": 2,
+  },
+  "[vue]": {
+    "editor.tabSize": 2,
+  },
+}

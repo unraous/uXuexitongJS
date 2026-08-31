@@ -17,11 +17,7 @@
   "lsp": {
     "eslint": {
       "settings": {
-        "eslint": {
-          "options": {
-            "--no-warn-ignored": true,
-          },
-        },
+        "onIgnoredFiles": "off",
       },
     },
     "rust-analyzer": {
