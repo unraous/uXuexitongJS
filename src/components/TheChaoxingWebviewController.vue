@@ -6,7 +6,7 @@ import RefreshIcon from "@/assets/refresh.svg?component";
 import HomeIcon from "@/assets/home.svg?component";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import UxsButton from "@/components/base/UxsButton.vue";
+import VButton from "@/components/base/VButton.vue";
 import { commands } from "@/services/cmds";
 
 const console = globalThis.console;
@@ -121,7 +121,7 @@ onUnmounted(() => {
 <template>
   <div class="body">
     <div class="navigation">
-      <UxsButton
+      <VButton
         :icon="ArrowIcon"
         :disabled="!canGoBack || isNavigating"
         color="#ebe2cf"
@@ -131,7 +131,7 @@ onUnmounted(() => {
         class="back-btn"
         @click="handleGoBack"
       />
-      <UxsButton
+      <VButton
         :icon="ArrowIcon"
         :disabled="!canGoForward || isNavigating"
         color="#ebe2cf"
@@ -140,7 +140,7 @@ onUnmounted(() => {
         variant="translucent"
         @click="handleGoForward"
       />
-      <UxsButton
+      <VButton
         :icon="RefreshIcon"
         :disabled="isNavigating"
         color="#ebe2cf"
@@ -149,7 +149,7 @@ onUnmounted(() => {
         variant="translucent"
         @click="handleReload"
       />
-      <UxsButton
+      <VButton
         :icon="HomeIcon"
         :disabled="isNavigating"
         color="#ebe2cf"
@@ -163,7 +163,7 @@ onUnmounted(() => {
       <p class="url-text">
         {{ currentUrl }}
       </p>
-      <UxsButton
+      <VButton
         :icon="ZoomOutIcon"
         :disabled="!canZoomOut"
         color="#0d58a4"
@@ -173,7 +173,7 @@ onUnmounted(() => {
         @click="zoomOut"
       />
       <span class="zoom-value">{{ currentZoomText }}</span>
-      <UxsButton
+      <VButton
         :icon="ZoomInIcon"
         :disabled="!canZoomIn"
         color="#0d58a4"

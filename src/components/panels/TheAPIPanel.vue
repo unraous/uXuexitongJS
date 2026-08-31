@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import UxsInput from "@/components/base/UxsInput.vue";
-import UxsSelector from "@/components/base/UxsSelector.vue";
+import VInput from "@/components/base/VInput.vue";
+import VSelector from "@/components/base/VSelector.vue";
 import { commands } from "@/services/cmds.ts";
 
 const provider = ref(0);
@@ -65,17 +65,17 @@ watch(model, async () => {
   <div class="api-panel">
     <h2 class="title">API</h2>
     <div class="settings-container">
-      <UxsSelector
+      <VSelector
         v-model="provider"
         label="Provider"
         :options="providers"
       />
-      <UxsSelector
+      <VSelector
         v-model="model"
         label="Model"
         :options="models"
       />
-      <UxsInput
+      <VInput
         id="api-key-input"
         v-model="apiKey"
         label="API Key"

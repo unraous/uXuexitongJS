@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UxsButton from "@/components/base/UxsButton.vue";
+import VButton from "@/components/base/VButton.vue";
 import TheAPIPanel from "@/components/panels/TheAPIPanel.vue";
 import TheCourseConfigPanel from "@/components/panels/TheCourseConfigPanel.vue";
 import { commands } from "@/services/cmds";
@@ -26,8 +26,14 @@ const saveConfig = async () => {
       <TheAPIPanel ref="apiPanelRef" />
       <TheCourseConfigPanel ref="courseConfigPanelRef" />
     </div>
-    <div class="save-button" @click="saveConfig">
-      <UxsButton label="Save" style="width: 35%; height: 60%; font-size: 1.5rem" />
+    <div
+      class="save-button"
+      @click="saveConfig"
+    >
+      <VButton
+        label="Save"
+        style="width: 35%; height: 60%; font-size: 1.5rem"
+      />
     </div>
   </div>
 </template>

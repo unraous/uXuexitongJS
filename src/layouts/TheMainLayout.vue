@@ -5,7 +5,11 @@ import TheRightLayout from "./TheRightLayout.vue";
 import { onMounted, ref } from "vue";
 import { commands, MetadataConfig } from "@/services/cmds.ts";
 
-const metadata = ref<MetadataConfig>();
+const metadata = ref<MetadataConfig>({
+  title: "uxs",
+  author: "unraous",
+  version: "x.x.x",
+});
 
 onMounted(async () => {
   metadata.value = await commands.metadata();
@@ -14,12 +18,12 @@ onMounted(async () => {
 
 <template>
   <main class="container">
-    <MenuBar :app-title="metadata?.title ?? 'backend error'" />
+    <MenuBar :app-title="metadata.title!" />
     <div class="main-layout">
       <TheLeftLayout />
       <TheRightLayout
-        :author="metadata?.author ?? 'backend error'"
-        :version="metadata?.version ?? '0.0.0'"
+        :author="metadata.author!"
+        :version="metadata.version!"
       />
     </div>
   </main>
@@ -32,6 +36,7 @@ onMounted(async () => {
   width: 100vw;
   flex-direction: column;
   position: relative;
+  background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
 }
 
 .main-layout {

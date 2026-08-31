@@ -15,9 +15,8 @@ globalThis.addEventListener("keydown", (e) => {
 </script>
 
 <template>
-  <TheMainLayout />
   <div @contextmenu.prevent>
-    <MainLayout />
+    <TheMainLayout />
   </div>
 </template>
 
@@ -46,13 +45,13 @@ body,
 
 :root {
   user-select: none;
+  -webkit-text-stroke: 0.25px currentColor;
   font-family: "DefaultFont", Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
   color: #0d58a4;
-  background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
-
+  background-color: transparent;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

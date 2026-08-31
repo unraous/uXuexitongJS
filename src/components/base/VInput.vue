@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useId } from "vue";
-import UxsTextBox from "./UxsTextBox.vue";
-import UxsLabel from "./UxsLabel.vue";
+import VTextBox from "./VTextBox.vue";
+import VLabel from "./VLabel.vue";
 
 const {
   modelValue,
@@ -23,11 +23,11 @@ const emit = defineEmits(["update:modelValue", "change"]);
 <template>
   <div class="base-config-input">
     <!-- 仅保留文本标签，设定固定宽度以确保右侧输入框对齐 -->
-    <UxsLabel
+    <VLabel
       :label="label"
       :for="id"
     />
-    <UxsTextBox
+    <VTextBox
       :id="id"
       :model-value="modelValue"
       :placeholder="placeholder"

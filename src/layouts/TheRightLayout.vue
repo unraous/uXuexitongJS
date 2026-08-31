@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import TheChaoxingWebviewController from "@/components/controllers/TheChaoxingWebviewController.vue";
-import TheCourseInfoPanel from "@/components/panels/TheCourseInfoPanel.vue";
+import TheChaoxingWebviewController from "@/components/TheChaoxingWebviewController.vue";
+import TheCourseDashboard from "@/components/panels/TheCourseDashboard.vue";
 
 defineProps<{
   version: string;
@@ -10,11 +10,11 @@ defineProps<{
 
 <template>
   <div class="right-container">
-    <TheCourseInfoPanel />
-    <!-- 
+    <TheCourseDashboard />
+    <!--
           Placeholder element for the Chaoxing WebView container.
-          Note: This element remains empty because Tauri's native child WebView window 
-          is dynamically positioned and overlayed according to the layout bounds and 
+          Note: This element remains empty because Tauri's native child WebView window
+          is dynamically positioned and overlayed according to the layout bounds and
           geometry of this placeholder (styled by .chaoxing-webview).
 
           Scale-Invariant Proportional Layout Transformation Formulas:

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import UxsInput from "@/components/base/UxsInput.vue";
-import UxsToggle from "@/components/base/UxsToggle.vue";
+import VInput from "@/components/base/VInput.vue";
+import VToggle from "@/components/base/VToggle.vue";
 import { commands, OptionsConfig } from "@/services/cmds.ts";
 
 const options = ref<OptionsConfig>();
@@ -48,19 +48,19 @@ onMounted(async () => {
       v-if="options"
       class="settings-container"
     >
-      <UxsToggle
+      <VToggle
         v-model="options.persistSession"
         label="Perisist Session"
       />
-      <UxsToggle
+      <VToggle
         v-model="options.muteWebview"
         label="Mute Course Webview"
       />
-      <UxsToggle
+      <VToggle
         v-model="options.speedLock"
         label="Lock Playing Speed"
       />
-      <UxsInput
+      <VInput
         id="playing-speed-input"
         v-model.number="speedValue"
         placeholder="input number here"

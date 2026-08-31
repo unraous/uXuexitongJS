@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, useId } from "vue";
-import UxsLabel from "./UxsLabel.vue";
+import VLabel from "./VLabel.vue";
 
 const {
   modelValue,
@@ -32,7 +32,7 @@ onMounted(() => document.addEventListener("click", handleClickOutside));
 
 <template>
   <div class="base-config-select">
-    <UxsLabel
+    <VLabel
       :label="label"
       :for="id"
     />

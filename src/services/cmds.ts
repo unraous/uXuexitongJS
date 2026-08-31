@@ -4,7 +4,7 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 
 /** Commands */
 export const commands = {
-	sendStatus: (status: CourseStatus) => typedError<null, string>(__TAURI_INVOKE("send_status", { status })),
+	sendStatus: (status: CourseStatus) => __TAURI_INVOKE<null>("send_status", { status }),
 	/**  获取包含版本及作者信息的应用元数据。 */
 	metadata: () => __TAURI_INVOKE<MetadataConfig>("metadata"),
 	options: () => __TAURI_INVOKE<OptionsConfig>("options"),
@@ -14,7 +14,7 @@ export const commands = {
 	/**  获取当前选中的大语言模型提供商。 */
 	currentProvider: () => __TAURI_INVOKE<string>("current_provider"),
 	/**  将当前大语言模型提供商切换为指定提供商。 */
-	switchProvider: (provider: string) => typedError<null, string>(__TAURI_INVOKE("switch_provider", { provider })),
+	switchProvider: (provider: string) => __TAURI_INVOKE<null>("switch_provider", { provider }),
 	/**  获取当前大语言模型提供商所支持的全部模型列表。 */
 	models: () => __TAURI_INVOKE<string[]>("models"),
 	/**  获取当前大语言模型提供商正在使用的具体模型名称。 */
@@ -23,19 +23,19 @@ export const commands = {
 	switchModel: (model: string) => __TAURI_INVOKE<void>("switch_model", { model }),
 	apiKey: () => __TAURI_INVOKE<string>("api_key"),
 	/**  设置当前大语言模型提供商的 API 密钥。 */
-	setKey: (key: string) => __TAURI_INVOKE<void>("set_key", { key }),
+	setKey: (key: string) => __TAURI_INVOKE<null>("set_key", { key }),
 	/**  将内存中的全局配置持久化保存至本地文件。 */
-	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
+	saveConfig: () => __TAURI_INVOKE<null>("save_config"),
 	/**  从本地 Ollama 服务拉取可用模型列表更新至内存配置。 */
-	fetchOllamaModels: () => typedError<null, string>(__TAURI_INVOKE("fetch_ollama_models")),
-	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
+	fetchOllamaModels: () => __TAURI_INVOKE<null>("fetch_ollama_models"),
+	setZoom: (scale: number | null) => __TAURI_INVOKE<null>("set_zoom", { scale }),
 	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),
-	goHome: () => typedError<null, string>(__TAURI_INVOKE("go_home")),
-	goBack: () => typedError<null, string>(__TAURI_INVOKE("go_back")),
-	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
+	goHome: () => __TAURI_INVOKE<null>("go_home"),
+	goBack: () => __TAURI_INVOKE<null>("go_back"),
+	goForward: () => __TAURI_INVOKE<null>("go_forward"),
 	currentUrl: () => __TAURI_INVOKE<string | null>("current_url"),
-	reload: () => typedError<null, string>(__TAURI_INVOKE("reload")),
+	reload: () => __TAURI_INVOKE<null>("reload"),
 	/**  带有渐隐过渡效果的应用窗口关闭指令。 */
 	close: () => __TAURI_INVOKE<void>("close"),
 	/**  应用窗口最小化处理指令。 */
@@ -49,7 +49,7 @@ export type ChapterProgressPayload = {
 	title: string,
 };
 
-export type CourseStatus = ({ totalProgress: TotalProgressPayload }) & { chapterProgress?: never; tabProgress?: never; taskProgress?: never } | ({ chapterProgress: ChapterProgressPayload }) & { tabProgress?: never; taskProgress?: never; totalProgress?: never } | ({ tabProgress: TabProgressPayload }) & { chapterProgress?: never; taskProgress?: never; totalProgress?: never } | ({ taskProgress: TaskProgressPayload }) & { chapterProgress?: never; tabProgress?: never; totalProgress?: never } | "finished";
+export type CourseStatus = "waiting" | "started" | ({ totalProgress: TotalProgressPayload }) & { chapterProgress?: never; tabProgress?: never; taskProgress?: never } | ({ chapterProgress: ChapterProgressPayload }) & { tabProgress?: never; taskProgress?: never; totalProgress?: never } | ({ tabProgress: TabProgressPayload }) & { chapterProgress?: never; taskProgress?: never; totalProgress?: never } | ({ taskProgress: TaskProgressPayload }) & { chapterProgress?: never; tabProgress?: never; totalProgress?: never } | "cancelled" | "finished";
 
 export type MetadataConfig = {
 	author?: string,
@@ -80,14 +80,4 @@ export type TotalProgressPayload = {
 	total: number,
 	title: string,
 };
-
-/* Tauri Specta runtime */
-async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {
-    try {
-        return { status: "ok", data: await result };
-    } catch (e) {
-        if (e instanceof Error) throw e;
-        return { status: "error", error: e as any };
-    }
-}
 
