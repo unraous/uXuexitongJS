@@ -61,7 +61,7 @@ flate2 = "1.1"
 
 [workspace]
 members = ["crates/commands_collector"]
-
+default-members = [".", "crates/commands_collector"]
 
 # 降低 debug 调试信息级别（显著减少磁盘 I/O 和链接体积）
 [profile.dev]

@@ -119,16 +119,21 @@ pub fn api_key() -> String {
     let providers = CONFIG.llm.providers.lock();
     let key = providers
         .get(&*active_id)
-        .and_then(|p| p.api_key.clone())
+        .and_then(|p| p.api_key.as_ref())
+        .map(|key| key.expose().to_owned())
         .unwrap_or_default();
-    log::debug!("成功获取当前 API Key: {}...", key);
+    if let Some(key) = providers.get(&*active_id).and_then(|p| p.api_key.as_ref()) {
+        log::debug!("成功获取当前 API Key: {}", key);
+    } else {
+        log::debug!("当前 API Key 未设置");
+    }
     key
 }
 
 /// 设置当前大语言模型提供商的 API 密钥。
 #[tauri::command]
 #[specta::specta]
-pub fn set_key(key: String) {
+pub fn set_key(key: String) -> CommandsResult<()> {
     log::debug!("正在设置 API 密钥...");
     let active_id = CONFIG.llm.active_provider.lock();
     let mut providers = CONFIG.llm.providers.lock();
@@ -136,10 +141,11 @@ pub fn set_key(key: String) {
         p.api_key = if key.trim().is_empty() {
             None
         } else {
-            Some(key)
+            Some(crate::config::llm::ApiKey::new(key)?)
         };
     }
     log::info!("成功设置 API 密钥");
+    Ok(())
 }
 
 /// 将内存中的全局配置持久化保存至本地文件。

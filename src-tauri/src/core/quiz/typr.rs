@@ -7,36 +7,6 @@
 use serde::Serialize;
 use ttf_parser::Face;
 
-pub(crate) fn loca_offsets(font_data: &[u8]) -> Option<Vec<usize>> {
-    let face = Face::parse(font_data, 0).ok()?;
-    let is_32bit = format!("{:?}", face.tables().head.index_to_location_format) == "Long";
-    let loca_bytes = face
-        .raw_face()
-        .table(ttf_parser::Tag::from_bytes(b"loca"))?;
-    let glyf_bytes = face
-        .raw_face()
-        .table(ttf_parser::Tag::from_bytes(b"glyf"))?;
-    let glyf_offset = (glyf_bytes.as_ptr() as usize) - (font_data.as_ptr() as usize);
-    let num_glyphs = face.number_of_glyphs() as usize;
-
-    let entry_size = if is_32bit { 4 } else { 2 };
-    let mut offsets = Vec::with_capacity(num_glyphs + 1);
-    for i in 0..=num_glyphs {
-        let index = i * entry_size;
-        let entry = match loca_bytes.get(index..index + entry_size) {
-            Some(entry) => entry,
-            None => break,
-        };
-        let offset = if is_32bit {
-            u32::from_be_bytes(entry.try_into().ok()?) as usize
-        } else {
-            (u16::from_be_bytes(entry.try_into().ok()?) as usize) * 2
-        };
-        offsets.push(glyf_offset + offset);
-    }
-    Some(offsets)
-}
-
 #[derive(Serialize)]
 struct TyprPath {
     cmds: Vec<&'static str>,
@@ -53,31 +23,22 @@ impl TyprPath {
     }
 }
 
-pub(crate) fn glyph_hash(font_data: &[u8], loca_offsets: &[usize], gid: usize) -> Option<String> {
-    let data = glyph(font_data, loca_offsets, gid)?;
-    let path = parse(data)?;
-    hash(&path)
+fn midpoint(a: i32, b: i32) -> i32 {
+    ((a + b) as f64 * 0.5).floor() as i32
 }
 
-fn glyph<'a>(font_data: &'a [u8], loca_offsets: &[usize], gid: usize) -> Option<&'a [u8]> {
-    let start = loca_offsets.get(gid).copied()?;
-    let end = loca_offsets.get(gid + 1).copied()?;
-    font_data.get(start..end)
-}
-
-fn parse(data: &[u8]) -> Option<TyprPath> {
-    let contour_count = i16::from_be_bytes(data.get(..2)?.try_into().ok()?);
-    if contour_count <= 0 || data.len() < 10 {
-        return None;
+fn delta(data: &[u8], offset: &mut usize, flag: u8, short_flag: u8, same_flag: u8) -> Option<i32> {
+    if flag & short_flag != 0 {
+        let delta = *data.get(*offset)? as i32;
+        *offset += 1;
+        Some(if flag & same_flag != 0 { delta } else { -delta })
+    } else if flag & same_flag == 0 {
+        let delta = i16::from_be_bytes(data.get(*offset..*offset + 2)?.try_into().ok()?) as i32;
+        *offset += 2;
+        Some(delta)
+    } else {
+        Some(0)
     }
-
-    let (end_points, mut offset) = end_points(data, contour_count as usize)?;
-    offset = skip_instr(data, offset)?;
-    let point_count = *end_points.last()? as usize + 1;
-    let (flags, offset) = flags(data, offset, point_count)?;
-    let coordinates = coordinates(data, offset, &flags)?;
-
-    path(&end_points, &flags, &coordinates)
 }
 
 fn end_points(data: &[u8], contour_count: usize) -> Option<(Vec<u16>, usize)> {
@@ -127,39 +88,6 @@ fn coordinates(data: &[u8], mut offset: usize, flags: &[u8]) -> Option<Vec<(i32,
         coordinate.1 = y;
     }
     Some(coordinates)
-}
-
-fn delta(data: &[u8], offset: &mut usize, flag: u8, short_flag: u8, same_flag: u8) -> Option<i32> {
-    if flag & short_flag != 0 {
-        let delta = *data.get(*offset)? as i32;
-        *offset += 1;
-        Some(if flag & same_flag != 0 { delta } else { -delta })
-    } else if flag & same_flag == 0 {
-        let delta = i16::from_be_bytes(data.get(*offset..*offset + 2)?.try_into().ok()?) as i32;
-        *offset += 2;
-        Some(delta)
-    } else {
-        Some(0)
-    }
-}
-
-fn path(end_points: &[u16], flags: &[u8], coordinates: &[(i32, i32)]) -> Option<TyprPath> {
-    let mut path = TyprPath {
-        cmds: Vec::new(),
-        crds: Vec::new(),
-    };
-    let mut first_point = 0;
-
-    for &last_point in end_points {
-        let last_point = last_point as usize;
-        if first_point > last_point || last_point >= coordinates.len() {
-            return None;
-        }
-        contour(&mut path, flags, coordinates, first_point, last_point);
-        path.cmds.push("Z");
-        first_point = last_point + 1;
-    }
-    Some(path)
 }
 
 fn contour(
@@ -217,11 +145,83 @@ fn contour(
     }
 }
 
-fn midpoint(a: i32, b: i32) -> i32 {
-    ((a + b) as f64 * 0.5).floor() as i32
+fn path(end_points: &[u16], flags: &[u8], coordinates: &[(i32, i32)]) -> Option<TyprPath> {
+    let mut path = TyprPath {
+        cmds: Vec::new(),
+        crds: Vec::new(),
+    };
+    let mut first_point = 0;
+
+    for &last_point in end_points {
+        let last_point = last_point as usize;
+        if first_point > last_point || last_point >= coordinates.len() {
+            return None;
+        }
+        contour(&mut path, flags, coordinates, first_point, last_point);
+        path.cmds.push("Z");
+        first_point = last_point + 1;
+    }
+    Some(path)
+}
+
+fn parse(data: &[u8]) -> Option<TyprPath> {
+    let contour_count = i16::from_be_bytes(data.get(..2)?.try_into().ok()?);
+    if contour_count <= 0 || data.len() < 10 {
+        return None;
+    }
+
+    let (end_points, mut offset) = end_points(data, contour_count as usize)?;
+    offset = skip_instr(data, offset)?;
+    let point_count = *end_points.last()? as usize + 1;
+    let (flags, offset) = flags(data, offset, point_count)?;
+    let coordinates = coordinates(data, offset, &flags)?;
+
+    path(&end_points, &flags, &coordinates)
+}
+
+fn glyph<'a>(font_data: &'a [u8], loca_offsets: &[usize], gid: usize) -> Option<&'a [u8]> {
+    let start = loca_offsets.get(gid).copied()?;
+    let end = loca_offsets.get(gid + 1).copied()?;
+    font_data.get(start..end)
 }
 
 fn hash(path: &TyprPath) -> Option<String> {
     let md5 = format!("{:x}", md5::compute(serde_json::to_vec(path).ok()?));
     Some(md5[24..].to_owned())
+}
+
+pub fn glyph_hash(font_data: &[u8], loca_offsets: &[usize], gid: usize) -> Option<String> {
+    let data = glyph(font_data, loca_offsets, gid)?;
+    let path = parse(data)?;
+    hash(&path)
+}
+
+pub fn loca_offsets(font_data: &[u8]) -> Option<Vec<usize>> {
+    let face = Face::parse(font_data, 0).ok()?;
+    let is_32bit = format!("{:?}", face.tables().head.index_to_location_format) == "Long";
+    let loca_bytes = face
+        .raw_face()
+        .table(ttf_parser::Tag::from_bytes(b"loca"))?;
+    let glyf_bytes = face
+        .raw_face()
+        .table(ttf_parser::Tag::from_bytes(b"glyf"))?;
+    let glyf_offset = (glyf_bytes.as_ptr() as usize) - (font_data.as_ptr() as usize);
+    let num_glyphs = face.number_of_glyphs() as usize;
+
+    let entry_size = if is_32bit { 4 } else { 2 };
+    let mut offsets = Vec::with_capacity(num_glyphs + 1);
+    for i in 0..=num_glyphs {
+        let index = i * entry_size;
+        let entry = match loca_bytes.get(index..index + entry_size) {
+            Some(entry) => entry,
+            None => break,
+        };
+        let offset = if is_32bit {
+            u32::from_be_bytes(entry.try_into().ok()?) as usize
+        } else {
+            (u16::from_be_bytes(entry.try_into().ok()?) as usize) * 2
+        };
+        offsets.push(glyf_offset + offset);
+    }
+    Some(offsets)
 }

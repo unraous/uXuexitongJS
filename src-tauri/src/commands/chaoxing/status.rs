@@ -33,10 +33,13 @@ pub struct TaskProgressPayload {
 #[derive(Debug, Serialize, Deserialize, Type, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum CourseStatus {
+    Waiting,
+    Started,
     TotalProgress(TotalProgressPayload),
     ChapterProgress(ChapterProgressPayload),
     TabProgress(TabProgressPayload),
     TaskProgress(TaskProgressPayload),
+    Cancelled,
     Finished,
 }
 
@@ -46,6 +49,19 @@ mod tests {
 
     #[test]
     fn test_course_status_serde() {
+        for (status, expected) in [
+            (CourseStatus::Started, "\"started\""),
+            (CourseStatus::Cancelled, "\"cancelled\""),
+        ] {
+            let json = serde_json::to_string(&status).unwrap();
+            assert_eq!(json, expected);
+            let deserialized: CourseStatus = serde_json::from_str(expected).unwrap();
+            assert_eq!(
+                std::mem::discriminant(&deserialized),
+                std::mem::discriminant(&status)
+            );
+        }
+
         let status = CourseStatus::Finished;
         let json = serde_json::to_string(&status).unwrap();
         assert_eq!(json, "\"finished\"");

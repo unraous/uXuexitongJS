@@ -1,5 +1,6 @@
 mod status;
-pub use status::*;
+
+pub use status::CourseStatus;
 
 use super::CommandsResult;
 use crate::core::quiz::{llm::AnswerItem, solve};

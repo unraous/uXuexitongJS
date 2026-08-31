@@ -61,7 +61,7 @@
     } catch (e) {
       console.error(errorMessage, e);
       if (config.debugTaskTypes.length) {
-        const msg = `【DEBUG 异常】\n提示: ${errorMessage}\n详情: ${e instanceof Error ? e.message : String(e)}\n\n确定：忽略并继续；取消：终止。`;
+        const msg = `[DEBUG 异常]\n提示: ${errorMessage}\n详情: ${e instanceof Error ? e.message : String(e)}\n\n确定：忽略并继续；取消：终止。`;
         if (!confirm(msg)) throw e;
       }
     }
@@ -236,15 +236,17 @@
   };
 
   /**
-   * @typedef {{ total: number, title: string }} TotalProgressPayload
+   * @typedef {{ total: number }} TotalProgressPayload
    * @typedef {{ index: number, completed: number, title: string }} ChapterProgressPayload
    * @typedef {{ total: number, index: number }} TabProgressPayload
    * @typedef {{ index: number, category: string }} TaskProgressPayload
    * @typedef {
+   *   | "started"
    *   | { totalProgress: TotalProgressPayload }
    *   | { chapterProgress: ChapterProgressPayload }
    *   | { tabProgress: TabProgressPayload }
    *   | { taskProgress: TaskProgressPayload }
+   *   | "cancelled"
    *   | "finished"
    * } CourseStatus
    */
@@ -261,14 +263,14 @@
   };
 
   const emit = {
+    /** @type {() => Promise<void>} */
+    started: async () => {
+      await invokeStatus("started");
+    },
     /** @type {(chapterList: HTMLElement[]) => Promise<void>} */
     totalProgress: async (chapterList) => {
       const total = chapterList.length;
-      const title =
-        document.querySelector(".course_name")?.textContent?.trim() ||
-        document.title ||
-        "课程页面";
-      await invokeStatus({ totalProgress: { total, title } });
+      await invokeStatus({ totalProgress: { total } });
     },
     /** @type {(index: number, node: HTMLElement, list: HTMLElement[]) => Promise<void>} */
     chapterProgress: async (index, node, list) => {
@@ -292,6 +294,10 @@
     /** @type {(index: number, category: string) => Promise<void>} */
     taskProgress: async (index, category) => {
       await invokeStatus({ taskProgress: { index, category } });
+    },
+    /** @type {() => Promise<void>} */
+    cancelled: async () => {
+      await invokeStatus("cancelled");
     },
     /** @type {() => Promise<void>} */
     finished: async () => {
@@ -400,7 +406,7 @@
     if (config.debugTaskTypes.includes("Video")) {
       assert(
         confirm(
-          "[DEBUG] Video 任务点处理完成。点击【确定】继续，点击【取消】中断。",
+          "[DEBUG] Video 任务点处理完成。点击 [确定] 继续，点击 [取消] 中断。",
         ),
         "调试中断：用户取消了 Video 任务点",
       );
@@ -438,7 +444,7 @@
     if (config.debugTaskTypes.includes("PDF")) {
       assert(
         confirm(
-          "[DEBUG] PDF 任务点自动滚动完成。点击【确定】继续，点击【取消】中断。",
+          "[DEBUG] PDF 任务点自动滚动完成。点击 [确定] 继续，点击 [取消] 中断。",
         ),
         "调试中断：用户取消了 PDF 任务点",
       );
@@ -609,7 +615,7 @@
     if (config.debugTaskTypes.includes("Quiz")) {
       assert(
         confirm(
-          "[DEBUG] 答案已自动填充完成。点击【确定】继续提交，点击【取消】中断提交。",
+          "[DEBUG] 答案已自动填充完成。点击[确定]继续提交，点击[取消]中断提交。",
         ),
         "调试中断：用户取消了 Quiz 提交",
       );
@@ -733,12 +739,12 @@
     const configSummary = `当前配置：[视频倍速: ${speedInfo} | 自动静音: ${config.muteVideo ? "已开启" : "已关闭"}]`;
 
     const isConfirmed = confirm(
-      `【使用须知与运行指南 v2.0.0】
+      `[使用须知与运行指南 v2.0.0]
 1. 免责声明：本脚本仅供自动化测试与学习交流使用，请遵守相关法律法规及平台规定。
 2. 前置准备：建议关闭浏览器开发者工具(DevTools)，避免触发调试拦截。
 3. ${configSummary}
 
-【操作说明】
+[操作说明]
 • 点击“确定”：立即启动自动化流程。
 • 点击“取消”：放弃并退出脚本运行。
 • 紧急停止：运行过程中按 F5 刷新页面即可终止脚本。
@@ -747,8 +753,10 @@
     );
     if (!isConfirmed) {
       console.info("用户已取消脚本运行");
+      await emit.cancelled();
       return;
     }
+    await emit.started();
     const chapterList = chapterNodes(document).filter((node) => {
       const status = chapterNodeStatus(node);
       return status === "Interactive" || status === "Finished";

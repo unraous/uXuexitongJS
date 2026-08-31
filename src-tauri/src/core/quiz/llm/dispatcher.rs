@@ -103,7 +103,7 @@ async fn chat_completions(
     questions: &[Question],
 ) -> Result<Vec<AnswerItem>> {
     let mut request_body: serde_json::Value =
-        serde_json::from_str(include_str!("./requests/default.json"))?;
+        serde_json::from_str(include_str!("./req_body/default.json"))?;
     request_body["model"] = serde_json::json!(model);
     request_body["messages"] = serde_json::json!([
         { "role": "system", "content": SYSTEM_PROMPT },
@@ -121,7 +121,7 @@ async fn chat_completions(
 
     let response = send_with_retry(|| {
         let mut req = client.post(&provider.base_url);
-        if let Some(key) = provider.api_key.as_deref() {
+        if let Some(key) = provider.api_key.as_ref().map(|key| key.expose()) {
             if !key.trim().is_empty() {
                 req = req.header("Authorization", format!("Bearer {}", key));
             }
@@ -167,14 +167,14 @@ async fn responses(
     questions: &[Question],
 ) -> Result<Vec<AnswerItem>> {
     let mut request_body: serde_json::Value =
-        serde_json::from_str(include_str!("./requests/openai.json"))?;
+        serde_json::from_str(include_str!("./req_body/openai.json"))?;
     request_body["model"] = serde_json::json!(model);
     request_body["instructions"] = serde_json::json!(SYSTEM_PROMPT);
     request_body["input"] = serde_json::json!(serde_json::to_string(questions)?);
 
     let response = send_with_retry(|| {
         let mut req = client.post(&provider.base_url);
-        if let Some(key) = provider.api_key.as_deref() {
+        if let Some(key) = provider.api_key.as_ref().map(|key| key.expose()) {
             if !key.trim().is_empty() {
                 req = req.header("Authorization", format!("Bearer {}", key));
             }
@@ -228,7 +228,7 @@ async fn gemini(
     model: &str,
     questions: &[Question],
 ) -> Result<Vec<AnswerItem>> {
-    let mut body: serde_json::Value = serde_json::from_str(include_str!("./requests/google.json"))?;
+    let mut body: serde_json::Value = serde_json::from_str(include_str!("./req_body/google.json"))?;
     body["contents"] = serde_json::json!([{
         "parts": [{ "text": serde_json::to_string(questions)? }]
     }]);
@@ -239,7 +239,7 @@ async fn gemini(
     let url = format!("{}/{}:generateContent", provider.base_url, model);
     let response = send_with_retry(|| {
         let mut req = client.post(&url);
-        if let Some(key) = provider.api_key.as_deref() {
+        if let Some(key) = provider.api_key.as_ref().map(|key| key.expose()) {
             if !key.trim().is_empty() {
                 req = req.header("x-goog-api-key", key);
             }
@@ -296,7 +296,7 @@ mod tests {
         let api_key = std::env::var(env_var).ok().filter(|k| !k.is_empty())?;
         let config = LLMConfig::default();
         let mut provider = config.providers.lock().get(provider_id).cloned()?;
-        provider.api_key = Some(api_key);
+        provider.api_key = Some(crate::config::llm::ApiKey::new(api_key).unwrap());
         Some(provider)
     }
 

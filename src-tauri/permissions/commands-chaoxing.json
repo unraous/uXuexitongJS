@@ -1,17 +1,13 @@
 {
-    "default": null,
-    "permission": [
-        {
-            "commands": {
-                "allow": [
-                    "options",
-                    "solve_quiz",
-                    "send_chapter_status"
-                ],
-                "deny": []
-            },
-            "description": "allowing commands invocation for chaoxing webview",
-            "identifier": "commands-chaoxing"
-        }
-    ]
+  "default": null,
+  "permission": [
+    {
+      "commands": {
+        "allow": ["options", "solve_quiz", "send_status"],
+        "deny": []
+      },
+      "description": "allowing commands invocation for chaoxing webview",
+      "identifier": "commands-chaoxing"
+    }
+  ]
 }

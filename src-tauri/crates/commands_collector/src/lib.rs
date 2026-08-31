@@ -154,6 +154,7 @@ pub fn register(_: TokenStream) -> TokenStream {
             #[cfg(debug_assertions)]
             {
                 tauri_specta::Builder::<tauri::Wry>::new()
+                    .error_handling(tauri_specta::ErrorHandlingMode::Throw)
                     .commands(tauri_specta::collect_commands![
                         #(#specta_command_tokens),*
                     ])
