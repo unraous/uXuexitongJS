@@ -5,7 +5,7 @@
 - **Inspect Established Patterns First**:
   Before implementing any new feature, bug fix, or codegen logic, thoroughly audit the existing codebase for pre-existing utility macros, helper crates, and architectural patterns (e.g. `auto_handler` proc-macro).
 - **Extend Rather Than Duplicate**:
-  New capabilities must integrate into and extend existing pipelines (e.g., adding TypeScript generation into `auto_handler` alongside permissions JSON sync) rather than introducing standalone scripts, ad-hoc string parsers, or fragmented initialization boilerplate.
+  New capabilities must integrate into and extend existing pipelines (e.g., adding TypeScript generation into `auto_handler` alongside permissions JSON sync) rather than introducing standalone scripts, ad-hoc string parsers, or fragmented initialization boilerplate).
 - **Strict Anti-Wheel Policy**:
   NEVER hand-roll custom implementations for problems solved by established compiler features or official crates (e.g., hand-rolled AST string-to-TS type mappers like `rust_type_to_ts` vs. official reflection with `tauri_specta`).
 
@@ -42,3 +42,10 @@
   当用户提出具体的代码变更或修改需求且意图明确时，直接执行操作或展示代码变更，严禁附加如“这个职责分离设计非常合乎逻辑”、“这符合最佳实践”等无实操信息的评述或套话前言。
 - **Exception for Technical Risks**:
   仅当技术方案存在明确的技术隐患、方案冲突或会导致代码报错/破坏现有架构时，才提出针对性风险分析与提醒。
+
+## 6. ACP / Zed Protocol Tooling Invariants (ACP/Zed 通信与文件写入铁律)
+
+- **Strict Prohibition of Double Escaping (禁止二次转义换行)**:
+  When invoking file modification tools (`client_edit_file`, `client_create_file`) over ACP in Zed, NEVER format multiline file content by manually inserting escaped `\n` literals. Always pass raw multiline text with native line breaks. Doing so prevents double-escaping issues where literal backslash-n strings corrupt source files into single-line blobs and crash compiler tokenizers (`unknown start of token: \`).
+- **Buffer State Sync (优先使用 Client 工具保持缓冲区同步)**:
+  Always prioritize `client_*` tools over out-of-band disk commands for editing workspace files to ensure Zed's active buffers, language server diagnostics, and disk contents remain strictly consistent.
