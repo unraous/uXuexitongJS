@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TheChaoxingWebviewController from "@/components/TheChaoxingWebviewController.vue";
-import TheCourseDashboard from "@/components/panels/TheCourseDashboard.vue";
+import TheCourseDashboard from "@/components/TheCourseDashboard.vue";
 
 defineProps<{
   version: string;
