@@ -7,6 +7,7 @@ pub mod core;
 pub fn run() {
     use app::webview::UrlStack;
     use app::window;
+    use commands::chaoxing::CourseMetaMap;
 
     core::logger::init().expect("Failed to initialize logger");
 
@@ -20,6 +21,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .on_window_event(window::listener)
         .manage(UrlStack::default())
+        .manage(CourseMetaMap::default())
         .invoke_handler(commands_collector::register!())
         .setup(window::init)
         .run(tauri::generate_context!())

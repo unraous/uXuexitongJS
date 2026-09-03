@@ -3,7 +3,12 @@
   "permission": [
     {
       "commands": {
-        "allow": ["options", "solve_quiz", "send_status"],
+        "allow": [
+          "insert_course_meta_map",
+          "options",
+          "solve_quiz",
+          "send_status"
+        ],
         "deny": []
       },
       "description": "allowing commands invocation for chaoxing webview",

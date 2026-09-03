@@ -1,6 +1,7 @@
 use super::url::{classify, Type};
 
 use crate::app::webview::UrlStack;
+use crate::commands::chaoxing::CourseStatus;
 
 use tauri::{Emitter, Manager};
 
@@ -8,6 +9,7 @@ use tauri::{Emitter, Manager};
 pub fn obtain(t: Type) -> Option<&'static str> {
     match t {
         Type::Course => Some(include_str!("../scripts/core.js")),
+        Type::CourseOverview => Some(include_str!("../scripts/fetch-metadata.js")),
         Type::MainSpace => Some(include_str!("../scripts/modify-targets.js")),
         Type::Login => Some(include_str!("../scripts/click-auto-login.js")),
         _ => None,
@@ -22,7 +24,9 @@ pub fn load_on(webview: tauri::Webview, payload: tauri::webview::PageLoadPayload
         webview
             .emit_to("main", "url-update", payload.url().as_str())
             .ok();
-
+        webview
+            .emit_to("main", "status-update", CourseStatus::Cancel(()))
+            .ok();
         let url_stack = webview.state::<UrlStack>();
         if url_stack.current().as_ref() != Some(payload.url()) {
             url_stack.push(payload.url().clone());

@@ -34,6 +34,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "requires network and BIGMODEL_API_KEY"]
     async fn test_solve_html_integration() {
         dotenv::dotenv().ok();
         let api_key = std::env::var("BIGMODEL_API_KEY")

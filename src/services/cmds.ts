@@ -4,6 +4,12 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 
 /** Commands */
 export const commands = {
+	solveQuiz: (html: string) => __TAURI_INVOKE<AnswerItem_Serialize[]>("solve_quiz", { html }),
+	insertCourseMetaMap: (courseId: string, metadata: CourseMetadata) => __TAURI_INVOKE<void>("insert_course_meta_map", { courseId, metadata }),
+	queryCourseMeta: (courseId: string) => __TAURI_INVOKE<{
+	title: string,
+	cover: string,
+} | null>("query_course_meta", { courseId }),
 	sendStatus: (status: CourseStatus) => __TAURI_INVOKE<null>("send_status", { status }),
 	/**  获取包含版本及作者信息的应用元数据。 */
 	metadata: () => __TAURI_INVOKE<MetadataConfig>("metadata"),
@@ -43,13 +49,45 @@ export const commands = {
 };
 
 /* Types */
-export type ChapterProgressPayload = {
-	index: number,
-	completed: number,
-	title: string,
+export type AnswerItem = AnswerItem_Serialize | AnswerItem_Deserialize;
+
+export type AnswerItem_Deserialize = {
+	index: string,
+} | {
+	"题号": string,
+} | {
+	id: string,
+} & {
+	explanation: string,
+} | {
+	"解析": string,
+} & {
+	content: string,
+} | {
+	"答案": string,
+} | {
+	answer: string,
 };
 
-export type CourseStatus = "waiting" | "started" | ({ totalProgress: TotalProgressPayload }) & { chapterProgress?: never; tabProgress?: never; taskProgress?: never } | ({ chapterProgress: ChapterProgressPayload }) & { tabProgress?: never; taskProgress?: never; totalProgress?: never } | ({ tabProgress: TabProgressPayload }) & { chapterProgress?: never; taskProgress?: never; totalProgress?: never } | ({ taskProgress: TaskProgressPayload }) & { chapterProgress?: never; tabProgress?: never; totalProgress?: never } | "cancelled" | "finished";
+export type AnswerItem_Serialize = {
+	index: string,
+	explanation: string,
+	content: string,
+};
+
+export type ChapterProgressPayload = {
+	title: string,
+	index: number,
+	completed: number,
+	total: number,
+};
+
+export type CourseMetadata = {
+	title: string,
+	cover: string,
+};
+
+export type CourseStatus = { kind: "waiting"; payload: null } | { kind: "start"; payload: null } | { kind: "chapter"; payload: ChapterProgressPayload } | { kind: "tab"; payload: TabProgressPayload } | { kind: "task"; payload: TaskProgressPayload } | { kind: "cancel"; payload: null } | { kind: "finish"; payload: null };
 
 export type MetadataConfig = {
 	author?: string,
@@ -74,10 +112,5 @@ export type TabProgressPayload = {
 export type TaskProgressPayload = {
 	index: number,
 	category: string,
-};
-
-export type TotalProgressPayload = {
-	total: number,
-	title: string,
 };
 

@@ -22,13 +22,13 @@ pub fn set_zoom(window: window::Window, scale: f64) -> CommandsResult<()> {
 
 #[tauri::command]
 #[specta::specta]
-pub fn can_go_back(url_stack: tauri::State<'_, UrlStack>) -> bool {
+pub fn can_go_back(url_stack: tauri::State<UrlStack>) -> bool {
     url_stack.can_back()
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn can_go_forward(url_stack: tauri::State<'_, UrlStack>) -> bool {
+pub fn can_go_forward(url_stack: tauri::State<UrlStack>) -> bool {
     url_stack.can_forward()
 }
 
@@ -42,10 +42,7 @@ pub fn go_home(window: window::Window) -> CommandsResult<()> {
 
 #[tauri::command]
 #[specta::specta]
-pub fn go_back(
-    window: window::Window,
-    url_stack: tauri::State<'_, UrlStack>,
-) -> CommandsResult<()> {
+pub fn go_back(window: window::Window, url_stack: tauri::State<UrlStack>) -> CommandsResult<()> {
     if let Some(url) = url_stack.back() {
         chaoxing_webview(&window)?.navigate(url)?;
         Ok(())
@@ -57,10 +54,7 @@ pub fn go_back(
 
 #[tauri::command]
 #[specta::specta]
-pub fn go_forward(
-    window: window::Window,
-    url_stack: tauri::State<'_, UrlStack>,
-) -> CommandsResult<()> {
+pub fn go_forward(window: window::Window, url_stack: tauri::State<UrlStack>) -> CommandsResult<()> {
     if let Some(url) = url_stack.forward() {
         log::debug!("[chaoxing] 前进至: {}", url);
         chaoxing_webview(&window)?.navigate(url)?;
@@ -73,7 +67,7 @@ pub fn go_forward(
 
 #[tauri::command]
 #[specta::specta]
-pub fn current_url(url_stack: tauri::State<'_, UrlStack>) -> Option<String> {
+pub fn current_url(url_stack: tauri::State<UrlStack>) -> Option<String> {
     url_stack.current().map(|url| url.to_string())
 }
 

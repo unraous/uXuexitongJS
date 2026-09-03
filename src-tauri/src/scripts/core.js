@@ -1,5 +1,5 @@
 // @ts-check
-(function () {
+(() => {
   "use strict";
 
   /** @type {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} */
@@ -236,18 +236,17 @@
   };
 
   /**
-   * @typedef {{ total: number }} TotalProgressPayload
-   * @typedef {{ index: number, completed: number, title: string }} ChapterProgressPayload
+   * @typedef {{ title: string, index: number, completed: number, total: number }} ChapterProgressPayload
    * @typedef {{ total: number, index: number }} TabProgressPayload
    * @typedef {{ index: number, category: string }} TaskProgressPayload
    * @typedef {
-   *   | "started"
-   *   | { totalProgress: TotalProgressPayload }
-   *   | { chapterProgress: ChapterProgressPayload }
-   *   | { tabProgress: TabProgressPayload }
-   *   | { taskProgress: TaskProgressPayload }
-   *   | "cancelled"
-   *   | "finished"
+   *   | { kind: "waiting", payload: null }
+   *   | { kind: "started", payload: null }
+   *   | { kind: "chapterProgress", payload: ChapterProgressPayload }
+   *   | { kind: "tabProgress", payload: TabProgressPayload }
+   *   | { kind: "taskProgress", payload: TaskProgressPayload }
+   *   | { kind: "cancelled", payload: null }
+   *   | { kind: "finished", payload: null }
    * } CourseStatus
    */
 
@@ -265,12 +264,7 @@
   const emit = {
     /** @type {() => Promise<void>} */
     started: async () => {
-      await invokeStatus("started");
-    },
-    /** @type {(chapterList: HTMLElement[]) => Promise<void>} */
-    totalProgress: async (chapterList) => {
-      const total = chapterList.length;
-      await invokeStatus({ totalProgress: { total } });
+      await invokeStatus({ kind: "start", payload: null });
     },
     /** @type {(index: number, node: HTMLElement, list: HTMLElement[]) => Promise<void>} */
     chapterProgress: async (index, node, list) => {
@@ -280,28 +274,30 @@
           ?.textContent?.trim() ||
         node.textContent?.trim() ||
         `章节 ${index + 1}`;
+      const total = list.length;
       const completed = list.filter(
         (node) => chapterNodeStatus(node) === "Finished",
       ).length;
       await invokeStatus({
-        chapterProgress: { index, completed, title },
+        kind: "chapter",
+        payload: { title, index, completed, total },
       });
     },
     /** @type {(index: number, total: number) => Promise<void>} */
     tabProgress: async (index, total) => {
-      await invokeStatus({ tabProgress: { index, total } });
+      await invokeStatus({ kind: "tab", payload: { index, total } });
     },
     /** @type {(index: number, category: string) => Promise<void>} */
     taskProgress: async (index, category) => {
-      await invokeStatus({ taskProgress: { index, category } });
+      await invokeStatus({ kind: "task", payload: { index, category } });
     },
     /** @type {() => Promise<void>} */
     cancelled: async () => {
-      await invokeStatus("cancelled");
+      await invokeStatus({ kind: "cancel", payload: null });
     },
     /** @type {() => Promise<void>} */
     finished: async () => {
-      await invokeStatus("finished");
+      await invokeStatus({ kind: "finish", payload: null });
     },
   };
 
@@ -761,7 +757,6 @@
       const status = chapterNodeStatus(node);
       return status === "Interactive" || status === "Finished";
     });
-    await emit.totalProgress(chapterList);
 
     for (const [index, node] of chapterList.entries()) {
       await emit.chapterProgress(index, node, chapterList);

@@ -1,13 +1,17 @@
+mod metadata;
 mod status;
 
+pub use metadata::{CourseMetaMap, CourseMetadata};
 pub use status::CourseStatus;
 
 use super::CommandsResult;
+
 use crate::core::quiz::{llm::AnswerItem, solve};
-use anyhow::anyhow;
+
 use tauri::Emitter;
 
 #[tauri::command]
+#[specta::specta]
 pub async fn solve_quiz(html: String) -> CommandsResult<Vec<AnswerItem>> {
     match solve(&html).await {
         Ok(answers) => {
@@ -23,11 +27,33 @@ pub async fn solve_quiz(html: String) -> CommandsResult<Vec<AnswerItem>> {
 
 #[tauri::command]
 #[specta::specta]
-pub fn send_status(webview: tauri::Webview, status: CourseStatus) -> CommandsResult<()> {
-    if webview.label() == "main" {
-        log::warn!("[send_task_status] 拒绝由 [main] 界面发起的非法调用");
-        return Err(anyhow!("指令 send_task_status 禁止由 [main] 界面调用").into());
+pub fn insert_course_meta_map(
+    state: tauri::State<CourseMetaMap>,
+    course_id: String,
+    metadata: CourseMetadata,
+) {
+    log::debug!("接收到课程元数据: {:?}", metadata);
+    state.insert(course_id, metadata);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn query_course_meta(
+    state: tauri::State<CourseMetaMap>,
+    course_id: String,
+) -> Option<CourseMetadata> {
+    let metadata = state.get(&course_id);
+    if let Some(ref meta) = metadata {
+        log::debug!("成功查询到课程元数据: {:?}，ID: {}", meta, course_id);
+    } else {
+        log::warn!("未查询到课程元数据，课程 ID: {}", course_id);
     }
+    metadata
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn send_status(webview: tauri::Webview, status: CourseStatus) -> CommandsResult<()> {
     log::debug!(
         "接收到来自 [{}] 的章节完成状态: {:?}",
         webview.label(),

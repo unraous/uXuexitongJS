@@ -6,10 +6,11 @@ use super::html::Question;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use specta::Type;
 
 const SYSTEM_PROMPT: &str = include_str!("./system_prompt.txt");
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Type)]
 pub struct AnswerItem {
     #[serde(alias = "题号", alias = "id")]
     pub index: String,

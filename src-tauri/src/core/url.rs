@@ -3,6 +3,7 @@
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Type {
     Course,
+    CourseOverview,
     Login,
     MainSpace,
     Other,
@@ -21,6 +22,7 @@ pub fn classify(url: &tauri::Url) -> Type {
     match sub {
         "i" => Type::MainSpace,
         "mooc1" if url.path().starts_with("/mycourse/") => Type::Course,
+        "mooc2-ans" => Type::CourseOverview,
         "passport2" if url.path().starts_with("/login") => Type::Login,
         _ => Type::Other,
     }
@@ -45,5 +47,8 @@ mod tests {
 
         let url = "https://example.com".parse().unwrap();
         assert_eq!(classify(&url), Type::Unknown);
+
+        let url = "https://mooc2-ans.chaoxing.com".parse().unwrap();
+        assert_eq!(classify(&url), Type::CourseOverview);
     }
 }

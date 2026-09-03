@@ -2,7 +2,7 @@ use tauri::window::Window;
 /// 带有渐隐过渡效果的应用窗口关闭指令。
 #[tauri::command]
 #[specta::specta]
-pub async fn close(window: Window) {
+pub fn close(window: Window) {
     window.close().ok();
 }
 

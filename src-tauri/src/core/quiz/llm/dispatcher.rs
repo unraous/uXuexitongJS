@@ -301,6 +301,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires network and BIGMODEL_API_KEY"]
     async fn test_solve_bigmodel() {
         let questions = load_test_questions();
         let Some(provider) = get_test_provider("bigmodel", "BIGMODEL_API_KEY") else {
@@ -319,6 +320,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires network and DEEPSEEK_API_KEY"]
     async fn test_solve_deepseek() {
         let questions = load_test_questions();
         let Some(provider) = get_test_provider("deepseek", "DEEPSEEK_API_KEY") else {
@@ -335,6 +337,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires network and GOOGLE_API_KEY"]
     async fn test_solve_google() {
         let questions = load_test_questions();
         let Some(provider) = get_test_provider("google", "GOOGLE_API_KEY") else {
@@ -360,6 +363,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires network and MOONSHOT_API_KEY"]
     async fn test_solve_moonshot() {
         let questions = load_test_questions();
         let Some(provider) = get_test_provider("moonshot", "MOONSHOT_API_KEY") else {
@@ -378,6 +382,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires network and OPENAI_API_KEY"]
     async fn test_solve_openai() {
         let questions = load_test_questions();
         let Some(provider) = get_test_provider("openai", "OPENAI_API_KEY") else {
@@ -396,6 +401,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires network and OPENROUTER_API_KEY"]
     async fn test_solve_openrouter() {
         let questions = load_test_questions();
         let Some(provider) = get_test_provider("openrouter", "OPENROUTER_API_KEY") else {
@@ -428,6 +434,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires local Ollama service"]
     async fn test_solve_ollama() {
         let questions = load_test_questions();
         let config = LLMConfig::default();
@@ -445,7 +452,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
+    #[ignore = "long running benchmark"]
     async fn test_solve_100_questions() {
         let questions = load_questions_file("questions_100.json");
         assert_eq!(questions.len(), 100);
@@ -455,7 +462,7 @@ mod tests {
         };
 
         let start = std::time::Instant::now();
-        println!("🚀 开始进行 100 道题目的大长对话/并发性能基准测试...");
+        println!("🚀 开始进行 100 道题目的长对话/并发性能基准测试...");
         match solve(&provider, questions).await {
             Ok(answers) => {
                 let duration = start.elapsed();
