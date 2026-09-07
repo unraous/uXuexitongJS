@@ -7,6 +7,7 @@ import HomeIcon from "@/assets/home.svg?component";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import VButton from "@/components/base/VButton.vue";
+import VRollTransition from "@/components/base/VRollTransition.vue";
 import { commands } from "@/services/cmds";
 
 const console = globalThis.console;
@@ -160,9 +161,9 @@ onUnmounted(() => {
       />
     </div>
     <div class="capsule-slot">
-      <p class="url-text">
-        {{ currentUrl }}
-      </p>
+      <VRollTransition v-slot="{ value }" :value="currentUrl" class="url-display">
+        <p class="url-text">{{ value }}</p>
+      </VRollTransition>
       <VButton
         :icon="ZoomOutIcon"
         :disabled="!canZoomOut"
@@ -218,14 +219,22 @@ onUnmounted(() => {
   transform: rotate(180deg) scale(1.25);
 }
 
-.url-text {
+.url-display {
   width: 70%;
+  height: 100%;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.url-text {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis; /* 超出部分显示省略号 ... */
   white-space: nowrap; /* 强制单行，禁止换行 */
   font-size: 1rem;
   color: #0b4c8d;
-  margin-right: auto;
 }
 
 .zoom-value {
@@ -246,7 +255,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding: 2%;
+  /* 上下居中由 flex 负责，避免百分比纵向内边距挤空动画视窗。 */
+  padding: 0 2%;
   gap: 8px;
   border: 2px solid #0b4c8d;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25); /* 核心：内阴影打造沉降镂空质感 */

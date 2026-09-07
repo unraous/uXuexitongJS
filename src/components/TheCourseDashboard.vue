@@ -10,7 +10,7 @@ import {
   commands,
 } from "@/services/cmds";
 import TheCourseCover from "./TheCourseCover.vue";
-import VScrollText from "@/components/base/VScrollText.vue";
+import VRollTransition from "@/components/base/VRollTransition.vue";
 
 interface CourseInfo {
   state: "loading" | "executing" | "finished";
@@ -102,21 +102,30 @@ onUnmounted(() => {
         <TheCourseCover :cover-src="courseInfo.metadata.cover" />
       </div>
       <div class="info">
-        <VScrollText
-          :text="courseInfo.metadata.title"
+        <VRollTransition
+          v-slot="{ value }"
+          :value="courseInfo.metadata.title"
           class="text-displayer"
           style="font-size: 2rem"
-        />
-        <VScrollText
-          :text="courseInfo.chapter.title"
+        >
+          <div class="text-content">{{ value }}</div>
+        </VRollTransition>
+        <VRollTransition
+          v-slot="{ value }"
+          :value="courseInfo.chapter.title"
           class="text-displayer"
           style="font-size: 1.5rem"
-        />
-        <VScrollText
-          :text="taskInfoText"
+        >
+          <div class="text-content">{{ value }}</div>
+        </VRollTransition>
+        <VRollTransition
+          v-slot="{ value }"
+          :value="taskInfoText"
           class="text-displayer"
           style="font-size: 1.25rem"
-        />
+        >
+          <div class="text-content">{{ value }}</div>
+        </VRollTransition>
       </div>
     </div>
     <div class="progress-bar"></div>
@@ -161,12 +170,18 @@ onUnmounted(() => {
   text-align: right;
 }
 
-.info :deep(.roll-item) {
-  justify-content: flex-end;
-}
-
 .text-displayer {
+  width: 100%;
   height: 20%;
   padding-right: 15%;
+}
+
+.text-content {
+  width: 100%;
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+  text-align: inherit;
 }
 </style>
