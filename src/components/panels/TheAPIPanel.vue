@@ -80,6 +80,7 @@ watch(model, async () => {
         v-model="apiKey"
         label="API Key"
         aria-label="API Key"
+        mask-on-blur
         @change="setKey"
       />
     </div>
@@ -118,4 +119,5 @@ watch(model, async () => {
 :deep(.base-config-select:nth-child(2) .select-dropdown-wrapper) {
   z-index: 19;
 }
+
 </style>

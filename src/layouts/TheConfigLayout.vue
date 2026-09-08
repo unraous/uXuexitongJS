@@ -32,7 +32,8 @@ const saveConfig = async () => {
     >
       <VButton
         label="Save"
-        style="width: 35%; height: 60%; font-size: 1.5rem"
+        class="button-text"
+        style="width: 35%; height: 60%"
       />
     </div>
   </div>
@@ -67,5 +68,10 @@ const saveConfig = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.button-text {
+  font-size: 1.75rem;
+  letter-spacing: 1px;
 }
 </style>

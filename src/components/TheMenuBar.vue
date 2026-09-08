@@ -62,7 +62,9 @@ const closeApp = async () => {
   top: 50%;
   transform: translate(-50%, -50%);
   color: #0d58a4;
-  font-size: 30px;
+  letter-spacing: 1px;
+  -webkit-text-stroke: 1px currentColor;
+  font-size: 2rem;
 }
 
 button {

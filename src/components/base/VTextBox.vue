@@ -1,12 +1,21 @@
 <script setup lang="ts">
-const { modelValue, placeholder, pattern, id } = defineProps<{
+import { computed, ref } from "vue";
+
+const { modelValue, placeholder, pattern, id, maskOnBlur } = defineProps<{
   modelValue: string | number;
   placeholder: string;
   pattern: string;
   id: string;
+  maskOnBlur?: boolean;
 }>();
 
 const emit = defineEmits(["update:modelValue", "change"]);
+const inputFocused = ref(false);
+const displayValue = computed(() =>
+  maskOnBlur && !inputFocused.value
+    ? "*".repeat(String(modelValue).length)
+    : modelValue,
+);
 
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -25,12 +34,14 @@ const onInput = (event: Event) => {
   <div class="base-text-box">
     <input
       :id="id"
-      :value="modelValue"
+      :value="displayValue"
       :placeholder="placeholder"
       :pattern="pattern"
       autocomplete="off"
       class="input-field"
       @input="onInput"
+      @focus="inputFocused = true"
+      @blur="inputFocused = false"
       @change="$emit('change', $event)"
     />
     <div class="shadow-shell" />

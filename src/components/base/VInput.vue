@@ -8,12 +8,14 @@ const {
   label,
   placeholder = "",
   pattern = ".*",
+  maskOnBlur,
   id = useId(),
 } = defineProps<{
   modelValue: string | number;
   label: string;
   placeholder?: string;
   pattern?: string;
+  maskOnBlur?: boolean;
   id?: string;
 }>();
 
@@ -32,6 +34,7 @@ const emit = defineEmits(["update:modelValue", "change"]);
       :model-value="modelValue"
       :placeholder="placeholder"
       :pattern="pattern"
+      :mask-on-blur="maskOnBlur"
       class="input-section"
       @update:model-value="emit('update:modelValue', $event)"
       @change="emit('change', $event)"

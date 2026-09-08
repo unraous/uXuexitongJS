@@ -161,7 +161,11 @@ onUnmounted(() => {
       />
     </div>
     <div class="capsule-slot">
-      <VRollTransition v-slot="{ value }" :value="currentUrl" class="url-display">
+      <VRollTransition
+        v-slot="{ value }"
+        :value="currentUrl"
+        class="url-display"
+      >
         <p class="url-text">{{ value }}</p>
       </VRollTransition>
       <VButton
@@ -244,22 +248,17 @@ onUnmounted(() => {
 }
 
 .capsule-slot {
-  height: 75%; /* 垂直方向贴合顶栏高 */
-  width: 70%; /* 胶囊最小宽度 */
-  background: linear-gradient(
-    135deg,
-    #e8dcc4 0%,
-    #f0ebe0 100%
-  ); /* 镂空露出的浅底色（与主页面背景一致） */
-  border-radius: 999px; /* 完美胶囊圆角 */
+  height: 75%;
+  width: 70%;
+  background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
+  border-radius: 999px;
   display: flex;
   align-items: center;
   overflow: hidden;
-  /* 上下居中由 flex 负责，避免百分比纵向内边距挤空动画视窗。 */
   padding: 0 2%;
   gap: 8px;
   border: 2px solid #0b4c8d;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25); /* 核心：内阴影打造沉降镂空质感 */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .title {

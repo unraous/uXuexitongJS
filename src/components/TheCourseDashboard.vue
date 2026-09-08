@@ -10,6 +10,7 @@ import {
   commands,
 } from "@/services/cmds";
 import TheCourseCover from "./TheCourseCover.vue";
+import TheCourseProgressBar from "./TheCourseProgressBar.vue";
 import VRollTransition from "@/components/base/VRollTransition.vue";
 
 interface CourseInfo {
@@ -29,6 +30,11 @@ const initialCourseInfo = (): CourseInfo => ({
 });
 
 const courseInfo = ref<CourseInfo>(initialCourseInfo());
+
+const chapterProgress = computed(() => {
+  const { completed, total } = courseInfo.value.chapter;
+  return total > 0 ? Math.round((completed / total) * 100) : 0;
+});
 
 let taskInfoText = computed(() => {
   switch (courseInfo.value.state) {
@@ -128,7 +134,10 @@ onUnmounted(() => {
         </VRollTransition>
       </div>
     </div>
-    <div class="progress-bar"></div>
+    <div class="progress-bar">
+      <TheCourseProgressBar :progress="chapterProgress" />
+      <div class="percentage">{{ chapterProgress }}%</div>
+    </div>
   </div>
 </template>
 
@@ -139,14 +148,12 @@ onUnmounted(() => {
   height: 38.75%;
   display: flex;
   flex-direction: column;
-  background-color: yellowgreen;
 }
 
 .content {
   height: 80%;
   display: flex;
   flex-direction: row;
-  background-color: bisque;
 }
 
 .cover-container {
@@ -159,6 +166,10 @@ onUnmounted(() => {
 
 .progress-bar {
   height: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
 }
 
 .info {
@@ -183,5 +194,12 @@ onUnmounted(() => {
   overflow-wrap: break-word;
   line-height: 1.25;
   text-align: inherit;
+}
+
+.percentage {
+  width: 10%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
