@@ -10,7 +10,6 @@ pub fn obtain(t: Type) -> Option<&'static str> {
     match t {
         Type::Course => Some(include_str!("../scripts/core.js")),
         Type::CourseOverview => Some(include_str!("../scripts/fetch-metadata.js")),
-        Type::MainSpace => Some(include_str!("../scripts/modify-targets.js")),
         Type::Login => Some(include_str!("../scripts/click-auto-login.js")),
         _ => None,
     }

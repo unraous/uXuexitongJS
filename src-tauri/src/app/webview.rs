@@ -85,7 +85,11 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
             )
             .background_color((242, 244, 247).into())
             .devtools(true)
-            .on_navigation(|url| classify(url) != Type::Unknown)
+            .initialization_script_for_all_frames(include_str!("../scripts/iframe-init.js"))
+            .on_navigation(|url| {
+                log::debug!("检测到页面导航: {}", url);
+                classify(url) != Type::Unknown
+            })
             .on_page_load(load_on),
             // 齐次比例布局变换公式 (Scale-Invariant Proportional Layout Formulas):
             // X_pos = W * 0.51  <= 50% (TheLeftLayout 占据左半屏) + 1% (TheRightLayout 内 96% 居中边距)

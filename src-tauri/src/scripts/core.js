@@ -725,6 +725,70 @@
     console.info("本章节处理完毕");
   };
 
+  const neutralizeAntiCheating = () => {
+    const win = /** @type {any} */ (window.top || window);
+    const doc = /** @type {any} */ (win.document);
+    if (!win || win.__uxue_neutralized__) return;
+    win.__uxue_neutralized__ = true;
+
+    const blockedEvents = [
+      "blur",
+      "focusout",
+      "mouseleave",
+      "mouseout",
+      "pagehide",
+      "visibilitychange",
+    ];
+
+    // 1. 清理已有内联监听属性 (DOM Level 0)
+    for (const evt of blockedEvents) {
+      try {
+        win[`on${evt}`] = null;
+        doc[`on${evt}`] = null;
+      } catch (e) {
+        console.error(`清理 ${evt} 事件监听失败:`, e);
+      }
+    }
+
+    // 2. 捕获阶段强行掐断事件
+    /** @param {Event} e */
+    const stopPropagation = (e) => {
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+    };
+
+    for (const evt of blockedEvents) {
+      win.addEventListener(evt, stopPropagation, true);
+      doc.addEventListener(evt, stopPropagation, true);
+    }
+
+    // 3. 拦截后续动态 addEventListener
+    const originalAdd = win.EventTarget.prototype.addEventListener;
+    win.EventTarget.prototype.addEventListener = function (
+      /** @type {string} */ type,
+      /** @type {EventListenerOrEventListenerObject} */ listener,
+      /** @type {any} */ options,
+    ) {
+      if (blockedEvents.includes(type)) return;
+      return originalAdd.call(this, type, listener, options);
+    };
+
+    // 4. 伪造 Page Visibility 与 Focus API
+    try {
+      Object.defineProperty(doc, "hidden", {
+        get: () => false,
+        configurable: true,
+      });
+      Object.defineProperty(doc, "visibilityState", {
+        get: () => "visible",
+        configurable: true,
+      });
+      doc.hasFocus = () => true;
+    } catch (e) {
+      console.error("伪造 Page Visibility 与 Focus API 失败:", e);
+    }
+  };
+
   /** 脚本全流程执行主入口 */
   const main = async () => {
     await config.loadFromBackend();
@@ -752,6 +816,7 @@
       await emit.cancelled();
       return;
     }
+    neutralizeAntiCheating();
     await emit.started();
     const chapterList = chapterNodes(document).filter((node) => {
       const status = chapterNodeStatus(node);
