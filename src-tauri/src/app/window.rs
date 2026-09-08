@@ -89,14 +89,15 @@ pub fn init(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error:
         // .inner_size(800.0, 600.0)
         // .shadow(false)
         .fullscreen(true)
+        .visible(false)
         .position(monitor_pos.x as f64, monitor_pos.y as f64)
         .background_color((0, 0, 0).into())
         .icon(Image::from_bytes(include_bytes!("../../icons/icon.ico"))?)?
         .build()?;
 
-    webview::init_on(&window, "main")?;
-    webview::init_on(&window, "chaoxing")?;
-    webview::init_on(&window, "mask")?.hide()?;
+    webview::init_on(&window, "main")?.hide()?;
+    webview::init_on(&window, "chaoxing")?.hide()?;
+    webview::init_on(&window, "mask")?;
 
     log::info!("初始化应用窗口成功");
 

@@ -34,6 +34,12 @@ export const commands = {
 	saveConfig: () => __TAURI_INVOKE<null>("save_config"),
 	/**  从本地 Ollama 服务拉取可用模型列表更新至内存配置。 */
 	fetchOllamaModels: () => __TAURI_INVOKE<null>("fetch_ollama_models"),
+	/**  显示主窗口并启动遮罩开屏动画。 */
+	startMask: () => __TAURI_INVOKE<null>("start_mask"),
+	/**  显示已在后台加载完成的主界面和超星 Webview。 */
+	showContent: () => __TAURI_INVOKE<null>("show_content"),
+	/**  异步隐藏遮罩，避免遮罩 Webview 在自身 IPC 调用链中等待可见性更新。 */
+	hideMask: () => __TAURI_INVOKE<null>("hide_mask"),
 	setZoom: (scale: number | null) => __TAURI_INVOKE<null>("set_zoom", { scale }),
 	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),

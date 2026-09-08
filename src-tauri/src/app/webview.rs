@@ -66,13 +66,15 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
     let (builder, position, size) = match label {
         "main" => (
             WebviewBuilder::new(label, WebviewUrl::App("main.html".into()))
-                .background_color((0, 0, 0, 0).into()),
+                .background_color((0, 0, 0, 0).into())
+                .devtools(cfg!(debug_assertions)),
             LogicalPosition::new(0.0, 0.0),
             LogicalSize::new(logical_size.width, logical_size.height),
         ),
         "mask" => (
             WebviewBuilder::new(label, WebviewUrl::App("mask.html".into()))
-                .background_color((0, 0, 0, 0).into()),
+                .background_color((0, 0, 0, 0).into())
+                .devtools(true),
             LogicalPosition::new(0.0, 0.0),
             LogicalSize::new(logical_size.width, logical_size.height),
         ),
@@ -82,6 +84,7 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
                 WebviewUrl::External(CONFIG.metadata.home_url.clone()),
             )
             .background_color((242, 244, 247).into())
+            .devtools(true)
             .on_navigation(|url| classify(url) != Type::Unknown)
             .on_page_load(load_on),
             // 齐次比例布局变换公式 (Scale-Invariant Proportional Layout Formulas):
