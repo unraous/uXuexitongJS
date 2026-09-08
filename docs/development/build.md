@@ -1,57 +1,77 @@
-# 构建指南
+﻿# 构建指南
 
-## 前置条件
+本项目使用 pnpm、Vue、Tauri 2 和 Rust 构建。以下版本为当前开发环境与项目依赖的实际版本；更新依赖前应先确认其兼容性。
 
-项目使用 pnpm、Node.js、Rust 和 Tauri 2。请安装 Node.js LTS、Rust 稳定版，并按 [Tauri 前置条件文档](https://v2.tauri.app/start/prerequisites/) 配置当前平台的系统依赖。
+| 组件 | 当前版本 | 用途 |
+| --- | --- | --- |
+| Node.js | `v22.18.0` | 运行 Vite、Vue 类型检查与 Tauri CLI |
+| pnpm | `12.3.4` | 安装与锁定前端依赖 |
+| Rust / Cargo | `1.97.1` | 编译桌面端与执行 Rust 测试 |
+| `@tauri-apps/cli` | `2.11.1` | 启动开发环境与生成发行包 |
+| `tauri` | `2.11.5` | 桌面端运行时 |
 
-Windows 开发环境通常还需要 Microsoft C++ Build Tools 和 WebView2 Runtime；以 Tauri 官方文档的当前要求为准。
+## Windows 前置条件
+
+安装 Node.js `v22.18.0`、pnpm `12.3.4` 和 Rust `1.97.1`。Windows 还需安装：
+
+- **Microsoft C++ Build Tools**，并勾选 Desktop development with C++ 工作负载；
+- **WebView2 Evergreen Runtime**。
+
+安装完成后，在项目根目录验证工具链：
+
+```powershell
+node --version
+pnpm --version
+rustc --version
+cargo --version
+pnpm exec tauri --version
+```
+
+输出应分别包含 Node.js `v22.18.0`、pnpm `12.3.4`、Rust/Cargo `1.97.1` 与 Tauri CLI `2.11.1`。
 
 ## 安装依赖
 
-```sh
-pnpm install
+首次克隆或依赖发生变更后，在项目根目录执行：
+
+```powershell
+pnpm install --frozen-lockfile
 ```
 
-如果 Node.js 没有提供 pnpm，可先启用 Corepack：
-
-```sh
-corepack enable
-```
+该命令严格使用已提交的 `pnpm-lock.yaml`，不会在安装时更新依赖版本或锁文件。只有明确要升级依赖时，才使用不带 `--frozen-lockfile` 的 `pnpm install`，并一并提交锁文件变更。
 
 ## 本地开发
 
-启动 Tauri 桌面端和 Vite 开发服务器：
+启动完整桌面端开发环境：
 
-```sh
-pnpm tauri dev
+```powershell
+pnpm exec tauri dev
 ```
 
-仅启动前端开发服务器：
+只调试 Vue 页面时，可启动 Vite：
 
-```sh
+```powershell
 pnpm run dev
 ```
 
-## 检查与构建
+后者不会创建 Tauri 窗口，也无法验证 IPC、课程 WebView 或本地配置读写。
 
-前端类型检查和生产构建：
+## 发布前检查
 
-```sh
+依次执行前端类型检查与生产构建、Rust 测试：
+
+```powershell
 pnpm run build
+cargo test --locked --manifest-path src-tauri/Cargo.toml
 ```
 
-Rust 测试：
+确认通过后生成桌面端发行包：
 
-```sh
-cargo test --manifest-path src-tauri/Cargo.toml
+```powershell
+pnpm exec tauri build
 ```
 
-构建桌面端发行包：
-
-```sh
-pnpm tauri build
-```
+构建产物位于 `src-tauri/target/release/bundle/`。发布前至少安装并验证一次生成的安装包，确认开屏动画、课程 WebView 登录、模型配置保存和正常退出均可用。
 
 ## 本地数据
 
-运行时会在应用工作目录的 `uxs-data` 下保存配置和日志。该目录已被 Git 忽略；提交日志前请删除可能包含的敏感信息。
+运行时会在应用工作目录的 `uxs-data` 下保存配置和日志。该目录已被 Git 忽略；提交日志或打包问题报告前，请检查其中是否包含 API Key、课程信息或其他敏感内容。

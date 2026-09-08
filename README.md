@@ -1,8 +1,18 @@
-# uXueScript
+<h1 align="center">uXueScript</h1>
 
-uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue 开发，重构自 [uXuexitongJS](https://github.com/unraous/uXuexitongJS)。桌面端集成课程控制、模型配置和进度展示，同时保留可在浏览器控制台执行的独立脚本。
+<p align="center">
+  <img src="src-tauri/icons/icon.png" width="160" alt="uXueScript Logo">
+</p>
+
+uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue 开发，重构自 [history 分支中的 uXuexitongJS](https://github.com/unraous/uxuescript/tree/history)。桌面端集成课程控制、模型配置和进度展示，同时保留可在浏览器控制台执行的独立脚本。
 
 > 本版本仍在持续完善。提交问题前，请先确认已更新至最新版本。
+
+## 2.0.0 更新
+
+- 大幅缩小桌面端产物体积，降低下载、安装与启动开销。
+- 移除 Selenium 依赖，课程页面直接由内嵌 WebView 承载，程序更轻量。
+- 修复测验页的特殊处理：此前单页只能处理一组题目，并可能在答题过程中直接跳转至其他任务点。
 
 ## 功能特性
 
@@ -15,7 +25,6 @@ uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue
 
 ## 注意事项
 
-- 请将学习通网页界面语言设为中文。页面结构或语言差异可能影响脚本识别。
 - 智能答题需自行配置模型供应商、模型和 API Key；密钥仅用于请求所选供应商的服务。
 - 作者不是学习通长期用户，可用于测试的课程资源有限。特殊课程可能存在兼容性问题。
 - 本项目仅供个人学习、自动化研究与技术交流。使用前请确认学校和平台规则，不得用于考试作弊或其他违法、违规用途。
@@ -24,7 +33,7 @@ uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue
 
 ### 直接使用
 
-从 [Release 页面](https://github.com/unraous/uxs-rs/releases) 下载对应平台的最新发行包。启动应用后，请参阅[桌面端使用指南](docs/usage/desktop.md)。
+从 [Release 页面](https://github.com/unraous/uxuescript/releases) 下载对应平台的最新发行包。启动应用后，请参阅[桌面端使用指南](docs/usage/desktop.md)。
 
 ### 自行构建
 
@@ -32,7 +41,7 @@ uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue
 
 ## 运行方式
 
-- **桌面端模式：** 从 [Release 页面](https://github.com/unraous/uxs-rs/releases) 获取发行包。桌面端管理课程 WebView、保存配置并自动注入课程脚本。
+- **桌面端模式：** 从 [Release 页面](https://github.com/unraous/uxuescript/releases) 获取发行包。桌面端管理课程 WebView、保存配置并自动注入课程脚本。
 - **无后端模式：** 将 `core.js` 复制到浏览器控制台执行。完整步骤见[无后端模式](docs/backend-free.md)。
 
 ## 文档
@@ -46,7 +55,7 @@ uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue
 
 ## 反馈与贡献
 
-如问题在更新后仍未解决，请在 [GitHub Issues](https://github.com/unraous/uxs-rs/issues) 提交复现步骤、课程类型和必要的错误信息，或发送邮件至 <unraous@qq.com>。
+如问题在更新后仍未解决，请在 [GitHub Issues](https://github.com/unraous/uxuescript/issues) 提交复现步骤、课程类型和必要的错误信息，或发送邮件至 <unraous@qq.com>。
 
 ## 许可证
 

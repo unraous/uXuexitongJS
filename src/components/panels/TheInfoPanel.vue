@@ -3,7 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 
 const openIssues = async () => {
   try {
-    await openUrl("https://github.com/unraous/uxs-rs/issues");
+    await openUrl("https://github.com/unraous/uxuescript/issues");
   } catch (error) {
     console.error("无法打开 GitHub Issues 页面:", error);
   }
@@ -28,7 +28,7 @@ const openIssues = async () => {
       </p>
       <p>
         作者并非学习通长期用户，测试课程资源有限，部分特殊课程尚未充分验证，可能存在兼容性问题。若更新至最新版本后问题仍未解决，欢迎在
-        <a href="https://github.com/unraous/uxs-rs/issues" @click.prevent="openIssues">GitHub Issues</a>
+        <a href="https://github.com/unraous/uxuescript/issues" @click.prevent="openIssues">GitHub Issues</a>
         提交反馈，或联系作者：
         <a href="mailto:unraous@qq.com">unraous@qq.com</a>。
       </p>
