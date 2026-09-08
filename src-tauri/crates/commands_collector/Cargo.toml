@@ -1,6 +1,6 @@
 [package]
 name = "commands_collector"
-version = "0.1.0"
+version = "2.0.0"
 authors = ["unraous"]
 edition = "2021"
 description = "Procedural macro to automatically collect Tauri commands, generate auto handler, and sync permission JSON files."
