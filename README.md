@@ -4,6 +4,14 @@
   <img src="src-tauri/icons/icon.png" width="160" alt="uXueScript Logo">
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Rust-1.97.1-DEA584?style=flat-square&logo=rust&logoColor=white" alt="Rust 1.97.1">
+  <img src="https://img.shields.io/badge/Tauri-2.11-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri 2.11">
+  <img src="https://img.shields.io/badge/Vue-3.5-42B883?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue 3.5">
+  <img src="https://img.shields.io/badge/TypeScript-5.6-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5.6">
+  <img src="https://img.shields.io/badge/pnpm-12.3.4-F69220?style=flat-square&logo=pnpm&logoColor=white" alt="pnpm 12.3.4">
+</p>
+
 uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue 开发，重构自 [history 分支中的 uXuexitongJS](https://github.com/unraous/uxuescript/tree/history)。桌面端集成课程控制、模型配置和进度展示，同时保留可在浏览器控制台执行的独立脚本。
 
 > 本版本仍在持续完善。提交问题前，请先确认已更新至最新版本。
