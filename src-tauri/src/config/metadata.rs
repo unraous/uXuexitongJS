@@ -20,8 +20,8 @@ impl Default for MetadataConfig {
         Self {
             author: "unraous".into(),
             title: "uXueScript".into(),
-            version: "2.0.0".into(),
-            home_url: Url::parse("https://i.chaoxing.com/").expect("Invalid home URL"),
+            version: "2.0.1".into(),
+            home_url: Url::parse("https://i.mooc.chaoxing.com/").expect("Invalid home URL"),
             log_level: if cfg!(debug_assertions) {
                 LevelFilter::Debug
             } else {
