@@ -1,60 +1,53 @@
 # uXueScript
 
-uXueScript 是面向学习通网页版的桌面端课程辅助工具，使用 Tauri、Rust 与 Vue 重构自 [uXuexitongJS](https://github.com/unraous/uXuexitongJS)。它保留旧版的课程自动化与 AI 答题能力，并将配置、课程控制和状态展示整合到桌面应用中。
+uXueScript 是学习通网页版课程辅助工具，使用 Tauri、Rust 与 Vue 开发，重构自 [uXuexitongJS](https://github.com/unraous/uXuexitongJS)。桌面端集成课程控制、模型配置和进度展示，同时保留可在浏览器控制台执行的独立脚本。
 
-> 项目处于重构后的早期迭代阶段，版本更新会相对频繁。遇到问题前，请先确认自己正在使用最新版本。
+> 本版本仍在持续完善。提交问题前，请先确认已更新至最新版本。
 
-## 功能
+## 功能特性
 
 - 读取课程章节与完成进度，自动切换待完成内容
 - 支持视频、文档和阅读等课程任务的自动处理
-- 支持播放倍速、静音和后台播放
+- 支持倍速播放、静音、会话保持和后台播放
 - 提取章节测验内容，并通过已配置的大模型生成参考答案
 - 支持多个模型供应商、模型切换及 API Key 本地配置
-- 保留可直接注入浏览器控制台的核心脚本，未连接桌面后端时仍可处理支持的非测验任务
+- 桌面端自动向课程页面注入脚本；也可直接复制单文件脚本运行
+
+## 注意事项
+
+- 请将学习通网页界面语言设为中文。页面结构或语言差异可能影响脚本识别。
+- 智能答题需自行配置模型供应商、模型和 API Key；密钥仅用于请求所选供应商的服务。
+- 作者不是学习通长期用户，可用于测试的课程资源有限。特殊课程可能存在兼容性问题。
+- 本项目仅供个人学习、自动化研究与技术交流。使用前请确认学校和平台规则，不得用于考试作弊或其他违法、违规用途。
 
 ## 使用方式
 
-1. 在 **Configuration** 中选择合适的模型供应商和模型，并填写 API Key。
-2. 在右下角的课程页面登录学习通，打开要处理的课程。
-3. 根据弹窗提示启动课程任务。课程进度和当前状态会显示在应用内。
+### 直接使用
 
-API Key 仅用于向你配置的模型供应商发起请求。请使用自己拥有且可安全使用的密钥。
+从 [Release 页面](https://github.com/unraous/uxs-rs/releases) 下载对应平台的最新发行包。启动应用后，请参阅[桌面端使用指南](docs/usage/desktop.md)。
 
-## 兼容性与反馈
+### 自行构建
 
-作者不是学习通长期用户，可用于测试的课程资源有限；部分特殊课程尚未充分验证，可能存在兼容性问题。若更新到最新版本后问题仍未解决，请在 [GitHub Issues](https://github.com/unraous/uxs-rs/issues) 提交复现步骤、课程类型和必要的错误信息，或发送邮件至 <unraous@qq.com>。
+如需修改代码或自行打包，请参阅[构建指南](docs/development/build.md)。
 
-本项目以非盈利目的维护，仅供个人学习、自动化研究与技术交流。使用前请自行确认学校和平台的规则；作者不对使用本软件产生的后果承担责任。请勿将其用于考试作弊或其他违法、违规用途。
+## 运行方式
 
-## 开发
+- **桌面端模式：** 从 [Release 页面](https://github.com/unraous/uxs-rs/releases) 获取发行包。桌面端管理课程 WebView、保存配置并自动注入课程脚本。
+- **无后端模式：** 将 `core.js` 复制到浏览器控制台执行。完整步骤见[无后端模式](docs/backend-free.md)。
 
-前端使用 pnpm 管理依赖；运行桌面端还需要 Rust 的稳定版工具链和 Tauri 所需的系统依赖。
+## 文档
 
-```sh
-pnpm install
-pnpm tauri dev
-```
+- [桌面端使用](docs/usage/desktop.md)：模型配置、课程操作和状态说明。
+- [智能答题](docs/usage/ai.md)：模型配置与题目处理流程。
+- [无后端模式](docs/backend-free.md)：浏览器控制台执行单文件脚本。
+- [构建指南](docs/development/build.md)：开发环境、检查和打包。
+- [架构概览](docs/architecture/overview.md)：前端、后端、课程 WebView 和独立脚本。
+- [常见问题](docs/troubleshooting.md)：粘贴限制、模型请求和兼容性问题。
 
-构建前端：
+## 反馈与贡献
 
-```sh
-pnpm run build
-```
-
-构建桌面安装包：
-
-```sh
-pnpm tauri build
-```
-
-## 致谢与第三方资源
-
-- 项目由旧版 [uXuexitongJS](https://github.com/unraous/uXuexitongJS) 重构而来。
-- 加密字体字形哈希表 `src-tauri/src/core/quiz/table.json` 的内嵌元数据注明作者为 `wyn665817`，许可为 MIT。
-- `ttf-parser` 使用 MIT 或 Apache-2.0 双许可；Typr.js 为 MIT 许可，其字形路径格式为当前兼容实现的参考来源。
-- 界面字体 ChillRoundF（寒蝉全圆体）以 SIL Open Font License 1.1 发布；完整文本见 [licenses/OFL-1.1.txt](licenses/OFL-1.1.txt)。
+如问题在更新后仍未解决，请在 [GitHub Issues](https://github.com/unraous/uxs-rs/issues) 提交复现步骤、课程类型和必要的错误信息，或发送邮件至 <unraous@qq.com>。
 
 ## 许可证
 
-除上述第三方资源外，本仓库中的 uXueScript 源代码以 [GNU GPL v3.0 only](LICENSE) 发布。GPL 保障复制、修改和再分发的自由，并要求衍生程序在发布时提供相同的自由；它不限制商业再分发。
+除第三方资源外，本仓库中的 uXueScript 源代码以 [GNU GPL v3.0 only](LICENSE) 发布。第三方字体、字形哈希表与依赖的归属和许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
