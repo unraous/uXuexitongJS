@@ -1,6 +1,6 @@
 [package]
 name = "uxuescript"
-version = "2.0.1"
+version = "2.0.2"
 description = "A Chaoxing course assistant built with Tauri, Rust, and Vue, rewritten from uXuexitongJS."
 authors = ["unraous"]
 edition = "2021"

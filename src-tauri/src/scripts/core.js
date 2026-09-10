@@ -794,7 +794,7 @@
     const configSummary = `当前配置：[视频倍速: ${speedInfo} | 自动静音: ${config.muteVideo ? "已开启" : "已关闭"}]`;
 
     const isConfirmed = confirm(
-      `[使用须知与运行指南 v2.0.1]
+      `[使用须知与运行指南 v2.0.2]
 1. 免责声明：本脚本仅供自动化测试与学习交流使用，请遵守相关法律法规及平台规定。
 2. 前置准备：建议关闭浏览器开发者工具(DevTools)，避免触发调试拦截。
 3. ${configSummary}

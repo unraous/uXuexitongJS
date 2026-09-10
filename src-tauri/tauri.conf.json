@@ -1,7 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "uxuescript",
-  "version": "2.0.1",
   "identifier": "top.unraous.uxs",
   "build": {
     "beforeDevCommand": "pnpm run dev",
@@ -22,5 +21,6 @@
       "icons/icon.png",
       "icons/icon.ico"
     ]
-  }
+  },
+  "version": "2.0.2"
 }
