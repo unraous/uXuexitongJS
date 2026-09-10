@@ -21,6 +21,8 @@ export const commands = {
 	currentProvider: () => __TAURI_INVOKE<string>("current_provider"),
 	/**  将当前大语言模型提供商切换为指定提供商。 */
 	switchProvider: (provider: string) => __TAURI_INVOKE<null>("switch_provider", { provider }),
+	/**  从本地 Ollama 服务拉取可用模型列表更新至内存配置。 */
+	fetchOllamaModels: () => __TAURI_INVOKE<null>("fetch_ollama_models"),
 	/**  获取当前大语言模型提供商所支持的全部模型列表。 */
 	models: () => __TAURI_INVOKE<string[]>("models"),
 	/**  获取当前大语言模型提供商正在使用的具体模型名称。 */
@@ -32,8 +34,6 @@ export const commands = {
 	setKey: (key: string) => __TAURI_INVOKE<null>("set_key", { key }),
 	/**  将内存中的全局配置持久化保存至本地文件。 */
 	saveConfig: () => __TAURI_INVOKE<null>("save_config"),
-	/**  从本地 Ollama 服务拉取可用模型列表更新至内存配置。 */
-	fetchOllamaModels: () => __TAURI_INVOKE<null>("fetch_ollama_models"),
 	/**  显示主窗口并启动遮罩开屏动画。 */
 	startMask: () => __TAURI_INVOKE<null>("start_mask"),
 	/**  显示已在后台加载完成的主界面和超星 Webview。 */

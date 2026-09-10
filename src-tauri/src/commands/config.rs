@@ -65,19 +65,50 @@ pub fn switch_provider(provider: String) -> CommandsResult<()> {
     }
 }
 
+/// 从本地 Ollama 服务拉取可用模型列表更新至内存配置。
+#[tauri::command]
+#[specta::specta]
+pub async fn fetch_ollama_models() -> CommandsResult<()> {
+    log::debug!("正在从 Ollama 服务拉取最新模型列表...");
+    let base_url = {
+        let providers = CONFIG.llm.providers.lock();
+        let p = providers
+            .get("ollama")
+            .ok_or_else(|| anyhow::anyhow!("找不到 Ollama 提供商"))?;
+        p.base_url.clone()
+    };
+
+    let models = crate::config::llm::ollama::fetch_models(&base_url).await;
+    if models.is_empty() {
+        return Err(anyhow::anyhow!("未能从 Ollama 服务 [{}] 获取到可用模型列表", base_url).into());
+    }
+
+    let mut providers = CONFIG.llm.providers.lock();
+    if let Some(p) = providers.get_mut("ollama") {
+        p.models = models;
+        p.chosen_model = Some(0);
+    }
+    log::info!("Ollama 模型列表更新完成");
+    Ok(())
+}
+
 /// 获取当前大语言模型提供商所支持的全部模型列表。
 #[tauri::command]
 #[specta::specta]
-pub fn models() -> Vec<String> {
-    log::debug!("正在获取可用模型列表...");
-    let active_id = CONFIG.llm.active_provider.lock();
+pub async fn models() -> Vec<String> {
+    let active_id = CONFIG.llm.active_provider.lock().clone();
+
+    if active_id == "ollama" {
+        if let Err(error) = fetch_ollama_models().await {
+            log::warn!("Ollama 模型刷新失败: {}", error);
+        }
+    }
+
     let providers = CONFIG.llm.providers.lock();
-    let models = providers
-        .get(&*active_id)
-        .map(|p| p.models.clone())
-        .unwrap_or_default();
-    log::info!("成功获取模型列表: {:?}", models);
-    models
+    providers
+        .get(&active_id)
+        .map(|provider| provider.models.clone())
+        .unwrap_or_default()
 }
 
 /// 获取当前大语言模型提供商正在使用的具体模型名称。
@@ -155,32 +186,5 @@ pub fn save_config() -> CommandsResult<()> {
     log::debug!("正在保存配置文件...");
     CONFIG.save()?;
     log::info!("成功保存配置文件");
-    Ok(())
-}
-
-/// 从本地 Ollama 服务拉取可用模型列表更新至内存配置。
-#[tauri::command]
-#[specta::specta]
-pub async fn fetch_ollama_models() -> CommandsResult<()> {
-    log::debug!("正在从 Ollama 服务拉取最新模型列表...");
-    let base_url = {
-        let providers = CONFIG.llm.providers.lock();
-        let p = providers
-            .get("ollama")
-            .ok_or_else(|| anyhow::anyhow!("找不到 Ollama 提供商"))?;
-        p.base_url.clone()
-    };
-
-    let models = crate::config::llm::ollama::fetch_models(&base_url).await;
-    if models.is_empty() {
-        return Err(anyhow::anyhow!("未能从 Ollama 服务 [{}] 获取到可用模型列表", base_url).into());
-    }
-
-    let mut providers = CONFIG.llm.providers.lock();
-    if let Some(p) = providers.get_mut("ollama") {
-        p.models = models;
-        p.chosen_model = Some(0);
-    }
-    log::info!("Ollama 模型列表更新完成");
     Ok(())
 }
