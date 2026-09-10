@@ -106,6 +106,7 @@ onMounted(async () => {
       currentUrl.value = event.payload as string;
       await updateNavState();
     });
+    zoomIndex.value = 5; //感觉默认改到80%好一点
   } catch (err) {
     console.error("注册 URL 监听失败:", err);
   }
