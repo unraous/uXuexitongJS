@@ -1,7 +1,7 @@
 (() => {
   if (window === window.top) {
     window.addEventListener("message", (e) => {
-      if (e.data && e.data.__uxue_navigate) {
+      if (e.data?.__uxue_navigate) {
         window.location.href = e.data.__uxue_navigate;
       }
     });

@@ -2,7 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "checkJs": true
   },
   "exclude": ["node_modules", "dist"]
 }

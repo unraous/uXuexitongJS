@@ -3,7 +3,7 @@
   "use strict";
 
   /** @type {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} */
-  let tauriInvoke = /** @type {any} */ (globalThis).__TAURI_INTERNALS__?.invoke;
+  let tauriInvoke = /** @type {any} */ (window).__TAURI_INTERNALS__?.invoke;
 
   /** SELECTORS 选择器及静态字符串统一配置表 */
   const SELECTORS = {
@@ -47,7 +47,7 @@
 
   /** @type {(ms: number) => Promise<void>} */
   const sleep = (ms) =>
-    new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+    new Promise((resolve) => window.setTimeout(resolve, ms));
 
   /** @type {(cond: any, msg: string) => asserts cond} */
   const assert = (cond, msg) => {
@@ -726,11 +726,6 @@
   };
 
   const neutralizeAntiCheating = () => {
-    const win = /** @type {any} */ (window.top || window);
-    const doc = /** @type {any} */ (win.document);
-    if (!win || win.__uxue_neutralized__) return;
-    win.__uxue_neutralized__ = true;
-
     const blockedEvents = [
       "blur",
       "focusout",
@@ -743,8 +738,8 @@
     // 1. 清理已有内联监听属性 (DOM Level 0)
     for (const evt of blockedEvents) {
       try {
-        win[`on${evt}`] = null;
-        doc[`on${evt}`] = null;
+        (/** @type {any} */ (window))[`on${evt}`] = null;
+        (/** @type {any} */ (document))[`on${evt}`] = null;
       } catch (e) {
         console.error(`清理 ${evt} 事件监听失败:`, e);
       }
@@ -758,13 +753,13 @@
     };
 
     for (const evt of blockedEvents) {
-      win.addEventListener(evt, stopPropagation, true);
-      doc.addEventListener(evt, stopPropagation, true);
+      window.addEventListener(evt, stopPropagation, true);
+      document.addEventListener(evt, stopPropagation, true);
     }
 
     // 3. 拦截后续动态 addEventListener
-    const originalAdd = win.EventTarget.prototype.addEventListener;
-    win.EventTarget.prototype.addEventListener = function (
+    const originalAdd = window.EventTarget.prototype.addEventListener;
+    window.EventTarget.prototype.addEventListener = function (
       /** @type {string} */ type,
       /** @type {EventListenerOrEventListenerObject} */ listener,
       /** @type {any} */ options,
@@ -775,15 +770,15 @@
 
     // 4. 伪造 Page Visibility 与 Focus API
     try {
-      Object.defineProperty(doc, "hidden", {
+      Object.defineProperty(document, "hidden", {
         get: () => false,
         configurable: true,
       });
-      Object.defineProperty(doc, "visibilityState", {
+      Object.defineProperty(document, "visibilityState", {
         get: () => "visible",
         configurable: true,
       });
-      doc.hasFocus = () => true;
+      document.hasFocus = () => true;
     } catch (e) {
       console.error("伪造 Page Visibility 与 Focus API 失败:", e);
     }

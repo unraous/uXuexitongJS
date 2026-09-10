@@ -6,6 +6,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "allowJs": true,
+    "checkJs": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -25,8 +26,15 @@
     "paths": {
       "@/*": ["./src/*"],
       "@panels/*": ["./src/components/panels/*"],
-    }
+    },
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "new-core.js", "src-tauri/src/scripts/**/*.js"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "new-core.js",
+    "src-tauri/src/scripts/core.js",
+  ],
+  "references": [{ "path": "./tsconfig.node.json" }],
 }
